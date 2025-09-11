@@ -7,6 +7,7 @@ include(
     "service:account",
     "service:plan",
     "service:diary",
+    "service:expense",
     "service:like",
     "service:comment",
 )
