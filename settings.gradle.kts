@@ -4,6 +4,7 @@ include(
     "common",
     "common:snowflake",
     "service",
+    "service:auth",
     "service:account",
     "service:plan",
     "service:diary",
