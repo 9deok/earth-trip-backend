@@ -1,0 +1,29 @@
+services:
+  mariadb:
+    image: mariadb:11.8.8
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: earth_trip
+      MARIADB_USER: earth_trip
+      MARIADB_PASSWORD: earth_trip_local
+      MARIADB_ROOT_PASSWORD: earth_trip_root_local
+      TZ: UTC
+    ports:
+      - "3306:3306"
+    volumes:
+      - earth-trip-mariadb-data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--connect",
+          "--innodb_initialized"
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+volumes:
+  earth-trip-mariadb-data:

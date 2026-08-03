@@ -1,0 +1,9 @@
+package com.earthtrip.planning.adapter.in.web.api.v1.trips.by_trip_id.collection_categories.by_category_id;
+import com.earthtrip.planning.application.port.in.PlanningResourceUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import jakarta.validation.Valid;import jakarta.validation.constraints.*;import java.util.*;import org.springframework.http.HttpStatus;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/trips/{tripId}/collection-categories/{categoryId}") class CollectionCategoryByIdController{
+ private final PlanningResourceUseCase useCase;private final CurrentActor actor;CollectionCategoryByIdController(PlanningResourceUseCase u,CurrentActor a){useCase=u;actor=a;}
+ @GetMapping PlanningResourceUseCase.ResourceResult get(@PathVariable UUID tripId,@PathVariable UUID categoryId){return useCase.get(tripId,actor.requireUserId(),"COLLECTION_CATEGORY",categoryId);}
+ @PatchMapping PlanningResourceUseCase.ResourceResult patch(@PathVariable UUID tripId,@PathVariable UUID categoryId,@Valid @RequestBody CategoryMutation r){return useCase.update(tripId,actor.requireUserId(),"COLLECTION_CATEGORY",categoryId,PlanningResourceUseCase.WritePermission.EDITOR,new PlanningResourceUseCase.ResourceCommand(categoryId,null,null,r.payload(),r.status(),r.sortOrder(),r.baseVersion()));}
+ @DeleteMapping @ResponseStatus(HttpStatus.NO_CONTENT) void delete(@PathVariable UUID tripId,@PathVariable UUID categoryId,@Valid @RequestBody CategoryDelete r){useCase.delete(tripId,actor.requireUserId(),"COLLECTION_CATEGORY",categoryId,PlanningResourceUseCase.WritePermission.EDITOR,r.baseVersion());}
+}
+record CategoryMutation(Map<String,Object> payload,String status,Integer sortOrder,@Min(0) long baseVersion){}record CategoryDelete(@Min(0) long baseVersion){}

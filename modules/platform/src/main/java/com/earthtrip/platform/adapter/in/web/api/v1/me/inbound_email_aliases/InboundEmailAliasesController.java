@@ -1,0 +1,4 @@
+package com.earthtrip.platform.adapter.in.web.api.v1.me.inbound_email_aliases;
+import com.earthtrip.platform.application.port.in.IntegrationUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import jakarta.validation.Valid;import jakarta.validation.constraints.NotNull;import java.util.*;import org.springframework.http.*;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/me/inbound-email-aliases")class InboundEmailAliasesController{private final IntegrationUseCase u;private final CurrentActor a;InboundEmailAliasesController(IntegrationUseCase u,CurrentActor a){this.u=u;this.a=a;}@GetMapping List<IntegrationUseCase.AliasResult>get(){return u.aliases(a.requireUserId());}@PostMapping @ResponseStatus(HttpStatus.CREATED)IntegrationUseCase.AliasResult post(@Valid @RequestBody AliasRequest r){return u.createAlias(a.requireUserId(),r.requestId());}}
+record AliasRequest(@NotNull UUID requestId){}

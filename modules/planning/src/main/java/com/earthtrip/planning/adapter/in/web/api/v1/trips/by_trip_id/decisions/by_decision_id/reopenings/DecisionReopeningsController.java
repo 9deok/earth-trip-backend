@@ -1,0 +1,7 @@
+package com.earthtrip.planning.adapter.in.web.api.v1.trips.by_trip_id.decisions.by_decision_id.reopenings;
+import com.earthtrip.planning.application.port.in.PlanningResourceUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import jakarta.validation.Valid;import jakarta.validation.constraints.*;import java.util.*;import org.springframework.http.HttpStatus;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/trips/{tripId}/decisions/{decisionId}/reopenings") class DecisionReopeningsController{
+ private final PlanningResourceUseCase useCase;private final CurrentActor actor;DecisionReopeningsController(PlanningResourceUseCase u,CurrentActor a){useCase=u;actor=a;}
+ @PostMapping @ResponseStatus(HttpStatus.CREATED) PlanningResourceUseCase.ResourceResult post(@PathVariable UUID tripId,@PathVariable UUID decisionId,@Valid @RequestBody ReopeningMutation r){PlanningResourceUseCase.ResourceResult old=useCase.get(tripId,actor.requireUserId(),"DECISION",decisionId);Map<String,Object> payload=new LinkedHashMap<>(old.payload());payload.put("reopeningReason",r.reason());return useCase.update(tripId,actor.requireUserId(),"DECISION",decisionId,PlanningResourceUseCase.WritePermission.EDITOR,new PlanningResourceUseCase.ResourceCommand(decisionId,old.parentId(),old.localDate(),payload,"REOPENED",old.sortOrder(),r.baseVersion()));}
+}
+record ReopeningMutation(@NotBlank String reason,@Min(0) long baseVersion){}

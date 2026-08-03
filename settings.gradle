@@ -1,0 +1,16 @@
+rootProject.name = 'earth-trip-backend'
+
+include 'app', 'shared-kernel'
+
+[
+    'identity',
+    'trip',
+    'planning',
+    'expense',
+    'wallet',
+    'notification',
+    'platform'
+].each { moduleName ->
+    include moduleName
+    project(":${moduleName}").projectDir = file("modules/${moduleName}")
+}

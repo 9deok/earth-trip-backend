@@ -1,0 +1,15 @@
+description = 'Application capabilities, reference data, files, integrations, and operational support'
+
+dependencies {
+    implementation project(':expense')
+    implementation project(':identity')
+    implementation project(':notification')
+    implementation project(':planning')
+    implementation project(':trip')
+    implementation project(':wallet')
+    implementation 'org.springframework:spring-web'
+    implementation 'org.springframework:spring-websocket'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.apache.pdfbox:pdfbox:3.0.8'
+    implementation 'jakarta.validation:jakarta.validation-api'
+}

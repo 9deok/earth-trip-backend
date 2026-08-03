@@ -1,0 +1,50 @@
+package com.earthtrip.planning.adapter.in.web.api.v1.trips.by_trip_id.conflicts.by_conflict_id.resolutions;
+
+import com.earthtrip.planning.application.port.in.SyncConflictUseCase;
+import com.earthtrip.sharedkernel.security.CurrentActor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+import java.util.Map;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/conflicts/{conflictId}/resolutions")
+class ConflictResolutionsController {
+
+    private final SyncConflictUseCase useCase;
+    private final CurrentActor actor;
+
+    ConflictResolutionsController(SyncConflictUseCase useCase, CurrentActor actor) {
+        this.useCase = useCase;
+        this.actor = actor;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    SyncConflictUseCase.ConflictResult post(
+        @PathVariable UUID tripId,
+        @PathVariable UUID conflictId,
+        @Valid @RequestBody ConflictResolutionRequest request
+    ) {
+        return useCase.resolve(
+            tripId, conflictId, actor.requireUserId(),
+            new SyncConflictUseCase.ResolutionCommand(
+                request.strategy(), request.mergedPayload(), request.baseVersion()
+            )
+        );
+    }
+}
+
+record ConflictResolutionRequest(
+    @NotBlank String strategy,
+    Map<String, Object> mergedPayload,
+    @PositiveOrZero long baseVersion
+) { }

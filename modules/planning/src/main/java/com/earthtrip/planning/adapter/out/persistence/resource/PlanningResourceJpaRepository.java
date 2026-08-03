@@ -1,0 +1,8 @@
+package com.earthtrip.planning.adapter.out.persistence.resource;
+import java.time.LocalDate;import java.util.List;import org.springframework.data.jpa.repository.JpaRepository;
+interface PlanningResourceJpaRepository extends JpaRepository<PlanningResourceJpaEntity,String>{
+ List<PlanningResourceJpaEntity>findAllByTripIdAndDeletedAtIsNullOrderByResourceTypeAscSortOrderAscCreatedAtAsc(String tripId);
+    List<PlanningResourceJpaEntity> findAllByTripIdAndResourceTypeAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(String tripId,String type);
+    List<PlanningResourceJpaEntity> findAllByTripIdAndResourceTypeAndParentIdAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(String tripId,String type,String parentId);
+    List<PlanningResourceJpaEntity> findAllByTripIdAndResourceTypeAndLocalDateAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(String tripId,String type,LocalDate date);
+}

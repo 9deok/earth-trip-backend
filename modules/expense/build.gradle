@@ -1,0 +1,8 @@
+description = 'Expense, split, refund, and settlement bounded context'
+
+dependencies {
+    implementation project(':trip')
+    implementation 'org.springframework:spring-web'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'jakarta.validation:jakarta.validation-api'
+}

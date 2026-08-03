@@ -1,0 +1,90 @@
+plugins {
+    id 'base'
+    id 'org.springframework.boot' version '4.1.0' apply false
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.earthtrip'
+version = '0.1.0-SNAPSHOT'
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+
+def querydslVersion = '7.5'
+def springModulithVersion = '2.1.0'
+def domainModulePaths = [
+    ':identity',
+    ':trip',
+    ':planning',
+    ':expense',
+    ':wallet',
+    ':notification',
+    ':platform'
+] as Set
+
+subprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'io.spring.dependency-management'
+
+    group = rootProject.group
+    version = rootProject.version
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(21)
+        }
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.0'
+            mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+        }
+    }
+
+    dependencies {
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 21
+        options.compilerArgs.addAll(['-parameters', '-Xlint:all', '-Xlint:-processing'])
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+}
+
+configure(subprojects.findAll { it.path in domainModulePaths }) {
+    dependencies {
+        api project(':shared-kernel')
+
+        implementation 'org.springframework:spring-context'
+        implementation 'org.springframework:spring-tx'
+        implementation 'org.springframework.data:spring-data-jpa'
+        implementation "io.github.openfeign.querydsl:querydsl-jpa:${querydslVersion}"
+        implementation 'jakarta.persistence:jakarta.persistence-api'
+        compileOnly 'org.springframework.modulith:spring-modulith-api'
+        compileOnly 'org.jetbrains:annotations:26.0.2-1'
+
+        annotationProcessor "io.github.openfeign.querydsl:querydsl-apt:${querydslVersion}:jpa"
+        annotationProcessor 'jakarta.persistence:jakarta.persistence-api'
+        annotationProcessor 'jakarta.annotation:jakarta.annotation-api'
+
+        testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
+    }
+}
+
+tasks.named('check') {
+    dependsOn subprojects.collect { "${it.path}:check" }
+}
+
+tasks.named('build') {
+    dependsOn ':app:bootJar'
+}

@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: earth-trip-backend
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${DATABASE_URL:jdbc:mariadb://localhost:3306/earth_trip}
+    username: ${DATABASE_USERNAME:earth_trip}
+    password: ${DATABASE_PASSWORD:earth_trip_local}
+    driver-class-name: org.mariadb.jdbc.Driver
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+earthtrip:
+  oauth:
+    google:
+      client-ids: ${GOOGLE_OAUTH_CLIENT_IDS:}
+  wallet:
+    encryption-keys: ${WALLET_DATA_ENCRYPTION_KEYS:}
+    primary-key-id: ${WALLET_DATA_PRIMARY_KEY_ID:primary}
+  push:
+    token-encryption-key: ${PUSH_TOKEN_ENCRYPTION_KEY_BASE64:}
+  realtime:
+    allowed-origins: ${REALTIME_ALLOWED_ORIGINS:}
+  internal:
+    admin-token: ${INTERNAL_ADMIN_TOKEN:}
+    webhook-max-age-seconds: ${INTERNAL_WEBHOOK_MAX_AGE_SECONDS:300}
+    webhooks:
+      object-storage:
+        secret: ${OBJECT_STORAGE_WEBHOOK_SECRET:}
+      malware-scan:
+        secret: ${MALWARE_SCAN_WEBHOOK_SECRET:}
+      inbound-email:
+        secret: ${INBOUND_EMAIL_WEBHOOK_SECRET:}
+      calendar:
+        secret: ${CALENDAR_WEBHOOK_SECRET:}
+      push-delivery:
+        secret: ${PUSH_DELIVERY_WEBHOOK_SECRET:}
+      financial-provider:
+        secret: ${FINANCIAL_PROVIDER_WEBHOOK_SECRET:}
+  capabilities:
+    minimum-android-build: ${MINIMUM_ANDROID_BUILD:1}
+    minimum-ios-build: ${MINIMUM_IOS_BUILD:1}
+    maintenance-mode: ${MAINTENANCE_MODE:false}
+    maintenance-message: ${MAINTENANCE_MESSAGE:}
+    read-only-available: ${READ_ONLY_AVAILABLE:true}
+  providers:
+    email:
+      available: ${EMAIL_PROVIDER_AVAILABLE:false}
+    places:
+      available: ${PLACES_PROVIDER_AVAILABLE:false}
+    routes:
+      available: ${ROUTES_PROVIDER_AVAILABLE:false}
+    weather:
+      available: ${WEATHER_PROVIDER_AVAILABLE:false}
+    exchange-rates:
+      available: ${EXCHANGE_RATE_PROVIDER_AVAILABLE:false}
+    object-storage:
+      available: ${OBJECT_STORAGE_PROVIDER_AVAILABLE:false}

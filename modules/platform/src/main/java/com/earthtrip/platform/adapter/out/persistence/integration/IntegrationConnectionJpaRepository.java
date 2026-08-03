@@ -1,0 +1,1 @@
+package com.earthtrip.platform.adapter.out.persistence.integration;import java.util.List;import org.springframework.data.jpa.repository.JpaRepository;interface IntegrationConnectionJpaRepository extends JpaRepository<IntegrationConnectionJpaEntity,String>{List<IntegrationConnectionJpaEntity>findAllByUserIdAndKindAndRevokedAtIsNullOrderByCreatedAtDesc(String userId,String kind);}

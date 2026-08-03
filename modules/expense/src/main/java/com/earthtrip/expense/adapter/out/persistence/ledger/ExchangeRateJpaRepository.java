@@ -1,0 +1,1 @@
+package com.earthtrip.expense.adapter.out.persistence.ledger;import java.util.List;import org.springframework.data.jpa.repository.JpaRepository;interface ExchangeRateJpaRepository extends JpaRepository<ExchangeRateJpaEntity,String>{List<ExchangeRateJpaEntity> findAllByTripIdOrderByObservedAtDesc(String trip);}

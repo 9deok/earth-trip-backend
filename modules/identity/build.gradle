@@ -1,0 +1,14 @@
+description = 'Identity, authentication, invitation, and membership bounded context'
+
+dependencies {
+    implementation project(':trip')
+    implementation 'org.springframework:spring-web'
+    implementation 'org.springframework:spring-webmvc'
+    implementation 'org.springframework.security:spring-security-core'
+    implementation 'org.springframework.security:spring-security-web'
+    implementation 'org.springframework.security:spring-security-config'
+    implementation 'org.springframework.security:spring-security-oauth2-jose'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'jakarta.servlet:jakarta.servlet-api'
+    implementation 'jakarta.validation:jakarta.validation-api'
+}

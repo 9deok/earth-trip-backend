@@ -1,0 +1,47 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+description = 'Earth Trip modular monolith bootstrap application'
+
+tasks.named('bootJar') {
+    archiveFileName = "${rootProject.name}-${project.version}.jar"
+}
+
+tasks.named('jar') {
+    enabled = false
+}
+
+dependencies {
+    implementation project(':shared-kernel')
+    implementation project(':identity')
+    implementation project(':trip')
+    implementation project(':planning')
+    implementation project(':expense')
+    implementation project(':wallet')
+    implementation project(':notification')
+    implementation project(':platform')
+
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.flywaydb:flyway-mysql'
+    implementation 'org.springframework.modulith:spring-modulith-starter-core'
+    implementation 'io.github.openfeign.querydsl:querydsl-jpa:7.5'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    compileOnly 'org.jetbrains:annotations:26.0.2-1'
+
+    runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+
+    testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
+    testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.2'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-mariadb'
+    testImplementation 'org.springframework.security:spring-security-test'
+}

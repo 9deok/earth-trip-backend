@@ -1,0 +1,1 @@
+package com.earthtrip.expense.adapter.out.persistence.settlement;import java.util.List;import org.springframework.data.jpa.repository.JpaRepository;interface SettlementJpaRepository extends JpaRepository<SettlementJpaEntity,String>{List<SettlementJpaEntity>findAllByTripIdOrderByCreatedAtDesc(String trip);}

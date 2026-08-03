@@ -1,0 +1,4 @@
+package com.earthtrip.platform.adapter.in.web.api.v1.me.reservation_mail_syncs;
+import com.earthtrip.platform.application.port.in.IntegrationUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import jakarta.validation.Valid;import jakarta.validation.constraints.NotNull;import java.util.*;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/me/reservation-mail-syncs")class ReservationMailSyncsController{private final IntegrationUseCase u;private final CurrentActor a;ReservationMailSyncsController(IntegrationUseCase u,CurrentActor a){this.u=u;this.a=a;}@PostMapping IntegrationUseCase.SyncJobResult post(@Valid @RequestBody MailSyncRequest r){return u.reservationMailSync(a.requireUserId(),r.requestId(),r.connectionId(),r.payload());}}
+record MailSyncRequest(@NotNull UUID requestId,UUID connectionId,Map<String,Object>payload){}

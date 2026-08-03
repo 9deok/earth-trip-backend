@@ -1,0 +1,1 @@
+package com.earthtrip.notification.adapter.out.persistence.notification;import java.util.List;import org.springframework.data.jpa.repository.JpaRepository;interface NotificationJpaRepository extends JpaRepository<NotificationJpaEntity,String>{List<NotificationJpaEntity>findAllByUserIdAndHiddenAtIsNullOrderByCreatedAtDesc(String user);}

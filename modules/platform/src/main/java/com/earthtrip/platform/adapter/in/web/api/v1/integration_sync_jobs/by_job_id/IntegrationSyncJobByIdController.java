@@ -1,0 +1,3 @@
+package com.earthtrip.platform.adapter.in.web.api.v1.integration_sync_jobs.by_job_id;
+import com.earthtrip.platform.application.port.in.IntegrationUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import java.util.UUID;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/integration-sync-jobs/{jobId}")class IntegrationSyncJobByIdController{private final IntegrationUseCase u;private final CurrentActor a;IntegrationSyncJobByIdController(IntegrationUseCase u,CurrentActor a){this.u=u;this.a=a;}@GetMapping IntegrationUseCase.SyncJobResult get(@PathVariable UUID jobId){return u.syncJob(a.requireUserId(),jobId);}}
