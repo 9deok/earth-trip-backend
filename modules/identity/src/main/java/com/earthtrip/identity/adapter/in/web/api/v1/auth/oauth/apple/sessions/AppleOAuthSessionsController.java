@@ -4,6 +4,7 @@ import com.earthtrip.identity.application.port.in.AccountIdentityUseCase;
 import com.earthtrip.identity.application.port.in.SessionUseCase;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +20,10 @@ class AppleOAuthSessionsController {
     }
 }
 record AppleOAuthRequest(
-    String authorizationCode, String idToken, String redirectUri, String codeVerifier,
+    @Size(max = 4096) String authorizationCode,
+    @NotBlank @Size(max = 8192) String idToken,
+    @Size(max = 2048) String redirectUri,
+    @Size(max = 256) String codeVerifier,
     @Size(max = 120) String deviceName
 ) {
     AccountIdentityUseCase.OAuthCommand command() {

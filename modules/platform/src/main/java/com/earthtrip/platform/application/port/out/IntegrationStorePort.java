@@ -19,14 +19,6 @@ public interface IntegrationStorePort {
 
     SyncRecord saveSync(SyncRecord record);
 
-    List<AliasRecord> aliases(UUID userId);
-
-    Optional<AliasRecord> alias(UUID id);
-
-    Optional<AliasRecord> aliasByAddress(String alias);
-
-    AliasRecord saveAlias(AliasRecord record);
-
     Optional<CalendarRecord> calendar(UUID tripId);
 
     CalendarRecord saveCalendar(CalendarRecord record);
@@ -64,16 +56,6 @@ public interface IntegrationStorePort {
         int attemptCount,
         Instant createdAt,
         Instant updatedAt,
-        long version
-    ) { }
-
-    record AliasRecord(
-        UUID id,
-        UUID userId,
-        String alias,
-        String status,
-        Instant createdAt,
-        Instant revokedAt,
         long version
     ) { }
 

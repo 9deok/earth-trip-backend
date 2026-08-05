@@ -2,6 +2,7 @@ package com.earthtrip.platform.application.service.file;
 
 import com.earthtrip.platform.application.port.in.FileUseCase;
 import com.earthtrip.platform.application.port.out.FileStorePort;
+import com.earthtrip.platform.application.port.out.MalwareScannerPort;
 import com.earthtrip.platform.application.port.out.ObjectStoragePort;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
@@ -33,17 +34,20 @@ class FileService implements FileUseCase {
 
     private final FileStorePort store;
     private final ObjectStoragePort objectStorage;
+    private final MalwareScannerPort malwareScanner;
     private final TripAccess tripAccess;
     private final Clock clock;
 
     FileService(
         FileStorePort store,
         ObjectStoragePort objectStorage,
+        MalwareScannerPort malwareScanner,
         TripAccess tripAccess,
         Clock clock
     ) {
         this.store = store;
         this.objectStorage = objectStorage;
+        this.malwareScanner = malwareScanner;
         this.tripAccess = tripAccess;
         this.clock = clock;
     }
@@ -161,10 +165,17 @@ class FileService implements FileUseCase {
         objectStorage.verifyUpload(
             file.storageKey(), file.mimeType(), file.sizeBytes(), file.checksum()
         );
-        FileStorePort.FileRecord completed = store.saveFile(new FileStorePort.FileRecord(
+        FileStorePort.FileRecord scanning = store.saveFile(new FileStorePort.FileRecord(
             file.id(), file.ownerUserId(), file.fileName(), file.mimeType(), file.sizeBytes(),
             file.checksum(), file.storageKey(), "SCANNING", file.createdAt(), now, null,
             file.version()
+        ));
+        MalwareScannerPort.ScanResult scan = malwareScanner.scan(file.storageKey());
+        String finalStatus = scan.clean() ? "READY" : "QUARANTINED";
+        FileStorePort.FileRecord completed = store.saveFile(new FileStorePort.FileRecord(
+            scanning.id(), scanning.ownerUserId(), scanning.fileName(), scanning.mimeType(),
+            scanning.sizeBytes(), scanning.checksum(), scanning.storageKey(), finalStatus,
+            scanning.createdAt(), now, null, scanning.version()
         ));
         store.saveUpload(new FileStorePort.UploadRecord(
             upload.id(), upload.fileId(), "COMPLETED", upload.expiresAt(),

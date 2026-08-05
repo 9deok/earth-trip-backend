@@ -2,6 +2,7 @@ package com.earthtrip.trip.application.service.destination;
 
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.application.port.in.DestinationCandidateUseCase;
 import com.earthtrip.trip.application.port.out.DestinationCandidateStorePort;
 import com.earthtrip.trip.domain.DestinationCandidate;
@@ -16,9 +17,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service @Transactional
 class DestinationCandidateService implements DestinationCandidateUseCase {
-    private final TripAccess access; private final DestinationCandidateStorePort store; private final Clock clock;
-    DestinationCandidateService(TripAccess access, DestinationCandidateStorePort store, Clock clock) {
-        this.access = access; this.store = store; this.clock = clock;
+    private final TripAccess access; private final DestinationCandidateStorePort store;
+    private final TripChangePublisher changes; private final Clock clock;
+    DestinationCandidateService(TripAccess access, DestinationCandidateStorePort store, TripChangePublisher changes, Clock clock) {
+        this.access = access; this.store = store; this.changes = changes; this.clock = clock;
     }
     @Override @Transactional(readOnly = true)
     public List<CandidateResult> list(UUID tripId, UUID actor) {
@@ -36,18 +38,23 @@ class DestinationCandidateService implements DestinationCandidateUseCase {
             c.requestId(), new TripId(tripId), c.name(), c.countryCode(), c.placeId(),
             c.latitude(), c.longitude(), c.note(), actor, clock.instant()
         );
-        return result(store.save(candidate));
+        DestinationCandidate saved = store.save(candidate);
+        changes.publish(tripId, actor, "CREATED", "DESTINATION_CANDIDATE", saved.id());
+        return result(saved);
     }
     @Override public CandidateResult update(UUID tripId, UUID id, UUID actor, CandidateCommand c) {
         access.requireEditor(tripId, actor); DestinationCandidate candidate = load(tripId, id);
         verifyVersion(candidate, c.baseVersion());
         candidate.update(c.name(), c.countryCode(), c.placeId(), c.latitude(), c.longitude(),
             c.note(), c.status(), clock.instant());
-        return result(store.save(candidate));
+        DestinationCandidate saved = store.save(candidate);
+        changes.publish(tripId, actor, "UPDATED", "DESTINATION_CANDIDATE", id);
+        return result(saved);
     }
     @Override public void delete(UUID tripId, UUID id, UUID actor, long baseVersion) {
         access.requireEditor(tripId, actor); DestinationCandidate candidate = load(tripId, id);
         verifyVersion(candidate, baseVersion); store.delete(id);
+        changes.publish(tripId, actor, "DELETED", "DESTINATION_CANDIDATE", id);
     }
     @Override public PreferenceResult putPreference(UUID tripId, UUID id, UUID actor, String raw) {
         access.requireViewer(tripId, actor); load(tripId, id);
@@ -55,10 +62,13 @@ class DestinationCandidateService implements DestinationCandidateUseCase {
         if (!List.of("INTERESTED", "PREFERRED", "NOT_INTERESTED").contains(preference)) {
             throw EarthTripException.badRequest("INVALID_PREFERENCE", "지원하지 않는 선호 값입니다.");
         }
-        return preference(store.savePreference(id, actor, preference, clock.instant()));
+        PreferenceResult result = preference(store.savePreference(id, actor, preference, clock.instant()));
+        changes.publish(tripId, actor, "VOTED", "DESTINATION_CANDIDATE", id);
+        return result;
     }
     @Override public void deletePreference(UUID tripId, UUID id, UUID actor) {
         access.requireViewer(tripId, actor); load(tripId, id); store.deletePreference(id, actor);
+        changes.publish(tripId, actor, "VOTE_REMOVED", "DESTINATION_CANDIDATE", id);
     }
     private DestinationCandidate load(UUID tripId, UUID id) {
         return store.findById(id).filter(c -> c.tripId().value().equals(tripId))

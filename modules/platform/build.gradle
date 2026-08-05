@@ -9,7 +9,9 @@ dependencies {
     implementation project(':wallet')
     implementation 'org.springframework:spring-web'
     implementation 'org.springframework:spring-websocket'
+    implementation 'jakarta.servlet:jakarta.servlet-api'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.jsoup:jsoup:1.22.2'
     implementation 'org.apache.pdfbox:pdfbox:3.0.8'
     implementation 'jakarta.validation:jakarta.validation-api'
 }

@@ -51,13 +51,19 @@ class ApiContractCompletenessTest {
 
         assertThat(expectedPublic)
             .as("공개 API 기획 계약 수")
-            .hasSize(335);
+            .hasSize(331);
         assertThat(actual)
             .as("구현되지 않은 공개 API 계약")
             .containsAll(expectedPublic);
         assertThat(actual)
             .as("구현되지 않은 내부 운영 API 계약")
             .containsAll(expectedInternal);
+        assertThat(actual.stream()
+            .map(Operation::path)
+            .filter(path -> path.contains("inbound-email") || path.contains("reservation-mail"))
+            .toList())
+            .as("제거된 예약 메일 수신 API")
+            .isEmpty();
 
         Path realtime = workspace.resolve(
             "earth-trip-backend/modules/platform/src/main/java/com/earthtrip/platform/adapter/in/"

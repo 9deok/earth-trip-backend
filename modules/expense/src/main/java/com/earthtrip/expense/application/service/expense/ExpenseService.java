@@ -6,6 +6,7 @@ import com.earthtrip.expense.application.port.out.ExpenseStorePort;
 import com.earthtrip.expense.domain.Expense;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripChangePublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -22,17 +23,20 @@ class ExpenseService implements ExpenseUseCase {
     private final TripAccess access;
     private final ExpenseStorePort store;
     private final ExpenseCategoryUseCase categories;
+    private final TripChangePublisher changes;
     private final Clock clock;
 
     ExpenseService(
         TripAccess access,
         ExpenseStorePort store,
         ExpenseCategoryUseCase categories,
+        TripChangePublisher changes,
         Clock clock
     ) {
         this.access = access;
         this.store = store;
         this.categories = categories;
+        this.changes = changes;
         this.clock = clock;
     }
 
@@ -78,7 +82,9 @@ class ExpenseService implements ExpenseUseCase {
             command.visibility() == null ? "TRIP" : command.visibility(), command.note(),
             actorUserId, clock.instant()
         );
-        return result(store.save(expense));
+        Expense saved = store.save(expense);
+        changes.publish(tripId, actorUserId, "CREATED", "EXPENSE", saved.id());
+        return result(saved);
     }
 
     @Override
@@ -99,7 +105,9 @@ class ExpenseService implements ExpenseUseCase {
             command.occurredAt(), command.payerContributions(), command.participantShares(),
             command.visibility(), command.status(), command.note(), actorUserId, clock.instant()
         );
-        return result(store.save(expense));
+        Expense saved = store.save(expense);
+        changes.publish(tripId, actorUserId, "UPDATED", "EXPENSE", saved.id());
+        return result(saved);
     }
 
     @Override
@@ -109,6 +117,7 @@ class ExpenseService implements ExpenseUseCase {
         requireVersion(expense, baseVersion);
         expense.delete(actorUserId, clock.instant());
         store.save(expense);
+        changes.publish(tripId, actorUserId, "DELETED", "EXPENSE", expenseId);
     }
 
     @Override
@@ -148,6 +157,7 @@ class ExpenseService implements ExpenseUseCase {
         }
         original.markSplit(actorUserId, now);
         store.save(original);
+        changes.publish(tripId, actorUserId, "SPLIT", "EXPENSE", expenseId);
         return List.copyOf(results);
     }
 
@@ -198,6 +208,10 @@ class ExpenseService implements ExpenseUseCase {
                 requestId, tripId, expenseId, "REFUND", amountMinor, expense.currency(),
                 participantId, payload == null ? Map.of() : Map.copyOf(payload), actorUserId, now
             )
+        );
+        changes.publish(
+            tripId, actorUserId, "REFUNDED", "EXPENSE", expenseId,
+            Map.of("adjustmentId", saved.id())
         );
         return adjustment(saved);
     }

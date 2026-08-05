@@ -5,6 +5,7 @@ import com.earthtrip.trip.application.port.in.CreateTripResult;
 import com.earthtrip.trip.application.port.in.CreateTripUseCase;
 import com.earthtrip.trip.application.port.out.LoadTripPort;
 import com.earthtrip.trip.application.port.out.SaveTripPort;
+import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.domain.Trip;
 import com.earthtrip.trip.domain.TripId;
 import com.earthtrip.trip.domain.TripTitle;
@@ -18,28 +19,38 @@ class CreateTripService implements CreateTripUseCase {
 
     private final LoadTripPort loadTripPort;
     private final SaveTripPort saveTripPort;
+    private final TripChangePublisher changes;
     private final Clock clock;
 
-    CreateTripService(LoadTripPort loadTripPort, SaveTripPort saveTripPort, Clock clock) {
+    CreateTripService(
+        LoadTripPort loadTripPort,
+        SaveTripPort saveTripPort,
+        TripChangePublisher changes,
+        Clock clock
+    ) {
         this.loadTripPort = loadTripPort;
         this.saveTripPort = saveTripPort;
+        this.changes = changes;
         this.clock = clock;
     }
 
     @Override
     public CreateTripResult create(CreateTripCommand command) {
         TripId tripId = new TripId(command.requestId());
-        Trip trip = loadTripPort.findById(tripId)
-            .orElseGet(() -> saveTripPort.save(
-                Trip.create(
-                    tripId,
-                    command.ownerUserId(),
-                    new TripTitle(command.title()),
-                    command.timeZone(),
-                    command.defaultCurrency(),
-                    clock.instant()
-                )
+        Trip trip = loadTripPort.findById(tripId).orElse(null);
+        if (trip == null) {
+            trip = saveTripPort.save(Trip.create(
+                tripId,
+                command.ownerUserId(),
+                new TripTitle(command.title()),
+                command.timeZone(),
+                command.defaultCurrency(),
+                clock.instant()
             ));
+            changes.publish(
+                trip.id().value(), command.ownerUserId(), "CREATED", "TRIP", trip.id().value()
+            );
+        }
 
         if (!trip.isOwnedBy(command.ownerUserId())) {
             throw com.earthtrip.sharedkernel.error.EarthTripException.conflict(

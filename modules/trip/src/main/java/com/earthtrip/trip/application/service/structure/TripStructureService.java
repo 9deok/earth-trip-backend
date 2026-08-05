@@ -126,6 +126,16 @@ class TripStructureService implements TripStructureUseCase {
     }
 
     @Override
+    public ChangeSetResult synchronize(
+        UUID tripId,
+        UUID actorUserId,
+        StructureProposal proposal
+    ) {
+        PreviewResult preview = preview(tripId, actorUserId, proposal);
+        return apply(tripId, actorUserId, proposal, preview.proposalHash());
+    }
+
+    @Override
     public ChangeSetResult revert(
         UUID tripId,
         UUID changeSetId,

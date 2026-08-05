@@ -8,6 +8,7 @@ import com.earthtrip.identity.domain.UserAccount;
 import com.earthtrip.identity.domain.UserId;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripChangePublisher;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;
@@ -24,14 +25,15 @@ class TripMemberService implements TripMemberUseCase {
     private final TripMemberStorePort members;
     private final UserAccountStorePort users;
     private final OwnershipTransferStorePort transfers;
+    private final TripChangePublisher changes;
     private final Clock clock;
 
     TripMemberService(
         TripAccess tripAccess, TripMemberStorePort members, UserAccountStorePort users,
-        OwnershipTransferStorePort transfers, Clock clock
+        OwnershipTransferStorePort transfers, TripChangePublisher changes, Clock clock
     ) {
         this.tripAccess = tripAccess; this.members = members; this.users = users;
-        this.transfers = transfers; this.clock = clock;
+        this.transfers = transfers; this.changes = changes; this.clock = clock;
     }
 
     @Override @Transactional(readOnly = true)
@@ -70,6 +72,7 @@ class TripMemberService implements TripMemberUseCase {
             member.id(), member.tripId(), member.userId(), role, member.status(),
             member.joinedAt(), clock.instant(), member.version()
         ));
+        changes.publish(tripId, actorUserId, "ROLE_CHANGED", "TRIP_MEMBER", memberId);
         return result(saved, actorUserId);
     }
 
@@ -78,6 +81,7 @@ class TripMemberService implements TripMemberUseCase {
         tripAccess.requireOwner(tripId, actorUserId);
         TripMemberStorePort.MemberRecord member = loadMember(tripId, memberId);
         verifyVersion(member, baseVersion); members.delete(memberId);
+        changes.publish(tripId, actorUserId, "REMOVED", "TRIP_MEMBER", memberId);
     }
 
     @Override
@@ -89,6 +93,7 @@ class TripMemberService implements TripMemberUseCase {
         TripMemberStorePort.MemberRecord member = members.findByTripAndUser(tripId, actorUserId)
             .orElseThrow(() -> EarthTripException.notFound("MEMBER_NOT_FOUND", "여행 멤버를 찾을 수 없습니다."));
         members.delete(member.id());
+        changes.publish(tripId, actorUserId, "LEFT", "TRIP_MEMBER", member.id());
     }
 
     @Override
@@ -115,6 +120,10 @@ class TripMemberService implements TripMemberUseCase {
             formerOwner.joinedAt(), now, formerOwner.version()
         ));
         transfers.record(UUID.randomUUID(), tripId, actorUserId, target.userId(), now);
+        changes.publish(
+            tripId, actorUserId, "OWNERSHIP_TRANSFERRED", "TRIP_MEMBER", target.id(),
+            java.util.Map.of("newOwnerUserId", target.userId())
+        );
     }
 
     private TripMemberStorePort.MemberRecord loadMember(UUID tripId, UUID memberId) {

@@ -22,7 +22,6 @@ class HmacWebhookSecurityAdapter implements WebhookSecurityPort {
     private static final Set<String> PROVIDERS = Set.of(
         "object-storage",
         "malware-scan",
-        "inbound-email",
         "calendar",
         "push-delivery",
         "financial-provider"

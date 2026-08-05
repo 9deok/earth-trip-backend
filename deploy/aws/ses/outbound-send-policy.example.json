@@ -1,0 +1,19 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SendEarthTripTransactionalEmail",
+      "Effect": "Allow",
+      "Action": "ses:SendEmail",
+      "Resource": [
+        "arn:aws:ses:ap-northeast-2:111122223333:identity/earth-trips.com",
+        "arn:aws:ses:ap-northeast-2:111122223333:configuration-set/earth-trip-transactional"
+      ],
+      "Condition": {
+        "StringEquals": {
+          "ses:FromAddress": "no-reply@earth-trips.com"
+        }
+      }
+    }
+  ]
+}

@@ -24,7 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 class ReservationImportService implements ReservationImportUseCase {
 
     private static final Set<String> SOURCE_TYPES = Set.of(
-        "FILE", "SCREENSHOT", "EMAIL", "FORWARDED_EMAIL", "MANUAL"
+        "FILE", "SCREENSHOT", "DOCUMENT_OCR", "MANUAL"
     );
     private static final Set<String> CANDIDATE_TYPES = Set.of(
         "FLIGHT", "LODGING", "TRANSPORT", "ACTIVITY", "RESTAURANT", "OTHER"
@@ -72,7 +72,12 @@ class ReservationImportService implements ReservationImportUseCase {
         ReservationImportStorePort.JobRecord saved = store.saveJob(
             new ReservationImportStorePort.JobRecord(
                 command.requestId(), tripId, sourceType, sourcePayload,
-                candidates.isEmpty() ? "QUEUED" : "READY", null, null, 1,
+                candidates.isEmpty() ? "FAILED" : "READY",
+                candidates.isEmpty() ? "RESERVATION_CANDIDATES_NOT_FOUND" : null,
+                candidates.isEmpty()
+                    ? "자동으로 찾은 예약 정보가 없습니다. 내용을 확인해 직접 입력해 주세요."
+                    : null,
+                1,
                 actorUserId, now, now, 0
             )
         );
@@ -207,7 +212,11 @@ class ReservationImportService implements ReservationImportUseCase {
             );
         }
         return result(store.saveJob(copyJob(
-            job, "QUEUED", null, null, job.attemptCount() + 1
+            job,
+            "FAILED",
+            "RESERVATION_IMPORT_RETRY_REQUIRES_NEW_INPUT",
+            "새 이미지나 교정된 예약 후보로 가져오기를 다시 시작해 주세요.",
+            job.attemptCount() + 1
         )));
     }
 

@@ -50,6 +50,21 @@ class ActivityOperationPersistenceAdapter implements ActivityOperationStorePort 
     }
 
     @Override
+    public void appendActivity(
+        UUID tripId,
+        UUID actorId,
+        String action,
+        String resourceType,
+        UUID resourceId,
+        Map<String, Object> details,
+        java.time.Instant occurredAt
+    ) {
+        activities.save(new PlanningActivityJpaEntity(
+            tripId, actorId, action, resourceType, resourceId, write(details), occurredAt
+        ));
+    }
+
+    @Override
     public Optional<OperationRecord> findOperation(UUID operationId) {
         return operations.findById(operationId.toString()).map(this::operation);
     }

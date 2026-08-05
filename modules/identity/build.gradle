@@ -2,6 +2,8 @@ description = 'Identity, authentication, invitation, and membership bounded cont
 
 dependencies {
     implementation project(':trip')
+    implementation platform('software.amazon.awssdk:bom:2.50.3')
+    implementation 'software.amazon.awssdk:sesv2'
     implementation 'org.springframework:spring-web'
     implementation 'org.springframework:spring-webmvc'
     implementation 'org.springframework.security:spring-security-core'

@@ -2,6 +2,7 @@ package com.earthtrip.platform.adapter.in.realtime;
 
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripRealtimeNotifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -21,7 +22,8 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Component
-class TripRealtimeWebSocketHandler extends TextWebSocketHandler {
+class TripRealtimeWebSocketHandler extends TextWebSocketHandler
+    implements TripRealtimeNotifier {
 
     private static final int MAX_MESSAGE_BYTES = 16 * 1024;
     private static final int SEND_TIME_LIMIT_MILLIS = 5_000;
@@ -38,6 +40,23 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler {
         this.tripAccess = tripAccess;
         this.json = json;
         this.clock = clock;
+    }
+
+    @Override
+    public void notifyChange(
+        UUID tripId,
+        String action,
+        String resourceType,
+        UUID resourceId
+    ) {
+        broadcast(tripId, Map.of(
+            "type", "CHANGE",
+            "tripId", tripId.toString(),
+            "action", action,
+            "resourceType", resourceType,
+            "resourceId", resourceId.toString(),
+            "occurredAt", clock.instant().toString()
+        ), null);
     }
 
     @Override

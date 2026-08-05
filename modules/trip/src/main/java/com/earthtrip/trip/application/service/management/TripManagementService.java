@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 import com.earthtrip.trip.spi.TripMembershipLookup;
 import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripChangePublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,18 +28,21 @@ class TripManagementService implements TripManagementUseCase {
     private final Clock clock;
     private final TripMembershipLookup memberships;
     private final TripAccess tripAccess;
+    private final TripChangePublisher changes;
 
     TripManagementService(
         LoadTripPort loadPort,
         SaveTripPort savePort,
         TripMembershipLookup memberships,
         TripAccess tripAccess,
+        TripChangePublisher changes,
         Clock clock
     ) {
         this.loadPort = loadPort;
         this.savePort = savePort;
         this.memberships = memberships;
         this.tripAccess = tripAccess;
+        this.changes = changes;
         this.clock = clock;
     }
 
@@ -70,9 +74,16 @@ class TripManagementService implements TripManagementUseCase {
         trip.update(
             command.title(), command.status(), command.startDate(), command.endDate(),
             command.timeZone(), command.defaultCurrency(), command.planningMode(), command.pace(),
+            command.companionCount(), command.companionNames(), command.dateMode(),
+            command.travelMode(), command.departurePoint(), command.returnPoint(),
+            command.firstDayStartMinutes(), command.lastDayEndMinutes(),
+            command.overnightTravelNights(), command.reduceStairs(),
+            command.frequentBreaks(), command.walkingLimitMinutes(), command.dietaryNotes(),
             clock.instant()
         );
-        return result(savePort.save(trip));
+        Trip saved = savePort.save(trip);
+        changes.publish(tripId, actorUserId, "UPDATED", "TRIP", tripId);
+        return result(saved);
     }
 
     @Override
@@ -82,7 +93,9 @@ class TripManagementService implements TripManagementUseCase {
         verifyVersion(trip, baseVersion);
         Instant now = clock.instant();
         trip.requestDeletion(now, now.plus(DELETION_GRACE));
-        return result(savePort.save(trip));
+        Trip saved = savePort.save(trip);
+        changes.publish(tripId, actorUserId, "DELETION_REQUESTED", "TRIP", tripId);
+        return result(saved);
     }
 
     @Override
@@ -95,7 +108,9 @@ class TripManagementService implements TripManagementUseCase {
         } catch (IllegalStateException exception) {
             throw EarthTripException.conflict("TRIP_NOT_DELETION_PENDING", exception.getMessage());
         }
-        return result(savePort.save(trip));
+        Trip saved = savePort.save(trip);
+        changes.publish(tripId, actorUserId, "RESTORED", "TRIP", tripId);
+        return result(saved);
     }
 
     @Override
@@ -118,9 +133,15 @@ class TripManagementService implements TripManagementUseCase {
         );
         copied.update(
             null, null, source.startDate(), source.endDate(), null, null,
-            source.planningMode().name(), source.pace().name(), clock.instant()
+            source.planningMode().name(), source.pace().name(), source.companionCount(),
+            source.companionNames(), source.dateMode().name(), source.travelMode().name(),
+            source.departurePoint(), source.returnPoint(), source.firstDayStartMinutes(),
+            source.lastDayEndMinutes(), source.overnightTravelNights(), source.reduceStairs(),
+            source.frequentBreaks(), source.walkingLimitMinutes(), source.dietaryNotes(), clock.instant()
         );
-        return result(savePort.save(copied));
+        Trip saved = savePort.save(copied);
+        changes.publish(requestId, actorUserId, "CREATED", "TRIP", requestId);
+        return result(saved);
     }
 
     private Trip load(UUID tripId) {
@@ -141,7 +162,12 @@ class TripManagementService implements TripManagementUseCase {
         return new TripResult(
             trip.id().value(), trip.ownerUserId(), trip.title().value(), trip.status().name(),
             trip.startDate(), trip.endDate(), trip.timeZone(), trip.defaultCurrency(),
-            trip.planningMode().name(), trip.pace().name(), trip.version(), trip.createdAt(),
+            trip.planningMode().name(), trip.pace().name(), trip.companionCount(),
+            trip.companionNames(), trip.dateMode().name(), trip.travelMode().name(),
+            trip.departurePoint(), trip.returnPoint(), trip.firstDayStartMinutes(),
+            trip.lastDayEndMinutes(), trip.overnightTravelNights(), trip.reduceStairs(),
+            trip.frequentBreaks(), trip.walkingLimitMinutes(), trip.dietaryNotes(),
+            trip.version(), trip.createdAt(),
             trip.updatedAt(), trip.scheduledDeletionAt()
         );
     }

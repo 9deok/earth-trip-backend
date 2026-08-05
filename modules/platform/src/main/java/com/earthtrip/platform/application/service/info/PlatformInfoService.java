@@ -21,6 +21,11 @@ class PlatformInfoService implements PlatformInfoUseCase {
     private final boolean weatherAvailable;
     private final boolean exchangeRatesAvailable;
     private final boolean objectStorageAvailable;
+    private final boolean pushAvailable;
+    private final boolean calendarAvailable;
+    private final boolean travelInformationAvailable;
+    private final boolean transportStatusAvailable;
+    private final boolean dataExportAvailable;
 
     PlatformInfoService(
         @Value("${earthtrip.capabilities.minimum-android-build:1}") int minimumAndroidBuild,
@@ -28,24 +33,43 @@ class PlatformInfoService implements PlatformInfoUseCase {
         @Value("${earthtrip.capabilities.maintenance-mode:false}") boolean maintenanceMode,
         @Value("${earthtrip.capabilities.maintenance-message:}") String maintenanceMessage,
         @Value("${earthtrip.capabilities.read-only-available:true}") boolean readOnlyAvailable,
-        @Value("${earthtrip.providers.email.available:false}") boolean emailAvailable,
-        @Value("${earthtrip.providers.places.available:false}") boolean placesAvailable,
-        @Value("${earthtrip.providers.routes.available:false}") boolean routesAvailable,
-        @Value("${earthtrip.providers.weather.available:false}") boolean weatherAvailable,
-        @Value("${earthtrip.providers.exchange-rates.available:false}") boolean exchangeRatesAvailable,
-        @Value("${earthtrip.providers.object-storage.available:false}") boolean objectStorageAvailable
+        @Value("${earthtrip.providers.ses.region:ap-northeast-2}") String sesRegion,
+        @Value("${earthtrip.providers.ses.from-email:}") String sesFromEmail,
+        @Value("${earthtrip.providers.google-maps.api-key:}") String googleMapsApiKey,
+        @Value("${earthtrip.storage.local.root:}") String storageRoot,
+        @Value("${earthtrip.storage.local.signing-key:}") String storageSigningKey,
+        @Value("${earthtrip.storage.clamav.endpoint:}") String clamAvEndpoint,
+        @Value("${earthtrip.providers.firebase.project-id:}") String firebaseProjectId,
+        @Value("${earthtrip.push.token-encryption-key:}") String pushTokenEncryptionKey,
+        @Value("${earthtrip.providers.google-calendar.client-id:}") String calendarClientId,
+        @Value("${earthtrip.providers.google-calendar.client-secret:}") String calendarClientSecret,
+        @Value("${earthtrip.providers.google-calendar.callback-uri:}") String calendarCallbackUri,
+        @Value("${earthtrip.integrations.encryption-keys:}") String integrationEncryptionKeys,
+        @Value("${earthtrip.providers.mofa.service-key:}") String mofaServiceKey,
+        @Value("${earthtrip.providers.amadeus.api-key:}") String amadeusApiKey,
+        @Value("${earthtrip.providers.amadeus.api-secret:}") String amadeusApiSecret,
+        @Value("${earthtrip.exports.local.root:}") String dataExportRoot
     ) {
         this.minimumAndroidBuild = minimumAndroidBuild;
         this.minimumIosBuild = minimumIosBuild;
         this.maintenanceMode = maintenanceMode;
         this.maintenanceMessage = maintenanceMessage;
         this.readOnlyAvailable = readOnlyAvailable;
-        this.emailAvailable = emailAvailable;
-        this.placesAvailable = placesAvailable;
-        this.routesAvailable = routesAvailable;
-        this.weatherAvailable = weatherAvailable;
-        this.exchangeRatesAvailable = exchangeRatesAvailable;
-        this.objectStorageAvailable = objectStorageAvailable;
+        this.emailAvailable = configured(sesRegion, sesFromEmail);
+        boolean googleMapsAvailable = configured(googleMapsApiKey);
+        this.placesAvailable = googleMapsAvailable;
+        this.routesAvailable = googleMapsAvailable;
+        this.weatherAvailable = googleMapsAvailable;
+        this.exchangeRatesAvailable = true;
+        this.objectStorageAvailable = configured(storageRoot, clamAvEndpoint)
+            && validBase64Key(storageSigningKey);
+        this.pushAvailable = configured(firebaseProjectId)
+            && validBase64Key(pushTokenEncryptionKey);
+        this.calendarAvailable = configured(calendarClientId, calendarClientSecret, calendarCallbackUri)
+            && hasValidKeyRingEntry(integrationEncryptionKeys);
+        this.travelInformationAvailable = configured(mofaServiceKey);
+        this.transportStatusAvailable = configured(amadeusApiKey, amadeusApiSecret);
+        this.dataExportAvailable = configured(dataExportRoot);
     }
 
     @Override
@@ -63,7 +87,13 @@ class PlatformInfoService implements PlatformInfoUseCase {
                 provider("ROUTES", routesAvailable),
                 provider("WEATHER", weatherAvailable),
                 provider("EXCHANGE_RATES", exchangeRatesAvailable),
-                provider("OBJECT_STORAGE", objectStorageAvailable)
+                provider("OBJECT_STORAGE", objectStorageAvailable),
+                provider("LINK_PREVIEW", true),
+                provider("PUSH", pushAvailable),
+                provider("CALENDAR", calendarAvailable),
+                provider("TRAVEL_INFORMATION", travelInformationAvailable),
+                provider("TRANSPORT_STATUS", transportStatusAvailable),
+                provider("DATA_EXPORT", dataExportAvailable)
             )
         );
     }
@@ -81,11 +111,64 @@ class PlatformInfoService implements PlatformInfoUseCase {
             .toList();
     }
 
+    @Override
+    public List<CountryReference> countries() {
+        return java.util.Arrays.stream(Locale.getISOCountries())
+            .map(code -> Locale.of("", code))
+            .sorted(java.util.Comparator.comparing(locale -> locale.getDisplayCountry(Locale.KOREAN)))
+            .map(locale -> new CountryReference(
+                locale.getCountry(),
+                locale.getDisplayCountry(Locale.KOREAN),
+                currencyCode(locale)
+            ))
+            .toList();
+    }
+
+    private static String currencyCode(Locale locale) {
+        try {
+            return Currency.getInstance(locale).getCurrencyCode();
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
+    }
+
     private static ProviderCapability provider(String name, boolean available) {
         return new ProviderCapability(
             name,
             available,
             available ? "AVAILABLE" : "PROVIDER_NOT_CONFIGURED"
         );
+    }
+
+    private static boolean configured(String... values) {
+        for (String value : values) {
+            if (value == null || value.isBlank()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean validBase64Key(String value) {
+        try {
+            return value != null
+                && !value.isBlank()
+                && java.util.Base64.getDecoder().decode(value.strip()).length == 32;
+        } catch (IllegalArgumentException exception) {
+            return false;
+        }
+    }
+
+    private static boolean hasValidKeyRingEntry(String value) {
+        if (value == null || value.isBlank()) {
+            return false;
+        }
+        for (String entry : value.split(",")) {
+            String[] pair = entry.strip().split(":", 2);
+            if (pair.length == 2 && !pair[0].isBlank() && validBase64Key(pair[1])) {
+                return true;
+            }
+        }
+        return false;
     }
 }

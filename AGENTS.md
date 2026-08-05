@@ -73,8 +73,7 @@
   Request/Response 동일 패키지, package-private 규칙을 검증한다.
 - `CleanArchitectureTest`로 계층 의존 방향, 구현체 공개 범위, 필드 주입 금지를 검증한다.
 - `ModularityTest`로 모듈 간 순환과 내부 구현 참조를 검증한다.
-- GitHub Actions가 Push와 Pull Request마다 같은 전체 검증을 실행하므로 실패한 상태를
-  병합하지 않는다.
+- 배포 전 로컬에서 같은 전체 검증을 실행하고, 실패한 상태를 배포하거나 병합하지 않는다.
 
 ## 새 API 완료 조건
 

@@ -47,6 +47,45 @@ class TripJpaEntity {
     @Column(name = "pace", nullable = false, length = 30)
     private String pace;
 
+    @Column(name = "companion_count", nullable = false)
+    private int companionCount;
+
+    @Column(name = "companion_names_json", nullable = false, columnDefinition = "TEXT")
+    private String companionNamesJson;
+
+    @Column(name = "date_mode", nullable = false, length = 30)
+    private String dateMode;
+
+    @Column(name = "travel_mode", nullable = false, length = 30)
+    private String travelMode;
+
+    @Column(name = "departure_point", nullable = false, length = 200)
+    private String departurePoint;
+
+    @Column(name = "return_point", nullable = false, length = 200)
+    private String returnPoint;
+
+    @Column(name = "first_day_start_minutes", nullable = false)
+    private int firstDayStartMinutes;
+
+    @Column(name = "last_day_end_minutes", nullable = false)
+    private int lastDayEndMinutes;
+
+    @Column(name = "overnight_travel_nights", nullable = false)
+    private int overnightTravelNights;
+
+    @Column(name = "reduce_stairs", nullable = false)
+    private boolean reduceStairs;
+
+    @Column(name = "frequent_breaks", nullable = false)
+    private boolean frequentBreaks;
+
+    @Column(name = "walking_limit_minutes", nullable = false)
+    private int walkingLimitMinutes;
+
+    @Column(name = "dietary_notes", nullable = false, length = 2000)
+    private String dietaryNotes;
+
     @Column(name = "deleted_at")
     private Instant deletedAt;
 
@@ -65,16 +104,16 @@ class TripJpaEntity {
 
     protected TripJpaEntity() { }
 
-    private TripJpaEntity(Trip trip) {
+    private TripJpaEntity(Trip trip, String companionNamesJson) {
         this.id = trip.id().toString();
-        apply(trip);
+        apply(trip, companionNamesJson);
     }
 
-    static TripJpaEntity from(Trip trip) {
-        return new TripJpaEntity(trip);
+    static TripJpaEntity from(Trip trip, String companionNamesJson) {
+        return new TripJpaEntity(trip, companionNamesJson);
     }
 
-    void apply(Trip trip) {
+    void apply(Trip trip, String companionNamesJson) {
         this.ownerUserId = trip.ownerUserId() == null ? null : trip.ownerUserId().toString();
         this.title = trip.title().value();
         this.status = trip.status().name();
@@ -84,13 +123,26 @@ class TripJpaEntity {
         this.defaultCurrency = trip.defaultCurrency();
         this.planningMode = trip.planningMode().name();
         this.pace = trip.pace().name();
+        this.companionCount = trip.companionCount();
+        this.companionNamesJson = companionNamesJson;
+        this.dateMode = trip.dateMode().name();
+        this.travelMode = trip.travelMode().name();
+        this.departurePoint = trip.departurePoint();
+        this.returnPoint = trip.returnPoint();
+        this.firstDayStartMinutes = trip.firstDayStartMinutes();
+        this.lastDayEndMinutes = trip.lastDayEndMinutes();
+        this.overnightTravelNights = trip.overnightTravelNights();
+        this.reduceStairs = trip.reduceStairs();
+        this.frequentBreaks = trip.frequentBreaks();
+        this.walkingLimitMinutes = trip.walkingLimitMinutes();
+        this.dietaryNotes = trip.dietaryNotes();
         this.deletedAt = trip.deletedAt();
         this.scheduledDeletionAt = trip.scheduledDeletionAt();
         this.createdAt = trip.createdAt();
         this.updatedAt = trip.updatedAt();
     }
 
-    Trip toDomain() {
+    Trip toDomain(java.util.List<String> companionNames) {
         return Trip.restore(
             TripId.from(id),
             ownerUserId == null ? null : UUID.fromString(ownerUserId),
@@ -102,6 +154,19 @@ class TripJpaEntity {
             defaultCurrency,
             Trip.PlanningMode.valueOf(planningMode),
             Trip.Pace.valueOf(pace),
+            companionCount,
+            companionNames,
+            Trip.DateMode.valueOf(dateMode),
+            Trip.TravelMode.valueOf(travelMode),
+            departurePoint,
+            returnPoint,
+            firstDayStartMinutes,
+            lastDayEndMinutes,
+            overnightTravelNights,
+            reduceStairs,
+            frequentBreaks,
+            walkingLimitMinutes,
+            dietaryNotes,
             deletedAt,
             scheduledDeletionAt,
             createdAt,
@@ -109,4 +174,6 @@ class TripJpaEntity {
             version
         );
     }
+
+    String companionNamesJson() { return companionNamesJson; }
 }

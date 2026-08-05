@@ -1,0 +1,17 @@
+[Unit]
+Description=Earth Trip MariaDB logical backup
+After=mariadb.service
+Requires=mariadb.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+ExecStart=/usr/local/sbin/backup-earth-trip-mariadb
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/backups/earth-trip

@@ -60,6 +60,10 @@ class CreateTripController {
         return new TripResponse(
             trip.tripId(), trip.title(), trip.status(), trip.startDate(), trip.endDate(),
             trip.timeZone(), trip.defaultCurrency(), trip.planningMode(), trip.pace(),
+            trip.companionCount(), trip.companionNames(), trip.dateMode(), trip.travelMode(),
+            trip.departurePoint(), trip.returnPoint(), trip.firstDayStartMinutes(),
+            trip.lastDayEndMinutes(), trip.overnightTravelNights(), trip.reduceStairs(),
+            trip.frequentBreaks(), trip.walkingLimitMinutes(), trip.dietaryNotes(),
             trip.version(), trip.updatedAt(), trip.scheduledDeletionAt()
         );
     }
@@ -75,6 +79,19 @@ record TripResponse(
     String defaultCurrency,
     String planningMode,
     String pace,
+    int companionCount,
+    List<String> companionNames,
+    String dateMode,
+    String travelMode,
+    String departurePoint,
+    String returnPoint,
+    int firstDayStartMinutes,
+    int lastDayEndMinutes,
+    int overnightTravelNights,
+    boolean reduceStairs,
+    boolean frequentBreaks,
+    int walkingLimitMinutes,
+    String dietaryNotes,
     long version,
     Instant updatedAt,
     Instant scheduledDeletionAt

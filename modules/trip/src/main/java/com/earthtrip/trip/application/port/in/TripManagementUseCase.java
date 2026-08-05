@@ -28,8 +28,33 @@ public interface TripManagementUseCase {
         String defaultCurrency,
         String planningMode,
         String pace,
+        Integer companionCount,
+        List<String> companionNames,
+        String dateMode,
+        String travelMode,
+        String departurePoint,
+        String returnPoint,
+        Integer firstDayStartMinutes,
+        Integer lastDayEndMinutes,
+        Integer overnightTravelNights,
+        Boolean reduceStairs,
+        Boolean frequentBreaks,
+        Integer walkingLimitMinutes,
+        String dietaryNotes,
         long baseVersion
-    ) { }
+    ) {
+        public UpdateTripCommand(
+            String title, String status, LocalDate startDate, LocalDate endDate,
+            String timeZone, String defaultCurrency, String planningMode,
+            String pace, long baseVersion
+        ) {
+            this(
+                title, status, startDate, endDate, timeZone, defaultCurrency,
+                planningMode, pace, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, baseVersion
+            );
+        }
+    }
 
     record TripResult(
         UUID tripId,
@@ -42,6 +67,19 @@ public interface TripManagementUseCase {
         String defaultCurrency,
         String planningMode,
         String pace,
+        int companionCount,
+        List<String> companionNames,
+        String dateMode,
+        String travelMode,
+        String departurePoint,
+        String returnPoint,
+        int firstDayStartMinutes,
+        int lastDayEndMinutes,
+        int overnightTravelNights,
+        boolean reduceStairs,
+        boolean frequentBreaks,
+        int walkingLimitMinutes,
+        String dietaryNotes,
         long version,
         Instant createdAt,
         Instant updatedAt,

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 class OperationalPersistenceAdapter implements OperationalStorePort {
 
     private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
-
     private final OperationalJobJpaRepository jobs;
     private final WebhookReceiptJpaRepository receipts;
     private final DeadLetterJpaRepository deadLetters;

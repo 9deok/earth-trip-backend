@@ -8,6 +8,8 @@ public interface PlatformInfoUseCase {
 
     List<CurrencyReference> currencies();
 
+    List<CountryReference> countries();
+
     record AppCapabilities(
         String apiVersion,
         int minimumAndroidBuild,
@@ -21,4 +23,6 @@ public interface PlatformInfoUseCase {
     record ProviderCapability(String provider, boolean available, String status) { }
 
     record CurrencyReference(String code, int fractionDigits, int numericCode, String displayName) { }
+
+    record CountryReference(String code, String displayName, String currencyCode) { }
 }

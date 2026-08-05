@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoderInitializationException
 class GoogleOAuthProviderAdapterTest {
 
     private static final String CLIENT_ID = "earth-trip.apps.googleusercontent.com";
+    private static final String APPLE_CLIENT_ID = "com.earthtrip.app";
 
     @Test
     void verifiesSignedGoogleIdentityClaimsForConfiguredAudience() {
@@ -114,8 +115,77 @@ class GoogleOAuthProviderAdapterTest {
             });
     }
 
+    @Test
+    void verifiesSignedAppleIdentityClaimsForConfiguredAudience() {
+        GoogleOAuthProviderAdapter adapter = appleAdapter(validAppleToken());
+
+        OAuthProviderPort.VerifiedIdentity identity = adapter.verify(
+            "apple",
+            credential("signed-apple-token")
+        );
+
+        assertThat(identity.subject()).isEqualTo("apple-subject-123");
+        assertThat(identity.email()).isEqualTo("apple-traveler@example.com");
+        assertThat(identity.emailVerified()).isTrue();
+    }
+
+    @Test
+    void rejectsAppleTokenForAnotherAudience() {
+        Jwt token = appleTokenBuilder()
+            .audience(List.of("another.bundle.id"))
+            .claim("email", "apple-traveler@example.com")
+            .claim("email_verified", "true")
+            .build();
+
+        assertThatThrownBy(() -> appleAdapter(token).verify("APPLE", credential("token")))
+            .isInstanceOfSatisfying(EarthTripException.class, error -> {
+                assertThat(error.code()).isEqualTo("INVALID_APPLE_ID_TOKEN");
+                assertThat(error.httpStatus()).isEqualTo(401);
+            });
+    }
+
+    @Test
+    void failsClosedUntilAppleClientIdIsConfigured() {
+        GoogleOAuthProviderAdapter adapter = new GoogleOAuthProviderAdapter(
+            Set.of(CLIENT_ID), ignored -> validToken(), Set.of(), ignored -> validAppleToken()
+        );
+
+        assertThatThrownBy(() -> adapter.verify("APPLE", credential("token")))
+            .isInstanceOfSatisfying(EarthTripException.class, error -> {
+                assertThat(error.code()).isEqualTo("APPLE_OAUTH_NOT_CONFIGURED");
+                assertThat(error.httpStatus()).isEqualTo(503);
+            });
+    }
+
+    @Test
+    void mapsAppleKeyDiscoveryFailureToServiceUnavailable() {
+        JwtDecoder unavailableDecoder = ignored -> {
+            throw new JwtDecoderInitializationException(
+                "Apple key discovery failed",
+                new IllegalStateException("network unavailable")
+            );
+        };
+        GoogleOAuthProviderAdapter adapter = new GoogleOAuthProviderAdapter(
+            Set.of(CLIENT_ID), ignored -> validToken(),
+            Set.of(APPLE_CLIENT_ID), unavailableDecoder
+        );
+
+        assertThatThrownBy(() -> adapter.verify("APPLE", credential("token")))
+            .isInstanceOfSatisfying(EarthTripException.class, error -> {
+                assertThat(error.code()).isEqualTo("APPLE_IDENTITY_PROVIDER_UNAVAILABLE");
+                assertThat(error.httpStatus()).isEqualTo(503);
+            });
+    }
+
     private static GoogleOAuthProviderAdapter adapter(Jwt token) {
         return new GoogleOAuthProviderAdapter(Set.of(CLIENT_ID), ignored -> token);
+    }
+
+    private static GoogleOAuthProviderAdapter appleAdapter(Jwt token) {
+        return new GoogleOAuthProviderAdapter(
+            Set.of(CLIENT_ID), ignored -> validToken(),
+            Set.of(APPLE_CLIENT_ID), ignored -> token
+        );
     }
 
     private static OAuthProviderPort.OAuthCredential credential(String idToken) {
@@ -131,12 +201,30 @@ class GoogleOAuthProviderAdapterTest {
             .build();
     }
 
+    private static Jwt validAppleToken() {
+        return appleTokenBuilder()
+            .audience(List.of(APPLE_CLIENT_ID))
+            .claim("email", "apple-traveler@example.com")
+            .claim("email_verified", "true")
+            .build();
+    }
+
     private static Jwt.Builder tokenBuilder() {
         Instant now = Instant.parse("2026-08-02T00:00:00Z");
         return Jwt.withTokenValue("signed-google-token")
             .header("alg", "RS256")
             .issuer("https://accounts.google.com")
             .subject("google-subject-123")
+            .issuedAt(now)
+            .expiresAt(now.plusSeconds(3600));
+    }
+
+    private static Jwt.Builder appleTokenBuilder() {
+        Instant now = Instant.parse("2026-08-02T00:00:00Z");
+        return Jwt.withTokenValue("signed-apple-token")
+            .header("alg", "RS256")
+            .issuer("https://appleid.apple.com")
+            .subject("apple-subject-123")
             .issuedAt(now)
             .expiresAt(now.plusSeconds(3600));
     }

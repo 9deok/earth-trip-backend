@@ -37,7 +37,6 @@ class InternalWebhookProcessor {
         switch (provider) {
             case "object-storage" -> processObjectStorage(job.payload());
             case "malware-scan" -> processMalwareScan(job.payload());
-            case "inbound-email" -> processInboundEmail(job);
             case "calendar" -> processCalendar(job.payload());
             case "push-delivery" -> pushDeliveryEvents.recordDelivery(
                 requiredText(job.payload(), "deviceId"),
@@ -99,35 +98,6 @@ class InternalWebhookProcessor {
             );
         };
         files.saveFile(copyFile(file, status, file.completedAt()));
-    }
-
-    private void processInboundEmail(OperationalStorePort.JobRecord job) {
-        String aliasAddress = requiredText(job.payload(), "alias").toLowerCase(Locale.ROOT);
-        IntegrationStorePort.AliasRecord alias = integrations.aliasByAddress(aliasAddress)
-            .orElseThrow(() -> EarthTripException.notFound(
-                "INBOUND_ALIAS_NOT_FOUND",
-                "수신 메일 주소를 찾을 수 없습니다."
-            ));
-        if (integrations.sync(job.id()).isPresent()) {
-            return;
-        }
-        Instant now = clock.instant();
-        UUID tripId = optionalUuid(job.payload(), "tripId");
-        integrations.saveSync(new IntegrationStorePort.SyncRecord(
-            job.id(),
-            alias.userId(),
-            null,
-            tripId,
-            "INBOUND_EMAIL_IMPORT",
-            "QUEUED",
-            job.payload(),
-            Map.of("aliasId", alias.id().toString()),
-            null,
-            1,
-            now,
-            now,
-            0
-        ));
     }
 
     private void processCalendar(Map<String, Object> payload) {

@@ -24,8 +24,13 @@ spring:
     timeout-per-shutdown-phase: 20s
 
 server:
+  address: ${SERVER_ADDRESS:127.0.0.1}
   port: ${SERVER_PORT:8080}
   shutdown: graceful
+
+logging:
+  file:
+    path: ${LOG_PATH:logs}
 
 management:
   endpoints:
@@ -38,14 +43,33 @@ management:
         enabled: true
 
 earthtrip:
+  logging:
+    http:
+      max-payload-bytes: ${HTTP_LOG_MAX_PAYLOAD_BYTES:65536}
+  public-base-url: ${PUBLIC_BASE_URL:http://localhost:3000}
+  backend-public-base-url: ${BACKEND_PUBLIC_BASE_URL:http://localhost:8080}
   oauth:
     google:
       client-ids: ${GOOGLE_OAUTH_CLIENT_IDS:}
+    apple:
+      client-ids: ${APPLE_OAUTH_CLIENT_IDS:}
   wallet:
     encryption-keys: ${WALLET_DATA_ENCRYPTION_KEYS:}
     primary-key-id: ${WALLET_DATA_PRIMARY_KEY_ID:primary}
   push:
     token-encryption-key: ${PUSH_TOKEN_ENCRYPTION_KEY_BASE64:}
+  integrations:
+    encryption-keys: ${INTEGRATION_TOKEN_ENCRYPTION_KEYS:}
+    primary-key-id: ${INTEGRATION_TOKEN_PRIMARY_KEY_ID:primary}
+  storage:
+    local:
+      root: ${OBJECT_STORAGE_LOCAL_ROOT:}
+      signing-key: ${OBJECT_STORAGE_SIGNING_KEY_BASE64:}
+    clamav:
+      endpoint: ${CLAMAV_ENDPOINT:}
+  exports:
+    local:
+      root: ${PERSONAL_DATA_EXPORT_ROOT:}
   realtime:
     allowed-origins: ${REALTIME_ALLOWED_ORIGINS:}
   internal:
@@ -56,8 +80,6 @@ earthtrip:
         secret: ${OBJECT_STORAGE_WEBHOOK_SECRET:}
       malware-scan:
         secret: ${MALWARE_SCAN_WEBHOOK_SECRET:}
-      inbound-email:
-        secret: ${INBOUND_EMAIL_WEBHOOK_SECRET:}
       calendar:
         secret: ${CALENDAR_WEBHOOK_SECRET:}
       push-delivery:
@@ -71,15 +93,21 @@ earthtrip:
     maintenance-message: ${MAINTENANCE_MESSAGE:}
     read-only-available: ${READ_ONLY_AVAILABLE:true}
   providers:
-    email:
-      available: ${EMAIL_PROVIDER_AVAILABLE:false}
-    places:
-      available: ${PLACES_PROVIDER_AVAILABLE:false}
-    routes:
-      available: ${ROUTES_PROVIDER_AVAILABLE:false}
-    weather:
-      available: ${WEATHER_PROVIDER_AVAILABLE:false}
-    exchange-rates:
-      available: ${EXCHANGE_RATE_PROVIDER_AVAILABLE:false}
-    object-storage:
-      available: ${OBJECT_STORAGE_PROVIDER_AVAILABLE:false}
+    google-maps:
+      api-key: ${GOOGLE_MAPS_SERVER_API_KEY:}
+    ses:
+      region: ${AWS_REGION:ap-northeast-2}
+      from-email: ${SES_FROM_EMAIL:}
+      configuration-set: ${SES_CONFIGURATION_SET:}
+    firebase:
+      project-id: ${FIREBASE_PROJECT_ID:}
+    google-calendar:
+      client-id: ${GOOGLE_CALENDAR_OAUTH_CLIENT_ID:}
+      client-secret: ${GOOGLE_CALENDAR_OAUTH_CLIENT_SECRET:}
+      callback-uri: ${GOOGLE_CALENDAR_OAUTH_CALLBACK_URI:}
+    mofa:
+      service-key: ${MOFA_OPENAPI_SERVICE_KEY:}
+    amadeus:
+      base-url: ${AMADEUS_API_BASE_URL:https://test.api.amadeus.com}
+      api-key: ${AMADEUS_API_KEY:}
+      api-secret: ${AMADEUS_API_SECRET:}

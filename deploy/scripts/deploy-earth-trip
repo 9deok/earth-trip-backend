@@ -1,0 +1,362 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+server_protocol_version="2"
+
+activate_on_server() {
+  local artifact="${1:-}"
+  local release_id="${2:-}"
+  local expected_sha256="${3:-}"
+  local service_dir="/home/rocky/services/earth-trip/earth-trip-backend"
+  local target_jar="$service_dir/earth-trip-backend.jar"
+  local staged_jar="$service_dir/.earth-trip-backend.jar.next"
+  local rollback_jar="$service_dir/.earth-trip-backend.jar.rollback"
+  local readiness_url="http://127.0.0.1:8080/actuator/health/readiness"
+  local actual_sha256
+  local staged_sha256
+  local target_uid
+  local target_gid
+  local target_mode
+  local ready=false
+
+  if [[ "$(id -u)" -ne 0 ]]; then
+    echo "서버 활성화 모드는 root 권한이 필요합니다." >&2
+    exit 2
+  fi
+  if [[ ! -f "$artifact" ]]; then
+    echo "배포할 JAR 파일을 찾을 수 없습니다: $artifact" >&2
+    exit 2
+  fi
+  if [[ ! "$release_id" =~ ^[0-9A-Za-z._-]{7,80}$ ]]; then
+    echo "release_id는 7~80자의 영문, 숫자, 점, 밑줄, 하이픈만 허용합니다." >&2
+    exit 2
+  fi
+  if [[ ! "$expected_sha256" =~ ^[0-9a-fA-F]{64}$ ]]; then
+    echo "64자리 SHA-256 값이 필요합니다." >&2
+    exit 2
+  fi
+  if [[ ! -d "$service_dir" ]]; then
+    echo "운영 backend 경로를 찾을 수 없습니다: $service_dir" >&2
+    exit 2
+  fi
+  if [[ ! -f "$target_jar" ]]; then
+    echo "교체할 운영 JAR을 찾을 수 없습니다: $target_jar" >&2
+    exit 2
+  fi
+
+  actual_sha256="$(sha256sum "$artifact" | awk '{print $1}')"
+  if [[ "$actual_sha256" != "${expected_sha256,,}" ]]; then
+    echo "JAR SHA-256이 일치하지 않습니다." >&2
+    exit 3
+  fi
+
+  exec 9>/run/lock/earth-trip-deploy.lock
+  flock -n 9 || { echo "다른 Earth Trip 배포가 진행 중입니다." >&2; exit 4; }
+
+  target_uid="$(stat -c '%u' "$target_jar")"
+  target_gid="$(stat -c '%g' "$target_jar")"
+  target_mode="$(stat -c '%a' "$target_jar")"
+
+  rm -f "$staged_jar" "$rollback_jar"
+  cp --preserve=mode,ownership,timestamps "$target_jar" "$rollback_jar"
+  install -m "$target_mode" -o "$target_uid" -g "$target_gid" \
+    "$artifact" "$staged_jar"
+
+  staged_sha256="$(sha256sum "$staged_jar" | awk '{print $1}')"
+  if [[ "$staged_sha256" != "$actual_sha256" ]]; then
+    rm -f "$staged_jar" "$rollback_jar"
+    echo "운영 경로에 복사한 JAR의 SHA-256이 일치하지 않습니다." >&2
+    exit 3
+  fi
+
+  mv -Tf "$staged_jar" "$target_jar"
+  if ! systemctl restart earth-trip.service; then
+    echo "earth-trip.service 재시작에 실패해 기존 JAR을 복구합니다." >&2
+    mv -Tf "$rollback_jar" "$target_jar"
+    systemctl restart earth-trip.service || true
+    exit 6
+  fi
+
+  for _ in {1..30}; do
+    if curl --fail --silent --show-error "$readiness_url" >/dev/null; then
+      ready=true
+      break
+    fi
+    sleep 2
+  done
+
+  if [[ "$ready" != true ]]; then
+    echo "새 release가 readiness를 통과하지 못했습니다." >&2
+    if [[ -f "$rollback_jar" ]]; then
+      mv -Tf "$rollback_jar" "$target_jar"
+      if systemctl restart earth-trip.service; then
+        echo "기존 JAR을 복구하고 earth-trip.service를 다시 시작했습니다." >&2
+      else
+        echo "기존 JAR은 복구했지만 earth-trip.service 재시작도 실패했습니다." >&2
+      fi
+    fi
+    exit 6
+  fi
+
+  rm -f "$rollback_jar"
+  echo "Earth Trip backend 배포 완료: $release_id"
+  echo "운영 JAR: $target_jar"
+}
+
+if [[ "${1:-}" == "--server-version" ]]; then
+  echo "$server_protocol_version"
+  exit 0
+fi
+if [[ "${1:-}" == "--activate" ]]; then
+  shift
+  activate_on_server "$@"
+  exit 0
+fi
+
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/../.." && pwd)"
+
+deploy_target="${EARTH_TRIP_DEPLOY_TARGET:-}"
+identity_file="${EARTH_TRIP_DEPLOY_IDENTITY_FILE:-}"
+ssh_port="${EARTH_TRIP_DEPLOY_PORT:-}"
+public_readiness_url="${EARTH_TRIP_PUBLIC_READINESS_URL:-https://api.earth-trips.com/actuator/health/readiness}"
+remote_upload_dir="/home/rocky/services/earth-trip/earth-trip-backend/tmp-jar"
+release_id=""
+allow_dirty=false
+check_public_readiness=true
+
+usage() {
+  cat <<'EOF'
+사용법:
+  deploy/scripts/deploy-earth-trip [SSH_TARGET] [옵션]
+
+SSH_TARGET은 ~/.ssh/config의 Host 별칭 또는 user@host 형식이다.
+인자를 생략하면 EARTH_TRIP_DEPLOY_TARGET 환경변수를 사용한다.
+
+옵션:
+  --identity FILE       사용할 SSH private key의 절대 경로
+  --port PORT           SSH port
+  --release-id ID       자동 생성되는 release ID 대신 사용할 값
+  --allow-dirty         미커밋 변경이 있는 현재 소스 배포 허용
+  --no-public-check     공개 HTTPS readiness 확인 생략
+  -h, --help            도움말 표시
+
+환경변수:
+  EARTH_TRIP_DEPLOY_TARGET
+  EARTH_TRIP_DEPLOY_IDENTITY_FILE
+  EARTH_TRIP_DEPLOY_PORT
+  EARTH_TRIP_PUBLIC_READINESS_URL
+
+예시:
+  deploy/scripts/deploy-earth-trip earth-trip-oci
+  deploy/scripts/deploy-earth-trip deploy@203.0.113.10 --identity /absolute/path/to/key
+EOF
+}
+
+fail() {
+  echo "오류: $*" >&2
+  exit 2
+}
+
+require_value() {
+  local option="$1"
+  local remaining="$2"
+  if [[ "$remaining" -lt 2 ]]; then
+    fail "$option 뒤에 값이 필요합니다."
+  fi
+}
+
+while [[ "$#" -gt 0 ]]; do
+  case "$1" in
+    --identity)
+      require_value "$1" "$#"
+      identity_file="$2"
+      shift 2
+      ;;
+    --port)
+      require_value "$1" "$#"
+      ssh_port="$2"
+      shift 2
+      ;;
+    --release-id)
+      require_value "$1" "$#"
+      release_id="$2"
+      shift 2
+      ;;
+    --allow-dirty)
+      allow_dirty=true
+      shift
+      ;;
+    --no-public-check)
+      check_public_readiness=false
+      shift
+      ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    --*)
+      fail "알 수 없는 옵션입니다: $1"
+      ;;
+    *)
+      if [[ -n "$deploy_target" ]]; then
+        fail "SSH_TARGET은 하나만 지정할 수 있습니다."
+      fi
+      deploy_target="$1"
+      shift
+      ;;
+  esac
+done
+
+if [[ -z "$deploy_target" ]]; then
+  usage >&2
+  fail "SSH_TARGET 또는 EARTH_TRIP_DEPLOY_TARGET이 필요합니다."
+fi
+if [[ "$deploy_target" == -* || "$deploy_target" =~ [[:space:]] ]]; then
+  fail "SSH_TARGET 형식을 확인하세요: $deploy_target"
+fi
+if [[ -n "$identity_file" && ! -f "$identity_file" ]]; then
+  fail "SSH private key를 찾을 수 없습니다: $identity_file"
+fi
+if [[ -n "$ssh_port" ]]; then
+  if [[ ! "$ssh_port" =~ ^[0-9]+$ ]] || ((ssh_port < 1 || ssh_port > 65535)); then
+    fail "SSH port는 1~65535 범위의 숫자여야 합니다."
+  fi
+fi
+if [[ -n "$release_id" && ! "$release_id" =~ ^[0-9A-Za-z._-]{7,80}$ ]]; then
+  fail "release ID는 7~80자의 영문, 숫자, 점, 밑줄, 하이픈만 허용합니다."
+fi
+
+for command_name in git ssh scp curl find awk; do
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    fail "필수 command를 찾을 수 없습니다: $command_name"
+  fi
+done
+if [[ ! -x "$repo_root/gradlew" ]]; then
+  fail "Gradle wrapper를 실행할 수 없습니다: $repo_root/gradlew"
+fi
+
+ssh_options=(-o StrictHostKeyChecking=yes)
+scp_options=(-o StrictHostKeyChecking=yes)
+if [[ -n "$identity_file" ]]; then
+  ssh_options+=(-i "$identity_file")
+  scp_options+=(-i "$identity_file")
+fi
+if [[ -n "$ssh_port" ]]; then
+  ssh_options+=(-p "$ssh_port")
+  scp_options+=(-P "$ssh_port")
+fi
+
+echo "[1/6] 서버 배포 command 확인: $deploy_target"
+remote_server_version=""
+if ! remote_server_version="$(
+  ssh "${ssh_options[@]}" "$deploy_target" \
+    "/usr/local/sbin/deploy-earth-trip --server-version"
+)"; then
+  fail "서버에 현재 deploy/scripts/deploy-earth-trip을 먼저 설치하세요."
+fi
+if [[ "$remote_server_version" != "$server_protocol_version" ]]; then
+  fail "서버 배포 script 버전이 다릅니다. 현재 파일을 다시 설치하세요."
+fi
+if ! ssh "${ssh_options[@]}" "$deploy_target" \
+  "test -d '$remote_upload_dir' && test -w '$remote_upload_dir'"; then
+  fail "서버 JAR 업로드 경로가 없거나 쓰기 권한이 없습니다: $remote_upload_dir"
+fi
+
+echo "[2/6] 로컬 소스 상태 확인"
+dirty=false
+if [[ -n "$(git -C "$repo_root" status --porcelain --untracked-files=normal)" ]]; then
+  dirty=true
+fi
+if [[ "$dirty" == true && "$allow_dirty" != true ]]; then
+  fail "미커밋 변경이 있습니다. 커밋한 뒤 다시 실행하거나, 현재 상태를 의도적으로 배포하려면 --allow-dirty를 사용하세요."
+fi
+
+commit_id="$(git -C "$repo_root" rev-parse --short=12 HEAD)"
+if [[ -z "$release_id" ]]; then
+  release_id="$(date -u +%Y%m%dT%H%M%SZ)-$commit_id"
+  if [[ "$dirty" == true ]]; then
+    release_id="${release_id}-dirty"
+  fi
+fi
+
+echo "  release: $release_id"
+if [[ "$dirty" == true ]]; then
+  echo "  경고: 미커밋 변경이 포함된 로컬 소스를 배포합니다." >&2
+fi
+
+echo "[3/6] 전체 테스트 및 JAR 빌드"
+(
+  cd "$repo_root"
+  ./gradlew --no-daemon clean test build
+)
+
+artifacts=()
+while IFS= read -r artifact_candidate; do
+  artifacts+=("$artifact_candidate")
+done < <(
+  find "$repo_root/app/build/libs" -maxdepth 1 -type f \
+    -name 'earth-trip-backend-*.jar' ! -name '*-plain.jar' -print
+)
+if [[ "${#artifacts[@]}" -ne 1 ]]; then
+  fail "배포할 backend JAR을 하나로 결정할 수 없습니다: ${#artifacts[@]}개 발견"
+fi
+artifact="${artifacts[0]}"
+
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256="$(sha256sum "$artifact" | awk '{print $1}')"
+elif command -v shasum >/dev/null 2>&1; then
+  sha256="$(shasum -a 256 "$artifact" | awk '{print $1}')"
+else
+  fail "SHA-256 계산을 위한 sha256sum 또는 shasum이 필요합니다."
+fi
+
+remote_artifact="$remote_upload_dir/earth-trip-backend-${release_id}.jar"
+
+echo "[4/6] 검증된 JAR 업로드"
+echo "  artifact: $artifact"
+echo "  sha256:   $sha256"
+if ! scp "${scp_options[@]}" "$artifact" "${deploy_target}:${remote_artifact}"; then
+  ssh "${ssh_options[@]}" "$deploy_target" "rm -f -- '$remote_artifact'" \
+    >/dev/null 2>&1 || true
+  fail "JAR 업로드에 실패했습니다."
+fi
+
+echo "[5/6] $deploy_target 서버의 earth-trip-backend.jar 교체 및 systemd 재시작"
+deploy_status=0
+ssh "${ssh_options[@]}" "$deploy_target" \
+  "sudo /usr/local/sbin/deploy-earth-trip --activate '$remote_artifact' '$release_id' '$sha256'" \
+  || deploy_status=$?
+
+if ! ssh "${ssh_options[@]}" "$deploy_target" "rm -f -- '$remote_artifact'"; then
+  echo "경고: 서버 임시 JAR을 정리하지 못했습니다: $remote_artifact" >&2
+fi
+if [[ "$deploy_status" -ne 0 ]]; then
+  echo "배포 실패: 서버 배포 command가 종료 코드 $deploy_status를 반환했습니다." >&2
+  exit "$deploy_status"
+fi
+
+if [[ "$check_public_readiness" == true ]]; then
+  echo "[6/6] 공개 HTTPS readiness 확인"
+  public_ready=false
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    if curl --fail --silent --show-error \
+      --connect-timeout 5 --max-time 10 "$public_readiness_url" >/dev/null; then
+      public_ready=true
+      break
+    fi
+    sleep 2
+  done
+  if [[ "$public_ready" != true ]]; then
+    echo "서버 내부 배포는 완료됐지만 공개 HTTPS readiness 확인에 실패했습니다." >&2
+    echo "확인 URL: $public_readiness_url" >&2
+    exit 7
+  fi
+else
+  echo "[6/6] 공개 HTTPS readiness 확인 생략"
+fi
+
+echo "Earth Trip backend 로컬 배포 완료"
+echo "  target:  $deploy_target"
+echo "  release: $release_id"
+echo "  sha256:  $sha256"

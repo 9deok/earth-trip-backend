@@ -17,6 +17,12 @@ public interface TripStructureUseCase {
         String expectedProposalHash
     );
 
+    ChangeSetResult synchronize(
+        UUID tripId,
+        UUID actorUserId,
+        StructureProposal proposal
+    );
+
     ChangeSetResult revert(
         UUID tripId,
         UUID changeSetId,

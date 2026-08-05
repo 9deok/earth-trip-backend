@@ -3,6 +3,7 @@ package com.earthtrip.trip.application.service.segment;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.application.port.in.TripSegmentUseCase;
 import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.application.port.out.TripSegmentStorePort;
 import com.earthtrip.trip.domain.TripId;
 import com.earthtrip.trip.domain.TripSegment;
@@ -20,10 +21,19 @@ import org.springframework.transaction.annotation.Transactional;
 class TripSegmentService implements TripSegmentUseCase {
     private final TripAccess tripAccess;
     private final TripSegmentStorePort segmentStore;
+    private final TripChangePublisher changes;
     private final Clock clock;
 
-    TripSegmentService(TripAccess tripAccess, TripSegmentStorePort segmentStore, Clock clock) {
-        this.tripAccess = tripAccess; this.segmentStore = segmentStore; this.clock = clock;
+    TripSegmentService(
+        TripAccess tripAccess,
+        TripSegmentStorePort segmentStore,
+        TripChangePublisher changes,
+        Clock clock
+    ) {
+        this.tripAccess = tripAccess;
+        this.segmentStore = segmentStore;
+        this.changes = changes;
+        this.clock = clock;
     }
 
     @Override @Transactional(readOnly = true)
@@ -57,7 +67,9 @@ class TripSegmentService implements TripSegmentUseCase {
             command.transportMode(), command.departureAt(), command.arrivalAt(), sortOrder,
             actorUserId, now
         );
-        return result(segmentStore.save(segment));
+        TripSegment saved = segmentStore.save(segment);
+        changes.publish(tripId, actorUserId, "CREATED", "TRIP_SEGMENT", saved.id());
+        return result(saved);
     }
 
     @Override
@@ -71,13 +83,16 @@ class TripSegmentService implements TripSegmentUseCase {
             command.checkOutAt(), command.transportMode(), command.departureAt(), command.arrivalAt(),
             command.sortOrder() == null ? segment.sortOrder() : command.sortOrder(), actorUserId, clock.instant()
         );
-        return result(segmentStore.save(segment));
+        TripSegment saved = segmentStore.save(segment);
+        changes.publish(tripId, actorUserId, "UPDATED", "TRIP_SEGMENT", segmentId);
+        return result(saved);
     }
 
     @Override
     public void delete(UUID tripId, UUID segmentId, UUID actorUserId, long baseVersion) {
         tripAccess.requireEditor(tripId, actorUserId); TripSegment segment = loadInTrip(tripId, segmentId);
         verifyVersion(segment, baseVersion); segmentStore.delete(segmentId);
+        changes.publish(tripId, actorUserId, "DELETED", "TRIP_SEGMENT", segmentId);
     }
 
     @Override
@@ -94,6 +109,7 @@ class TripSegmentService implements TripSegmentUseCase {
             verifyVersion(segment, item.baseVersion());
             segment.moveTo(item.sortOrder(), actorUserId, now); segmentStore.save(segment);
         }
+        changes.publish(tripId, actorUserId, "REORDERED", "TRIP", tripId);
         return segmentStore.findAll(new TripId(tripId)).stream()
             .sorted(Comparator.comparingInt(TripSegment::sortOrder)).map(TripSegmentService::result).toList();
     }

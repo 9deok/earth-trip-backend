@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+umask 077
+
+client_config="${EARTH_TRIP_DB_CLIENT_CONFIG:-/etc/earth-trip/mariadb-backup.cnf}"
+backup_root="${EARTH_TRIP_BACKUP_ROOT:-/var/backups/earth-trip/mariadb}"
+database="${EARTH_TRIP_DATABASE:-earth_trip}"
+retention_days="${EARTH_TRIP_BACKUP_RETENTION_DAYS:-14}"
+
+if [[ ! -r "$client_config" ]]; then
+  echo "MariaDB client 설정을 읽을 수 없습니다: $client_config" >&2
+  exit 2
+fi
+if [[ ! "$retention_days" =~ ^[1-9][0-9]{0,3}$ ]]; then
+  echo "backup retention은 1~9999일이어야 합니다." >&2
+  exit 2
+fi
+
+install -d -m 0700 "$backup_root"
+timestamp="$(date --utc +%Y%m%dT%H%M%SZ)"
+final="$backup_root/earth-trip-${timestamp}.sql.gz"
+temporary="${final}.partial"
+
+trap 'rm -f "$temporary"' EXIT
+mariadb-dump \
+  --defaults-extra-file="$client_config" \
+  --single-transaction \
+  --routines \
+  --events \
+  --triggers \
+  --hex-blob \
+  --databases "$database" | gzip -9 > "$temporary"
+
+gzip --test "$temporary"
+if [[ ! -s "$temporary" ]]; then
+  echo "생성된 backup 파일이 비어 있습니다." >&2
+  exit 3
+fi
+mv "$temporary" "$final"
+(
+  cd "$backup_root"
+  sha256sum "$(basename "$final")" > "$(basename "$final").sha256"
+)
+
+find "$backup_root" -maxdepth 1 -type f \
+  \( -name 'earth-trip-*.sql.gz' -o -name 'earth-trip-*.sql.gz.sha256' \) \
+  -mtime "+$retention_days" -delete
+
+echo "MariaDB backup 완료: $final"

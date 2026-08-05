@@ -3,5 +3,6 @@ description = 'Notification request and delivery policy bounded context'
 dependencies {
     implementation 'org.springframework:spring-web'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.43.0'
     implementation 'jakarta.validation:jakarta.validation-api'
 }

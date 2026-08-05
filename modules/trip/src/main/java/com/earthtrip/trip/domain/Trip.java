@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Currency;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -16,6 +17,10 @@ public final class Trip {
 
     public enum Pace { RELAXED, BALANCED, PACKED }
 
+    public enum DateMode { EXACT, CANDIDATES, UNDECIDED }
+
+    public enum TravelMode { ROUND_TRIP, ONE_WAY, OPEN_JAW }
+
     private final TripId id;
     private UUID ownerUserId;
     private TripTitle title;
@@ -26,6 +31,19 @@ public final class Trip {
     private String defaultCurrency;
     private PlanningMode planningMode;
     private Pace pace;
+    private int companionCount;
+    private List<String> companionNames;
+    private DateMode dateMode;
+    private TravelMode travelMode;
+    private String departurePoint;
+    private String returnPoint;
+    private int firstDayStartMinutes;
+    private int lastDayEndMinutes;
+    private int overnightTravelNights;
+    private boolean reduceStairs;
+    private boolean frequentBreaks;
+    private int walkingLimitMinutes;
+    private String dietaryNotes;
     private Instant deletedAt;
     private Instant scheduledDeletionAt;
     private final Instant createdAt;
@@ -43,6 +61,19 @@ public final class Trip {
         String defaultCurrency,
         PlanningMode planningMode,
         Pace pace,
+        int companionCount,
+        List<String> companionNames,
+        DateMode dateMode,
+        TravelMode travelMode,
+        String departurePoint,
+        String returnPoint,
+        int firstDayStartMinutes,
+        int lastDayEndMinutes,
+        int overnightTravelNights,
+        boolean reduceStairs,
+        boolean frequentBreaks,
+        int walkingLimitMinutes,
+        String dietaryNotes,
         Instant deletedAt,
         Instant scheduledDeletionAt,
         Instant createdAt,
@@ -60,6 +91,12 @@ public final class Trip {
         this.defaultCurrency = validCurrency(defaultCurrency);
         this.planningMode = Objects.requireNonNull(planningMode);
         this.pace = Objects.requireNonNull(pace);
+        applyPreferences(
+            companionCount, companionNames, dateMode, travelMode, departurePoint,
+            returnPoint, firstDayStartMinutes, lastDayEndMinutes,
+            overnightTravelNights, reduceStairs, frequentBreaks,
+            walkingLimitMinutes, dietaryNotes
+        );
         this.deletedAt = deletedAt;
         this.scheduledDeletionAt = scheduledDeletionAt;
         this.createdAt = Objects.requireNonNull(createdAt);
@@ -78,6 +115,8 @@ public final class Trip {
         return new Trip(
             id, Objects.requireNonNull(ownerUserId), title, Status.DRAFT, null, null,
             timeZone, defaultCurrency, PlanningMode.EXACT, Pace.BALANCED,
+            1, List.of("나"), DateMode.EXACT, TravelMode.ROUND_TRIP, "", "",
+            600, 1080, 0, false, true, 90, "",
             null, null, now, now, 0
         );
     }
@@ -86,7 +125,10 @@ public final class Trip {
     public static Trip create(TripId id, TripTitle title, Instant now) {
         return new Trip(
             id, null, title, Status.DRAFT, null, null, "Asia/Seoul", "KRW",
-            PlanningMode.EXACT, Pace.BALANCED, null, null, now, now, 0
+            PlanningMode.EXACT, Pace.BALANCED,
+            1, List.of("나"), DateMode.EXACT, TravelMode.ROUND_TRIP, "", "",
+            600, 1080, 0, false, true, 90, "",
+            null, null, now, now, 0
         );
     }
 
@@ -101,6 +143,19 @@ public final class Trip {
         String defaultCurrency,
         PlanningMode planningMode,
         Pace pace,
+        int companionCount,
+        List<String> companionNames,
+        DateMode dateMode,
+        TravelMode travelMode,
+        String departurePoint,
+        String returnPoint,
+        int firstDayStartMinutes,
+        int lastDayEndMinutes,
+        int overnightTravelNights,
+        boolean reduceStairs,
+        boolean frequentBreaks,
+        int walkingLimitMinutes,
+        String dietaryNotes,
         Instant deletedAt,
         Instant scheduledDeletionAt,
         Instant createdAt,
@@ -109,7 +164,10 @@ public final class Trip {
     ) {
         return new Trip(
             id, ownerUserId, title, status, startDate, endDate, timeZone, defaultCurrency,
-            planningMode, pace, deletedAt, scheduledDeletionAt, createdAt, updatedAt, version
+            planningMode, pace, companionCount, companionNames, dateMode, travelMode,
+            departurePoint, returnPoint, firstDayStartMinutes, lastDayEndMinutes,
+            overnightTravelNights, reduceStairs, frequentBreaks, walkingLimitMinutes,
+            dietaryNotes, deletedAt, scheduledDeletionAt, createdAt, updatedAt, version
         );
     }
 
@@ -122,6 +180,19 @@ public final class Trip {
         String newCurrency,
         String newPlanningMode,
         String newPace,
+        Integer newCompanionCount,
+        List<String> newCompanionNames,
+        String newDateMode,
+        String newTravelMode,
+        String newDeparturePoint,
+        String newReturnPoint,
+        Integer newFirstDayStartMinutes,
+        Integer newLastDayEndMinutes,
+        Integer newOvernightTravelNights,
+        Boolean newReduceStairs,
+        Boolean newFrequentBreaks,
+        Integer newWalkingLimitMinutes,
+        String newDietaryNotes,
         Instant now
     ) {
         TripTitle candidateTitle = newTitle == null ? title : new TripTitle(newTitle);
@@ -139,9 +210,100 @@ public final class Trip {
             ? planningMode
             : PlanningMode.valueOf(newPlanningMode.toUpperCase(Locale.ROOT));
         this.pace = newPace == null ? pace : Pace.valueOf(newPace.toUpperCase(Locale.ROOT));
+        applyPreferences(
+            newCompanionCount == null ? companionCount : newCompanionCount,
+            newCompanionNames == null ? companionNames : newCompanionNames,
+            newDateMode == null ? dateMode : DateMode.valueOf(newDateMode.toUpperCase(Locale.ROOT)),
+            newTravelMode == null ? travelMode : TravelMode.valueOf(newTravelMode.toUpperCase(Locale.ROOT)),
+            newDeparturePoint == null ? departurePoint : newDeparturePoint,
+            newReturnPoint == null ? returnPoint : newReturnPoint,
+            newFirstDayStartMinutes == null ? firstDayStartMinutes : newFirstDayStartMinutes,
+            newLastDayEndMinutes == null ? lastDayEndMinutes : newLastDayEndMinutes,
+            newOvernightTravelNights == null ? overnightTravelNights : newOvernightTravelNights,
+            newReduceStairs == null ? reduceStairs : newReduceStairs,
+            newFrequentBreaks == null ? frequentBreaks : newFrequentBreaks,
+            newWalkingLimitMinutes == null ? walkingLimitMinutes : newWalkingLimitMinutes,
+            newDietaryNotes == null ? dietaryNotes : newDietaryNotes
+        );
         this.deletedAt = null;
         this.scheduledDeletionAt = null;
         this.updatedAt = Objects.requireNonNull(now);
+    }
+
+    public void update(
+        String newTitle, String newStatus, LocalDate newStartDate, LocalDate newEndDate,
+        String newTimeZone, String newCurrency, String newPlanningMode, String newPace,
+        Instant now
+    ) {
+        update(
+            newTitle, newStatus, newStartDate, newEndDate, newTimeZone, newCurrency,
+            newPlanningMode, newPace, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, now
+        );
+    }
+
+    private void applyPreferences(
+        int companionCount,
+        List<String> companionNames,
+        DateMode dateMode,
+        TravelMode travelMode,
+        String departurePoint,
+        String returnPoint,
+        int firstDayStartMinutes,
+        int lastDayEndMinutes,
+        int overnightTravelNights,
+        boolean reduceStairs,
+        boolean frequentBreaks,
+        int walkingLimitMinutes,
+        String dietaryNotes
+    ) {
+        if (companionCount < 1 || companionCount > 20) {
+            throw new IllegalArgumentException("동행자 수는 1명에서 20명 사이여야 합니다.");
+        }
+        List<String> names = (companionNames == null ? List.<String>of() : companionNames).stream()
+            .map(value -> text(value, 80))
+            .filter(value -> !value.isEmpty())
+            .distinct()
+            .toList();
+        if (names.size() > companionCount) {
+            throw new IllegalArgumentException("동행자 이름 수가 동행자 수보다 많습니다.");
+        }
+        minute(firstDayStartMinutes);
+        minute(lastDayEndMinutes);
+        if (overnightTravelNights < 0 || overnightTravelNights > 30) {
+            throw new IllegalArgumentException("야간 이동 숙박 수를 확인해 주세요.");
+        }
+        if (walkingLimitMinutes < 15 || walkingLimitMinutes > 480) {
+            throw new IllegalArgumentException("도보 한도는 15분에서 480분 사이여야 합니다.");
+        }
+        this.companionCount = companionCount;
+        this.companionNames = List.copyOf(names);
+        this.dateMode = Objects.requireNonNull(dateMode);
+        this.travelMode = Objects.requireNonNull(travelMode);
+        this.departurePoint = text(departurePoint, 200);
+        this.returnPoint = text(returnPoint, 200);
+        this.firstDayStartMinutes = firstDayStartMinutes;
+        this.lastDayEndMinutes = lastDayEndMinutes;
+        this.overnightTravelNights = overnightTravelNights;
+        this.reduceStairs = reduceStairs;
+        this.frequentBreaks = frequentBreaks;
+        this.walkingLimitMinutes = walkingLimitMinutes;
+        this.dietaryNotes = text(dietaryNotes, 2_000);
+    }
+
+    private static void minute(int value) {
+        if (value < 0 || value > 1_439) {
+            throw new IllegalArgumentException("하루 시각은 0분에서 1439분 사이여야 합니다.");
+        }
+    }
+
+    private static String text(String value, int maxLength) {
+        if (value == null) return "";
+        String normalized = value.strip();
+        if (normalized.length() > maxLength) {
+            throw new IllegalArgumentException("입력 값이 너무 깁니다.");
+        }
+        return normalized;
     }
 
     public void rename(TripTitle newTitle, Instant now) {
@@ -209,6 +371,19 @@ public final class Trip {
     public String defaultCurrency() { return defaultCurrency; }
     public PlanningMode planningMode() { return planningMode; }
     public Pace pace() { return pace; }
+    public int companionCount() { return companionCount; }
+    public List<String> companionNames() { return companionNames; }
+    public DateMode dateMode() { return dateMode; }
+    public TravelMode travelMode() { return travelMode; }
+    public String departurePoint() { return departurePoint; }
+    public String returnPoint() { return returnPoint; }
+    public int firstDayStartMinutes() { return firstDayStartMinutes; }
+    public int lastDayEndMinutes() { return lastDayEndMinutes; }
+    public int overnightTravelNights() { return overnightTravelNights; }
+    public boolean reduceStairs() { return reduceStairs; }
+    public boolean frequentBreaks() { return frequentBreaks; }
+    public int walkingLimitMinutes() { return walkingLimitMinutes; }
+    public String dietaryNotes() { return dietaryNotes; }
     public Instant deletedAt() { return deletedAt; }
     public Instant scheduledDeletionAt() { return scheduledDeletionAt; }
     public Instant createdAt() { return createdAt; }

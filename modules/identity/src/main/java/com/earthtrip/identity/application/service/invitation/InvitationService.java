@@ -11,9 +11,12 @@ import com.earthtrip.identity.domain.UserAccount;
 import com.earthtrip.identity.domain.UserId;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripChangePublisher;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -30,17 +33,19 @@ class InvitationService implements InvitationUseCase {
     private final CredentialPort credentials;
     private final InvitationDeliveryPort delivery;
     private final TripAccess tripAccess;
+    private final TripChangePublisher changes;
     private final Clock clock;
     private final String publicBaseUrl;
 
     InvitationService(
         InvitationStorePort invitations, TripMemberStorePort members, UserAccountStorePort users,
         CredentialPort credentials, InvitationDeliveryPort delivery, TripAccess tripAccess, Clock clock,
+        TripChangePublisher changes,
         @Value("${earthtrip.public-base-url:https://app.earthtrip.local}") String publicBaseUrl
     ) {
         this.invitations = invitations; this.members = members; this.users = users;
         this.credentials = credentials; this.delivery = delivery; this.tripAccess = tripAccess;
-        this.clock = clock; this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
+        this.changes = changes; this.clock = clock; this.publicBaseUrl = publicBaseUrl.replaceAll("/+$", "");
     }
 
     @Override @Transactional(readOnly = true)
@@ -77,7 +82,9 @@ class InvitationService implements InvitationUseCase {
             actorUserId, null, now.plus(DEFAULT_TTL), null, null, null, null, "PENDING",
             now, now, 0
         );
-        return deliver(invitations.save(invitation), rawToken, now);
+        CreatedInvitation created = deliver(invitations.save(invitation), rawToken, now);
+        changes.publish(tripId, actorUserId, "CREATED", "INVITATION", requestId);
+        return created;
     }
 
     @Override
@@ -92,11 +99,13 @@ class InvitationService implements InvitationUseCase {
         if (!newExpiry.isAfter(now)) throw EarthTripException.badRequest(
             "INVALID_INVITATION_EXPIRY", "초대 만료 시각은 현재보다 이후여야 합니다."
         );
-        return result(invitations.save(copy(
+        InvitationResult updated = result(invitations.save(copy(
             current, role(rawRole == null ? current.role() : rawRole), current.tokenHash(),
             "PENDING", current.invitedUserId(), newExpiry, current.acceptedAt(), current.declinedAt(),
             current.revokedAt(), current.lastDeliveredAt(), current.deliveryStatus(), now
         )));
+        changes.publish(tripId, actorUserId, "UPDATED", "INVITATION", invitationId);
+        return updated;
     }
 
     @Override
@@ -109,6 +118,7 @@ class InvitationService implements InvitationUseCase {
             current.expiresAt(), current.acceptedAt(), current.declinedAt(), now,
             current.lastDeliveredAt(), current.deliveryStatus(), now
         ));
+        changes.publish(tripId, actorUserId, "REVOKED", "INVITATION", invitationId);
     }
 
     @Override
@@ -124,7 +134,9 @@ class InvitationService implements InvitationUseCase {
             now.plus(DEFAULT_TTL), current.acceptedAt(), current.declinedAt(), current.revokedAt(),
             current.lastDeliveredAt(), "PENDING", now
         );
-        return deliver(invitations.save(rotated), token, now);
+        CreatedInvitation delivered = deliver(invitations.save(rotated), token, now);
+        changes.publish(tripId, actorUserId, "REDELIVERED", "INVITATION", invitationId);
+        return delivered;
     }
 
     @Override @Transactional(readOnly = true)
@@ -157,6 +169,9 @@ class InvitationService implements InvitationUseCase {
             invitation.expiresAt(), now, invitation.declinedAt(), invitation.revokedAt(),
             invitation.lastDeliveredAt(), invitation.deliveryStatus(), now
         ));
+        changes.publish(
+            invitation.tripId(), actorUserId, "ACCEPTED", "INVITATION", invitation.id()
+        );
     }
 
     @Override
@@ -168,12 +183,17 @@ class InvitationService implements InvitationUseCase {
             invitation.expiresAt(), invitation.acceptedAt(), now, invitation.revokedAt(),
             invitation.lastDeliveredAt(), invitation.deliveryStatus(), now
         ));
+        changes.publish(
+            invitation.tripId(), invitation.invitedBy(), "DECLINED", "INVITATION",
+            invitation.id(), java.util.Map.of("performedByInvitee", true)
+        );
     }
 
     private CreatedInvitation deliver(
         InvitationStorePort.InvitationRecord invitation, String token, Instant now
     ) {
-        String url = publicBaseUrl + "/invitations/" + token;
+        String url = publicBaseUrl + "/invitations?token="
+            + URLEncoder.encode(token, StandardCharsets.UTF_8);
         String status = delivery.send(new EmailAddress(invitation.email()), url, invitation.expiresAt()).name();
         InvitationStorePort.InvitationRecord saved = invitations.save(copy(
             invitation, invitation.role(), invitation.tokenHash(), invitation.status(),

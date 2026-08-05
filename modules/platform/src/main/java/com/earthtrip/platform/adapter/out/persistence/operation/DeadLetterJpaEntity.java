@@ -57,6 +57,14 @@ class DeadLetterJpaEntity {
         return payload;
     }
 
+    String id() {
+        return id;
+    }
+
+    String eventType() {
+        return eventType;
+    }
+
     OperationalStorePort.DeadLetterRecord record(Map<String, Object> payloadValue) {
         return new OperationalStorePort.DeadLetterRecord(
             UUID.fromString(id),

@@ -137,7 +137,11 @@ class AnalysisJobService implements AnalysisJobUseCase {
             );
         }
         return result(store.save(copy(
-            job, "QUEUED", null, null, job.attemptCount() + 1
+            job,
+            "FAILED",
+            "ANALYSIS_RETRY_REQUIRES_SUGGESTIONS",
+            "기기 분석 결과를 다시 만든 뒤 새 분석 작업을 시작해 주세요.",
+            job.attemptCount() + 1
         )));
     }
 
@@ -185,7 +189,11 @@ class AnalysisJobService implements AnalysisJobUseCase {
         return result(store.save(new AnalysisJobStorePort.JobRecord(
             command.requestId(), tripId, targetType, targetId,
             safeMap(command.inputPayload()), suggestions,
-            suggestions.isEmpty() ? "QUEUED" : "READY", null, null, null, null,
+            suggestions.isEmpty() ? "FAILED" : "READY", null, null,
+            suggestions.isEmpty() ? "ANALYSIS_SUGGESTIONS_REQUIRED" : null,
+            suggestions.isEmpty()
+                ? "서버 분석 공급자가 설정되지 않았습니다. 기기 분석 결과를 함께 보내 주세요."
+                : null,
             1, actorUserId, now, now, 0
         )));
     }

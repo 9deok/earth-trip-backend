@@ -64,6 +64,14 @@ class OperationalJobJpaEntity {
         return payload;
     }
 
+    String id() {
+        return id;
+    }
+
+    String jobType() {
+        return jobType;
+    }
+
     OperationalStorePort.JobRecord record(java.util.Map<String, Object> payloadValue) {
         return new OperationalStorePort.JobRecord(
             java.util.UUID.fromString(id),

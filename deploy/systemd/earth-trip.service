@@ -1,0 +1,34 @@
+[Unit]
+Description=Earth Trip backend
+After=network-online.target mariadb.service
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=earthtrip
+Group=earthtrip
+WorkingDirectory=/opt/earth-trip/current
+EnvironmentFile=/etc/earth-trip/earth-trip.env
+Environment=SERVER_ADDRESS=127.0.0.1
+ExecStart=/usr/bin/java -jar /opt/earth-trip/current/earth-trip-backend.jar
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=90
+TimeoutStopSec=30
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/earth-trip /opt/earth-trip/logs
+
+[Install]
+WantedBy=multi-user.target

@@ -13,10 +13,6 @@ public interface IntegrationUseCase {
     void deleteConnection(UUID userId,UUID connectionId,String kind,long baseVersion);
     SyncJobResult syncConnection(UUID userId,UUID connectionId,UUID requestId,Map<String,Object> payload);
     SyncJobResult syncJob(UUID userId,UUID jobId);
-    List<AliasResult> aliases(UUID userId);
-    AliasResult createAlias(UUID userId,UUID requestId);
-    void deleteAlias(UUID userId,UUID aliasId,long baseVersion);
-    SyncJobResult reservationMailSync(UUID userId,UUID requestId,UUID connectionId,Map<String,Object> payload);
     CalendarSyncResult calendar(UUID tripId,UUID actorUserId);
     CalendarSyncResult putCalendar(UUID tripId,UUID actorUserId,CalendarCommand command);
     void deleteCalendar(UUID tripId,UUID actorUserId,long baseVersion);
@@ -26,7 +22,6 @@ public interface IntegrationUseCase {
     record ConnectionCommand(UUID requestId,String provider,Set<String> scopes,Map<String,Object> metadata,String authorizationCode,String redirectUri,String codeVerifier){}
     record ConnectionResult(UUID connectionId,String kind,String provider,String status,Set<String> scopes,Map<String,Object> metadata,String authorizationState,Instant authorizationExpiresAt,Instant lastSuccessAt,String errorCode,boolean providerConfigured,Instant createdAt,Instant updatedAt,long version){}
     record SyncJobResult(UUID jobId,UUID connectionId,UUID tripId,String jobType,String status,Map<String,Object> result,String errorCode,int attemptCount,Instant createdAt,Instant updatedAt,long version){}
-    record AliasResult(UUID aliasId,String alias,String status,boolean providerConfigured,Instant createdAt,long version){}
     record CalendarCommand(UUID connectionId,Map<String,Object> scopeConfig,long baseVersion){}
     record CalendarSyncResult(UUID tripId,UUID connectionId,Map<String,Object> scopeConfig,String status,Instant updatedAt,long version){}
 }

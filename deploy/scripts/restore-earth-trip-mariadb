@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+backup="${1:-}"
+client_config="${EARTH_TRIP_DB_CLIENT_CONFIG:-/etc/earth-trip/mariadb-backup.cnf}"
+database="${EARTH_TRIP_DATABASE:-earth_trip}"
+
+if [[ "${EARTH_TRIP_RESTORE_CONFIRM:-}" != "restore-earth-trip" ]]; then
+  echo "복구하려면 EARTH_TRIP_RESTORE_CONFIRM=restore-earth-trip을 명시해야 합니다." >&2
+  exit 2
+fi
+if [[ ! -f "$backup" || "$backup" != *.sql.gz ]]; then
+  echo "복구할 .sql.gz 파일을 정확히 지정해야 합니다." >&2
+  exit 2
+fi
+if [[ ! -r "$client_config" ]]; then
+  echo "MariaDB client 설정을 읽을 수 없습니다: $client_config" >&2
+  exit 2
+fi
+if systemctl is-active --quiet earth-trip.service; then
+  echo "데이터 복구 전 earth-trip.service를 중지해야 합니다." >&2
+  exit 3
+fi
+
+gzip --test "$backup"
+if [[ -f "${backup}.sha256" ]]; then
+  sha256sum --check "${backup}.sha256"
+fi
+
+echo "대상 DB $database 에 backup을 복구합니다: $backup"
+gzip --decompress --stdout "$backup" | \
+  mariadb --defaults-extra-file="$client_config" "$database"
+echo "복구 완료. 앱을 시작하기 전에 Flyway history와 row count를 확인하세요."

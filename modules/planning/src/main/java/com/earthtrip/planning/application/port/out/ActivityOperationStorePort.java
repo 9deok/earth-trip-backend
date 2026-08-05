@@ -14,6 +14,16 @@ public interface ActivityOperationStorePort {
 
     long latestSequence(UUID tripId);
 
+    void appendActivity(
+        UUID tripId,
+        UUID actorId,
+        String action,
+        String resourceType,
+        UUID resourceId,
+        Map<String, Object> details,
+        Instant occurredAt
+    );
+
     Optional<OperationRecord> findOperation(UUID operationId);
 
     OperationRecord saveOperation(OperationRecord record);

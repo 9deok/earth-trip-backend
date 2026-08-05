@@ -130,10 +130,10 @@ class ProviderProxyService implements ProviderProxyUseCase {
         }
         validateCoordinates(query.latitude(), query.longitude());
         long days = ChronoUnit.DAYS.between(query.startDate(), query.endDate());
-        if (days < 0 || days > 14) {
+        if (days < 0 || days > 9) {
             throw EarthTripException.badRequest(
                 "INVALID_WEATHER_RANGE",
-                "날씨 예보 범위는 시작일부터 14일 이하여야 합니다."
+                "날씨 예보 범위는 시작일과 종료일을 포함해 최대 10일입니다."
             );
         }
         String timeZone = text(

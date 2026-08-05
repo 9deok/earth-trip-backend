@@ -1,0 +1,11 @@
+[Unit]
+Description=Run Earth Trip MariaDB backup every day
+
+[Timer]
+OnCalendar=*-*-* 03:20:00
+Persistent=true
+RandomizedDelaySec=900
+Unit=earth-trip-backup.service
+
+[Install]
+WantedBy=timers.target
