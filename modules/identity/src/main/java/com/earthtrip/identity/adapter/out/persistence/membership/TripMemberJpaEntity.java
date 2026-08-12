@@ -9,27 +9,60 @@ import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity @Table(name = "trip_members")
+@Entity
+@Table(name = "trip_members")
 class TripMemberJpaEntity {
-    @Id @Column(name = "id", nullable = false, length = 36) private String id;
-    @Column(name = "trip_id", nullable = false, length = 36) private String tripId;
-    @Column(name = "user_id", nullable = false, length = 36) private String userId;
-    @Column(name = "role", nullable = false, length = 20) private String role;
-    @Column(name = "status", nullable = false, length = 20) private String status;
-    @Column(name = "joined_at", nullable = false) private Instant joinedAt;
-    @Column(name = "updated_at", nullable = false) private Instant updatedAt;
-    @Version @Column(name = "version", nullable = false) private long version;
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
 
-    protected TripMemberJpaEntity() { }
-    TripMemberJpaEntity(TripMemberStorePort.MemberRecord r) { id = r.id().toString(); apply(r); }
-    void apply(TripMemberStorePort.MemberRecord r) {
-        tripId = r.tripId().toString(); userId = r.userId().toString(); role = r.role(); status = r.status();
-        joinedAt = r.joinedAt(); updatedAt = r.updatedAt();
+    @Column(name = "trip_id", nullable = false, length = 36)
+    private String tripId;
+
+    @Column(name = "user_id", nullable = false, length = 36)
+    private String userId;
+
+    @Column(name = "role", nullable = false, length = 20)
+    private String role;
+
+    @Column(name = "status", nullable = false, length = 20)
+    private String status;
+
+    @Column(name = "joined_at", nullable = false)
+    private Instant joinedAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected TripMemberJpaEntity() {}
+
+    TripMemberJpaEntity(TripMemberStorePort.MemberRecord r) {
+        id = r.id().toString();
+        apply(r);
     }
+
+    void apply(TripMemberStorePort.MemberRecord r) {
+        tripId = r.tripId().toString();
+        userId = r.userId().toString();
+        role = r.role();
+        status = r.status();
+        joinedAt = r.joinedAt();
+        updatedAt = r.updatedAt();
+    }
+
     TripMemberStorePort.MemberRecord toRecord() {
         return new TripMemberStorePort.MemberRecord(
-            UUID.fromString(id), UUID.fromString(tripId), UUID.fromString(userId), role, status,
-            joinedAt, updatedAt, version
-        );
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                UUID.fromString(userId),
+                role,
+                status,
+                joinedAt,
+                updatedAt,
+                version);
     }
 }

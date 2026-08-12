@@ -1,6 +1,69 @@
 package com.earthtrip.platform.application.port.in;
-import java.math.BigDecimal;import java.time.Instant;import java.util.*;
-public interface ExternalTravelUseCase{
- List<GeoResult>forward(String query,String language,Integer limit);GeoResult reverse(BigDecimal latitude,BigDecimal longitude,String language);PlaceUrlResult resolvePlaceUrl(String url,String language);List<TimeZoneResult>timeZones(BigDecimal latitude,BigDecimal longitude,String query,Integer limit);List<TransportStatusResult>transportStatuses(List<String>references,Instant observedAt);List<InformationResult>emergencyInformation(UUID tripId,UUID actorUserId,String language);List<InformationResult>travelAdvisories(UUID tripId,UUID actorUserId,String language);ComparisonRefreshResult refreshComparison(UUID tripId,UUID optionId,UUID actorUserId,long baseVersion);
- record GeoResult(String formattedAddress,BigDecimal latitude,BigDecimal longitude,String providerPlaceId,String source){}record PlaceUrlResult(String canonicalUrl,String providerPlaceId,String name,String formattedAddress,BigDecimal latitude,BigDecimal longitude,String source){}record TimeZoneResult(String timeZone,String displayName,String source){}record TransportStatusResult(String reference,String mode,String status,Instant scheduledAt,Instant estimatedAt,String message,String source,Instant observedAt){}record InformationResult(String countryCode,String category,String title,String summary,String sourceUrl,String source,Instant observedAt){}record ComparisonRefreshResult(UUID optionId,Map<String,Object>payload,String status,long version,Instant refreshedAt){}
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+
+public interface ExternalTravelUseCase {
+    List<GeoResult> forward(String query, String language, Integer limit);
+
+    GeoResult reverse(BigDecimal latitude, BigDecimal longitude, String language);
+
+    PlaceUrlResult resolvePlaceUrl(String url, String language);
+
+    List<TimeZoneResult> timeZones(
+            BigDecimal latitude, BigDecimal longitude, String query, Integer limit);
+
+    List<TransportStatusResult> transportStatuses(List<String> references, Instant observedAt);
+
+    List<InformationResult> emergencyInformation(UUID tripId, UUID actorUserId, String language);
+
+    List<InformationResult> travelAdvisories(UUID tripId, UUID actorUserId, String language);
+
+    ComparisonRefreshResult refreshComparison(
+            UUID tripId, UUID optionId, UUID actorUserId, long baseVersion);
+
+    record GeoResult(
+            String formattedAddress,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            String providerPlaceId,
+            String source) {}
+
+    record PlaceUrlResult(
+            String canonicalUrl,
+            String providerPlaceId,
+            String name,
+            String formattedAddress,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            String source) {}
+
+    record TimeZoneResult(String timeZone, String displayName, String source) {}
+
+    record TransportStatusResult(
+            String reference,
+            String mode,
+            String status,
+            Instant scheduledAt,
+            Instant estimatedAt,
+            String message,
+            String source,
+            Instant observedAt) {}
+
+    record InformationResult(
+            String countryCode,
+            String category,
+            String title,
+            String summary,
+            String sourceUrl,
+            String source,
+            Instant observedAt) {}
+
+    record ComparisonRefreshResult(
+            UUID optionId,
+            Map<String, Object> payload,
+            String status,
+            long version,
+            Instant refreshedAt) {}
 }

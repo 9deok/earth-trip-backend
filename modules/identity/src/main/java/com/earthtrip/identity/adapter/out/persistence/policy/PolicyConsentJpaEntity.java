@@ -34,15 +34,10 @@ class PolicyConsentJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected PolicyConsentJpaEntity() { }
+    protected PolicyConsentJpaEntity() {}
 
     PolicyConsentJpaEntity(
-        String userId,
-        String policyId,
-        String decision,
-        Instant decidedAt,
-        String source
-    ) {
+            String userId, String policyId, String decision, Instant decidedAt, String source) {
         this.userId = userId;
         this.policyId = policyId;
         apply(decision, decidedAt, source);
@@ -54,11 +49,19 @@ class PolicyConsentJpaEntity {
         source = newSource;
     }
 
-    String policyId() { return policyId; }
+    String policyId() {
+        return policyId;
+    }
 
-    String decision() { return decision; }
+    String decision() {
+        return decision;
+    }
 
-    Instant decidedAt() { return decidedAt; }
+    Instant decidedAt() {
+        return decidedAt;
+    }
 
-    String source() { return source; }
+    String source() {
+        return source;
+    }
 }

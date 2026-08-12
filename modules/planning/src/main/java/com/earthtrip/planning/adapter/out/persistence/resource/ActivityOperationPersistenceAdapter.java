@@ -14,17 +14,16 @@ import org.springframework.stereotype.Component;
 @Component
 class ActivityOperationPersistenceAdapter implements ActivityOperationStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
 
     private final PlanningActivityJpaRepository activities;
     private final PlanningOperationResultJpaRepository operations;
     private final ObjectMapper json;
 
     ActivityOperationPersistenceAdapter(
-        PlanningActivityJpaRepository activities,
-        PlanningOperationResultJpaRepository operations,
-        ObjectMapper json
-    ) {
+            PlanningActivityJpaRepository activities,
+            PlanningOperationResultJpaRepository operations,
+            ObjectMapper json) {
         this.activities = activities;
         this.operations = operations;
         this.json = json;
@@ -32,9 +31,12 @@ class ActivityOperationPersistenceAdapter implements ActivityOperationStorePort 
 
     @Override
     public List<ActivityRecord> activities(UUID tripId, long after, int limit) {
-        return activities.findAllByTripIdAndSequenceIdGreaterThanOrderBySequenceIdAsc(
-            tripId.toString(), after, PageRequest.of(0, limit)
-        ).stream().map(this::activity).toList();
+        return activities
+                .findAllByTripIdAndSequenceIdGreaterThanOrderBySequenceIdAsc(
+                        tripId.toString(), after, PageRequest.of(0, limit))
+                .stream()
+                .map(this::activity)
+                .toList();
     }
 
     @Override
@@ -44,24 +46,30 @@ class ActivityOperationPersistenceAdapter implements ActivityOperationStorePort 
 
     @Override
     public long latestSequence(UUID tripId) {
-        return activities.findFirstByTripIdOrderBySequenceIdDesc(tripId.toString())
-            .map(PlanningActivityJpaEntity::sequenceId)
-            .orElse(0L);
+        return activities
+                .findFirstByTripIdOrderBySequenceIdDesc(tripId.toString())
+                .map(PlanningActivityJpaEntity::sequenceId)
+                .orElse(0L);
     }
 
     @Override
     public void appendActivity(
-        UUID tripId,
-        UUID actorId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> details,
-        java.time.Instant occurredAt
-    ) {
-        activities.save(new PlanningActivityJpaEntity(
-            tripId, actorId, action, resourceType, resourceId, write(details), occurredAt
-        ));
+            UUID tripId,
+            UUID actorId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> details,
+            java.time.Instant occurredAt) {
+        activities.save(
+                new PlanningActivityJpaEntity(
+                        tripId,
+                        actorId,
+                        action,
+                        resourceType,
+                        resourceId,
+                        write(details),
+                        occurredAt));
     }
 
     @Override
@@ -71,25 +79,34 @@ class ActivityOperationPersistenceAdapter implements ActivityOperationStorePort 
 
     @Override
     public OperationRecord saveOperation(OperationRecord record) {
-        return operation(operations.save(new PlanningOperationResultJpaEntity(
-            record, write(record.result())
-        )));
+        return operation(
+                operations.save(
+                        new PlanningOperationResultJpaEntity(record, write(record.result()))));
     }
 
     private ActivityRecord activity(PlanningActivityJpaEntity entity) {
         return new ActivityRecord(
-            entity.sequenceId(), entity.eventId(), entity.tripId(), entity.actorId(),
-            entity.action(), entity.resourceType(), entity.resourceId(),
-            read(entity.payload()), entity.occurredAt()
-        );
+                entity.sequenceId(),
+                entity.eventId(),
+                entity.tripId(),
+                entity.actorId(),
+                entity.action(),
+                entity.resourceType(),
+                entity.resourceId(),
+                read(entity.payload()),
+                entity.occurredAt());
     }
 
     private OperationRecord operation(PlanningOperationResultJpaEntity entity) {
         return new OperationRecord(
-            entity.operationId(), entity.tripId(), entity.actorId(), entity.status(),
-            entity.resourceType(), entity.resourceId(), read(entity.resultJson()),
-            entity.createdAt()
-        );
+                entity.operationId(),
+                entity.tripId(),
+                entity.actorId(),
+                entity.status(),
+                entity.resourceType(),
+                entity.resourceId(),
+                read(entity.resultJson()),
+                entity.createdAt());
     }
 
     private String write(Map<String, Object> value) {

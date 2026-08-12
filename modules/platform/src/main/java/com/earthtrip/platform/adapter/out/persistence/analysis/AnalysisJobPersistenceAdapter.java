@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 @Component
 class AnalysisJobPersistenceAdapter implements AnalysisJobStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
-    private static final TypeReference<List<Map<String, Object>>> LIST = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
+    private static final TypeReference<List<Map<String, Object>>> LIST = new TypeReference<>() {};
     private final AnalysisJobJpaRepository repository;
     private final ObjectMapper json;
 
@@ -30,24 +30,28 @@ class AnalysisJobPersistenceAdapter implements AnalysisJobStorePort {
 
     @Override
     public JobRecord save(JobRecord job) {
-        AnalysisJobJpaEntity.Serialized serialized = new AnalysisJobJpaEntity.Serialized(
-            write(job.inputPayload()), write(job.suggestions()),
-            job.confirmedPayload() == null ? null : write(job.confirmedPayload())
-        );
-        AnalysisJobJpaEntity entity = repository.findById(job.id().toString())
-            .map(existing -> {
-                existing.apply(job, serialized);
-                return existing;
-            })
-            .orElseGet(() -> new AnalysisJobJpaEntity(job, serialized));
+        AnalysisJobJpaEntity.Serialized serialized =
+                new AnalysisJobJpaEntity.Serialized(
+                        write(job.inputPayload()),
+                        write(job.suggestions()),
+                        job.confirmedPayload() == null ? null : write(job.confirmedPayload()));
+        AnalysisJobJpaEntity entity =
+                repository
+                        .findById(job.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(job, serialized);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new AnalysisJobJpaEntity(job, serialized));
         return record(repository.saveAndFlush(entity));
     }
 
     private JobRecord record(AnalysisJobJpaEntity entity) {
         return entity.toRecord(
-            read(entity.inputPayload(), MAP), read(entity.suggestions(), LIST),
-            entity.confirmedPayload() == null ? null : read(entity.confirmedPayload(), MAP)
-        );
+                read(entity.inputPayload(), MAP),
+                read(entity.suggestions(), LIST),
+                entity.confirmedPayload() == null ? null : read(entity.confirmedPayload(), MAP));
     }
 
     private String write(Object value) {

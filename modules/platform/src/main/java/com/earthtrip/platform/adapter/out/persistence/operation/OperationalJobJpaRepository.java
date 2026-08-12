@@ -8,15 +8,13 @@ import org.springframework.data.repository.query.Param;
 
 interface OperationalJobJpaRepository extends JpaRepository<OperationalJobJpaEntity, String> {
 
-    @Query("""
+    @Query(
+            """
         select job from OperationalJobJpaEntity job
         where (:status is null or job.status = :status)
           and (:jobType is null or job.jobType = :jobType)
         order by job.createdAt desc
         """)
     List<OperationalJobJpaEntity> search(
-        @Param("status") String status,
-        @Param("jobType") String jobType,
-        Pageable pageable
-    );
+            @Param("status") String status, @Param("jobType") String jobType, Pageable pageable);
 }

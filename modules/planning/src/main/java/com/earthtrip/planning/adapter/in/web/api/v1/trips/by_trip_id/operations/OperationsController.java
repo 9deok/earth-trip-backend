@@ -31,38 +31,43 @@ class OperationsController {
 
     @PostMapping
     OfflineOperationUseCase.BatchResult post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody OperationBatchRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody OperationBatchRequest request) {
         return useCase.execute(
-            tripId, actor.requireUserId(),
-            request.operations().stream().map(OperationRequest::toCommand).toList()
-        );
+                tripId,
+                actor.requireUserId(),
+                request.operations().stream().map(OperationRequest::toCommand).toList());
     }
 }
 
 record OperationBatchRequest(
-    @NotNull @Size(min = 1, max = 100) @Valid List<OperationRequest> operations
-) { }
+        @NotNull @Size(min = 1, max = 100) @Valid List<OperationRequest> operations) {}
 
 record OperationRequest(
-    @NotNull UUID operationId,
-    @NotBlank String action,
-    @NotBlank String resourceType,
-    @NotNull UUID resourceId,
-    UUID parentId,
-    LocalDate localDate,
-    Map<String, Object> payload,
-    String status,
-    @PositiveOrZero Integer sortOrder,
-    @PositiveOrZero long baseVersion,
-    String stateType,
-    Map<String, Object> stateValue
-) {
+        @NotNull UUID operationId,
+        @NotBlank String action,
+        @NotBlank String resourceType,
+        @NotNull UUID resourceId,
+        UUID parentId,
+        LocalDate localDate,
+        Map<String, Object> payload,
+        String status,
+        @PositiveOrZero Integer sortOrder,
+        @PositiveOrZero long baseVersion,
+        String stateType,
+        Map<String, Object> stateValue) {
     OfflineOperationUseCase.OperationCommand toCommand() {
         return new OfflineOperationUseCase.OperationCommand(
-            operationId, action, resourceType, resourceId, parentId, localDate,
-            payload, status, sortOrder, baseVersion, stateType, stateValue
-        );
+                operationId,
+                action,
+                resourceType,
+                resourceId,
+                parentId,
+                localDate,
+                payload,
+                status,
+                sortOrder,
+                baseVersion,
+                stateType,
+                stateValue);
     }
 }

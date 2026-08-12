@@ -9,11 +9,10 @@ public interface WalletDiagnosticUseCase {
     List<DiagnosticResult> list(UUID tripId, UUID actorUserId);
 
     record DiagnosticResult(
-        UUID diagnosticId,
-        String code,
-        String severity,
-        UUID recordId,
-        String message,
-        Map<String, Object> details
-    ) { }
+            UUID diagnosticId,
+            String code,
+            String severity,
+            UUID recordId,
+            String message,
+            Map<String, Object> details) {}
 }

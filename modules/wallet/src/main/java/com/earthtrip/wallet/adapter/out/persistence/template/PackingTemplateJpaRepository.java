@@ -7,7 +7,8 @@ import org.springframework.data.repository.query.Param;
 
 interface PackingTemplateJpaRepository extends JpaRepository<PackingTemplateJpaEntity, String> {
 
-    @Query("""
+    @Query(
+            """
         select template from PackingTemplateJpaEntity template
         where template.deletedAt is null
           and (template.userId = :userId or template.visibility = 'PUBLIC')

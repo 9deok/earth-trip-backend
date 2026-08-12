@@ -20,15 +20,17 @@ sudo firewall-cmd --list-all
 df -h
 ```
 
-기존 Nginx virtual host, MariaDB database, 80/443 listener와 인증서를 먼저 기록한다. 8080과
+기존 Nginx virtual host, MariaDB database, 80/443 listener와 인증서를 먼저 기록한다. 8050과
 3306은 OCI NSG/Security List 또는 public firewalld에 열지 않는다.
 
 ## 2. 계정과 경로
 
 ```bash
-sudo useradd --system --home-dir /opt/earth-trip --shell /sbin/nologin earthtrip
-sudo install -d -m 0755 -o root -g root /opt/earth-trip/releases
-sudo install -d -m 0750 -o earthtrip -g earthtrip /opt/earth-trip/logs
+sudo useradd --system --home-dir /home/services/earth-trip --shell /sbin/nologin earthtrip
+sudo install -d -m 0755 -o root -g root /home/services/earth-trip
+sudo install -d -m 0750 -o earthtrip -g earthtrip /home/services/earth-trip/earth-trip-backend
+sudo install -d -m 0750 -o earthtrip -g earthtrip /home/services/earth-trip/earth-trip-backend/logs
+sudo install -d -m 0750 -o earthtrip -g earthtrip /home/services/earth-trip/earth-trip-backend/tmp-jar
 sudo install -d -m 0755 -o root -g root /opt/earth-trip/website/releases
 sudo install -d -m 0750 -o earthtrip -g earthtrip /var/lib/earth-trip/objects
 sudo install -d -m 0750 -o earthtrip -g earthtrip /var/lib/earth-trip/exports
@@ -42,8 +44,13 @@ sudo install -d -m 0700 -o root -g root /var/backups/earth-trip/mariadb
 
 `config/earth-trip.env.example`을 서버의 `/etc/earth-trip/earth-trip.env`로 복사하고 실제
 credential을 서버에서만 입력한다. mode는 `0640`, owner는 `root:earthtrip`으로 둔다.
-Backend 로그는 JAR 위치의 `logs/service.log`에 기록된다. 배포 release가 바뀌어도
-`/opt/earth-trip/logs`를 공유하며, Logback이 일 단위 압축 파일을 7일까지만 보관한다.
+Backend 로그는 JAR 위치의 `logs/service.log`에 기록된다. 현재 운영 경로는
+`/home/rocky/services/earth-trip/earth-trip-backend/logs`이며, Logback이 일/100MB 단위로 압축하고
+7일 또는 전체 2GB 한도까지만 보관한다.
+성공한 HTTP 요청은 기본적으로 method·path·status·처리 시간·응답 크기만 한 줄로
+남기고, 4xx/5xx는 민감값을 가린 request/response를 여러 줄로 남긴다.
+`HTTP_LOG_SUCCESS_DETAILS_ENABLED=true`는 잠시 문제를 재현할 때만 사용한다. 성공 본문까지
+남기면 디스크 I/O와 개인정보 노출 범위가 늘어난다.
 Calendar callback 값은 코드 endpoint를 추측하지 말고 Google에 등록한 redirect URI와 Flutter
 `GOOGLE_CALENDAR_REDIRECT_URI`에 사용한 정확한 문자열을 넣는다.
 
@@ -101,12 +108,16 @@ SELinux AVC로 Nginx의 loopback proxy가 거부되는 근거가 있을 때만
 ```text
 /home/rocky/services/earth-trip/earth-trip-backend/
 ├── earth-trip-backend.jar
-├── earth-trip.env
-├── firebase-service-account.json
-├── exports/
 ├── logs/
-├── objects/
 └── tmp-jar/                         # 배포 JAR 임시 업로드 경로
+
+/etc/earth-trip/
+├── earth-trip.env                  # systemd EnvironmentFile
+└── firebase-service-account.json
+
+/var/lib/earth-trip/
+├── exports/
+└── objects/
 ```
 
 같은 `deploy-earth-trip` 파일을 서버의 `/usr/local/sbin/deploy-earth-trip`에 설치한 뒤 개발자
@@ -115,9 +126,24 @@ PC에서 다음 한 command로 테스트, 빌드, 전송, 운영 JAR 교체, `ea
 개발자 PC의 `~/.ssh/config`와 `known_hosts`를 사용한다.
 서버 deploy 계정은 `/usr/local/sbin/deploy-earth-trip`만 비밀번호 없이 `sudo`할 수 있어야 한다.
 
+로컬 배포 스크립트의 protocol version이나 서버 경로가 바뀌면 서버에 설치된 복사본도 다음처럼
+갱신한다. 배포 JAR과 마찬가지로 이미 준비한 `tmp-jar/`만 임시 경로로 사용한다.
+
 ```bash
-./deploy/scripts/deploy-earth-trip rocky@k8s-worker-02
+scp deploy/scripts/deploy-earth-trip \
+  rocky@k8s-worker-02:/home/rocky/services/earth-trip/earth-trip-backend/tmp-jar/deploy-earth-trip
+ssh -t rocky@k8s-worker-02 \
+  'sudo install -o root -g root -m 0755 /home/rocky/services/earth-trip/earth-trip-backend/tmp-jar/deploy-earth-trip /usr/local/sbin/deploy-earth-trip && rm -f /home/rocky/services/earth-trip/earth-trip-backend/tmp-jar/deploy-earth-trip'
+ssh rocky@k8s-worker-02 '/usr/local/sbin/deploy-earth-trip --server-version'
 ```
+
+마지막 command는 현재 protocol version인 `4`를 출력해야 한다.
+
+```bash
+./deploy/scripts/deploy-earth-trip
+```
+
+SSH target 기본값은 `rocky@k8s-worker-02`다.
 
 `earth-trip-oci`는 다음처럼 개발자 PC의 `~/.ssh/config`에 등록한 Host 별칭이다. 실제 host와
 key 경로는 로컬에만 둔다.
@@ -130,7 +156,7 @@ Host earth-trip-oci
   IdentitiesOnly yes
 ```
 
-별칭 대신 target과 key를 직접 지정할 수도 있다.
+다른 target이나 key를 사용해야 할 때만 직접 지정한다.
 
 ```bash
 ./deploy/scripts/deploy-earth-trip rocky@k8s-worker-02 \
@@ -170,7 +196,7 @@ viewer의 `/api/` 요청은 같은 Nginx origin에서 backend로 proxy된다.
 ```bash
 sudo systemctl status earth-trip --no-pager
 sudo journalctl -u earth-trip -n 200 --no-pager
-curl --fail http://127.0.0.1:8080/actuator/health/readiness
+curl --fail http://127.0.0.1:8050/actuator/health/readiness
 curl --fail https://api.earth-trips.com/actuator/health/readiness
 ```
 

@@ -18,28 +18,22 @@ public interface SyncStateStorePort {
 
     ConflictRecord saveConflict(ConflictRecord record);
 
-    record ReadCursorRecord(
-        UUID tripId,
-        UUID userId,
-        long sequenceId,
-        Instant updatedAt
-    ) { }
+    record ReadCursorRecord(UUID tripId, UUID userId, long sequenceId, Instant updatedAt) {}
 
     record ConflictRecord(
-        UUID conflictId,
-        UUID operationId,
-        UUID tripId,
-        UUID actorId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> deviceCommand,
-        Map<String, Object> serverSnapshot,
-        List<String> mergeableFields,
-        String status,
-        String resolution,
-        Instant createdAt,
-        Instant resolvedAt,
-        long version
-    ) { }
+            UUID conflictId,
+            UUID operationId,
+            UUID tripId,
+            UUID actorId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> deviceCommand,
+            Map<String, Object> serverSnapshot,
+            List<String> mergeableFields,
+            String status,
+            String resolution,
+            Instant createdAt,
+            Instant resolvedAt,
+            long version) {}
 }

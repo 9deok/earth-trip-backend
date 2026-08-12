@@ -20,10 +20,9 @@ class ExchangeRatesController {
 
     @GetMapping
     ProviderProxyUseCase.ExchangeRateResult get(
-        @RequestParam String base,
-        @RequestParam List<String> quote,
-        @RequestParam(required = false) Instant observedAt
-    ) {
+            @RequestParam String base,
+            @RequestParam List<String> quote,
+            @RequestParam(required = false) Instant observedAt) {
         return useCase.exchangeRates(base, quote, observedAt);
     }
 }

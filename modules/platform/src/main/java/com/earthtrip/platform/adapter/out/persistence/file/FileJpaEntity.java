@@ -51,7 +51,7 @@ class FileJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected FileJpaEntity() { }
+    protected FileJpaEntity() {}
 
     FileJpaEntity(FileStorePort.FileRecord record) {
         this.id = record.id().toString();
@@ -73,8 +73,17 @@ class FileJpaEntity {
 
     FileStorePort.FileRecord toRecord() {
         return new FileStorePort.FileRecord(
-            UUID.fromString(id), UUID.fromString(ownerUserId), fileName, mimeType,
-            sizeBytes, checksum, storageKey, status, createdAt, completedAt, deletedAt, version
-        );
+                UUID.fromString(id),
+                UUID.fromString(ownerUserId),
+                fileName,
+                mimeType,
+                sizeBytes,
+                checksum,
+                storageKey,
+                status,
+                createdAt,
+                completedAt,
+                deletedAt,
+                version);
     }
 }

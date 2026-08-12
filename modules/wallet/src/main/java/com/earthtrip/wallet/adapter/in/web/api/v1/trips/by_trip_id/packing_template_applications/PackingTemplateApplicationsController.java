@@ -28,20 +28,15 @@ class PackingTemplateApplicationsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     PackingTemplateUseCase.ApplicationResult post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody PackingTemplateApplicationRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @Valid @RequestBody PackingTemplateApplicationRequest request) {
         return useCase.apply(
-            tripId, actor.requireUserId(),
-            new PackingTemplateUseCase.ApplicationCommand(
-                request.requestId(), request.templateId(), request.visibility()
-            )
-        );
+                tripId,
+                actor.requireUserId(),
+                new PackingTemplateUseCase.ApplicationCommand(
+                        request.requestId(), request.templateId(), request.visibility()));
     }
 }
 
 record PackingTemplateApplicationRequest(
-    @NotNull UUID requestId,
-    @NotNull UUID templateId,
-    String visibility
-) { }
+        @NotNull UUID requestId, @NotNull UUID templateId, String visibility) {}

@@ -9,19 +9,17 @@ public interface ExecutionSummaryUseCase {
     SummaryResult get(UUID tripId, UUID actorUserId);
 
     record SummaryResult(
-        int totalCount,
-        int completedCount,
-        int skippedCount,
-        int delayedCount,
-        List<DaySummary> days
-    ) { }
+            int totalCount,
+            int completedCount,
+            int skippedCount,
+            int delayedCount,
+            List<DaySummary> days) {}
 
     record DaySummary(
-        UUID dayId,
-        LocalDate localDate,
-        int totalCount,
-        int completedCount,
-        int skippedCount,
-        int delayedCount
-    ) { }
+            UUID dayId,
+            LocalDate localDate,
+            int totalCount,
+            int completedCount,
+            int skippedCount,
+            int delayedCount) {}
 }

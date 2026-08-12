@@ -19,11 +19,10 @@ class AdminAuditEventsController {
 
     @GetMapping
     List<InternalOperationsUseCase.AuditResult> get(
-        @RequestParam(required = false) String action,
-        @RequestParam(required = false) String targetType,
-        @RequestParam(required = false) String targetId,
-        @RequestParam(defaultValue = "50") int limit
-    ) {
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String targetType,
+            @RequestParam(required = false) String targetId,
+            @RequestParam(defaultValue = "50") int limit) {
         return useCase.auditEvents(action, targetType, targetId, limit);
     }
 }

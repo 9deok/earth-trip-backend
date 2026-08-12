@@ -14,17 +14,16 @@ import org.springframework.stereotype.Component;
 @Component
 class TripTemplatePersistenceAdapter implements TripTemplateStorePort {
 
-    private static final TypeReference<Set<String>> SCOPES = new TypeReference<>() { };
-    private static final TypeReference<Map<String, Object>> SNAPSHOT = new TypeReference<>() { };
+    private static final TypeReference<Set<String>> SCOPES = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> SNAPSHOT = new TypeReference<>() {};
     private final TripTemplateJpaRepository repository;
     private final TripTemplateDraftJpaRepository drafts;
     private final ObjectMapper json;
 
     TripTemplatePersistenceAdapter(
-        TripTemplateJpaRepository repository,
-        TripTemplateDraftJpaRepository drafts,
-        ObjectMapper json
-    ) {
+            TripTemplateJpaRepository repository,
+            TripTemplateDraftJpaRepository drafts,
+            ObjectMapper json) {
         this.repository = repository;
         this.drafts = drafts;
         this.json = json;
@@ -33,8 +32,10 @@ class TripTemplatePersistenceAdapter implements TripTemplateStorePort {
     @Override
     public List<TemplateRecord> findAll(UUID ownerUserId) {
         return repository
-            .findAllByOwnerUserIdAndDeletedAtIsNullOrderByUpdatedAtDesc(ownerUserId.toString())
-            .stream().map(this::record).toList();
+                .findAllByOwnerUserIdAndDeletedAtIsNullOrderByUpdatedAtDesc(ownerUserId.toString())
+                .stream()
+                .map(this::record)
+                .toList();
     }
 
     @Override
@@ -46,12 +47,15 @@ class TripTemplatePersistenceAdapter implements TripTemplateStorePort {
     public TemplateRecord save(TemplateRecord template) {
         String scopes = write(template.includeScopes());
         String snapshot = write(template.snapshot());
-        TripTemplateJpaEntity entity = repository.findById(template.id().toString())
-            .map(existing -> {
-                existing.apply(template, scopes, snapshot);
-                return existing;
-            })
-            .orElseGet(() -> new TripTemplateJpaEntity(template, scopes, snapshot));
+        TripTemplateJpaEntity entity =
+                repository
+                        .findById(template.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(template, scopes, snapshot);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new TripTemplateJpaEntity(template, scopes, snapshot));
         return record(repository.saveAndFlush(entity));
     }
 
@@ -67,8 +71,7 @@ class TripTemplatePersistenceAdapter implements TripTemplateStorePort {
 
     private TemplateRecord record(TripTemplateJpaEntity entity) {
         return entity.toRecord(
-            read(entity.includeScopes(), SCOPES), read(entity.snapshot(), SNAPSHOT)
-        );
+                read(entity.includeScopes(), SCOPES), read(entity.snapshot(), SNAPSHOT));
     }
 
     private String write(Object value) {

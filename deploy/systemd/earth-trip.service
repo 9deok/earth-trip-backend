@@ -9,10 +9,10 @@ StartLimitBurst=5
 Type=simple
 User=earthtrip
 Group=earthtrip
-WorkingDirectory=/opt/earth-trip/current
+WorkingDirectory=/home/rocky/services/earth-trip/earth-trip-backend
 EnvironmentFile=/etc/earth-trip/earth-trip.env
 Environment=SERVER_ADDRESS=127.0.0.1
-ExecStart=/usr/bin/java -jar /opt/earth-trip/current/earth-trip-backend.jar
+ExecStart=/usr/bin/java -jar /home/rocky/services/earth-trip/earth-trip-backend/earth-trip-backend.jar
 SuccessExitStatus=143
 Restart=on-failure
 RestartSec=5
@@ -22,13 +22,13 @@ UMask=0027
 NoNewPrivileges=true
 PrivateTmp=true
 PrivateDevices=true
-ProtectHome=true
+ProtectHome=read-only
 ProtectSystem=strict
 ProtectKernelTunables=true
 ProtectKernelModules=true
 ProtectControlGroups=true
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
-ReadWritePaths=/var/lib/earth-trip /opt/earth-trip/logs
+ReadWritePaths=/var/lib/earth-trip /home/rocky/services/earth-trip/earth-trip-backend/logs
 
 [Install]
 WantedBy=multi-user.target

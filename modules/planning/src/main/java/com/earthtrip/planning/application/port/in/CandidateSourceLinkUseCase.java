@@ -10,10 +10,5 @@ public interface CandidateSourceLinkUseCase {
     void unlink(UUID tripId, UUID candidateId, UUID sourceId, UUID actorUserId);
 
     record LinkResult(
-        UUID tripId,
-        UUID candidateId,
-        UUID sourceId,
-        UUID linkedBy,
-        Instant linkedAt
-    ) { }
+            UUID tripId, UUID candidateId, UUID sourceId, UUID linkedBy, Instant linkedAt) {}
 }

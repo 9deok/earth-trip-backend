@@ -6,7 +6,10 @@ import java.util.UUID;
 
 public final class AuthToken {
 
-    public enum Purpose { EMAIL_VERIFICATION, PASSWORD_RESET }
+    public enum Purpose {
+        EMAIL_VERIFICATION,
+        PASSWORD_RESET
+    }
 
     private final UUID id;
     private final UserId userId;
@@ -17,14 +20,13 @@ public final class AuthToken {
     private final Instant createdAt;
 
     private AuthToken(
-        UUID id,
-        UserId userId,
-        Purpose purpose,
-        String tokenHash,
-        Instant expiresAt,
-        Instant consumedAt,
-        Instant createdAt
-    ) {
+            UUID id,
+            UserId userId,
+            Purpose purpose,
+            String tokenHash,
+            Instant expiresAt,
+            Instant consumedAt,
+            Instant createdAt) {
         this.id = Objects.requireNonNull(id);
         this.userId = Objects.requireNonNull(userId);
         this.purpose = Objects.requireNonNull(purpose);
@@ -35,25 +37,23 @@ public final class AuthToken {
     }
 
     public static AuthToken create(
-        UUID id,
-        UserId userId,
-        Purpose purpose,
-        String tokenHash,
-        Instant expiresAt,
-        Instant now
-    ) {
+            UUID id,
+            UserId userId,
+            Purpose purpose,
+            String tokenHash,
+            Instant expiresAt,
+            Instant now) {
         return new AuthToken(id, userId, purpose, tokenHash, expiresAt, null, now);
     }
 
     public static AuthToken restore(
-        UUID id,
-        UserId userId,
-        Purpose purpose,
-        String tokenHash,
-        Instant expiresAt,
-        Instant consumedAt,
-        Instant createdAt
-    ) {
+            UUID id,
+            UserId userId,
+            Purpose purpose,
+            String tokenHash,
+            Instant expiresAt,
+            Instant consumedAt,
+            Instant createdAt) {
         return new AuthToken(id, userId, purpose, tokenHash, expiresAt, consumedAt, createdAt);
     }
 
@@ -64,17 +64,31 @@ public final class AuthToken {
         consumedAt = now;
     }
 
-    public UUID id() { return id; }
+    public UUID id() {
+        return id;
+    }
 
-    public UserId userId() { return userId; }
+    public UserId userId() {
+        return userId;
+    }
 
-    public Purpose purpose() { return purpose; }
+    public Purpose purpose() {
+        return purpose;
+    }
 
-    public String tokenHash() { return tokenHash; }
+    public String tokenHash() {
+        return tokenHash;
+    }
 
-    public Instant expiresAt() { return expiresAt; }
+    public Instant expiresAt() {
+        return expiresAt;
+    }
 
-    public Instant consumedAt() { return consumedAt; }
+    public Instant consumedAt() {
+        return consumedAt;
+    }
 
-    public Instant createdAt() { return createdAt; }
+    public Instant createdAt() {
+        return createdAt;
+    }
 }

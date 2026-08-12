@@ -22,29 +22,23 @@ class ResearchSourceDuplicateQueriesController {
     private final CurrentActor actor;
 
     ResearchSourceDuplicateQueriesController(
-        PlanningCollectionUseCase useCase,
-        CurrentActor actor
-    ) {
+            PlanningCollectionUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PostMapping
     List<PlanningCollectionUseCase.DuplicateResult> query(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ResearchSourceDuplicateQueryRequest request
-    ) {
-        return useCase.researchSourceDuplicates(
-            tripId, actor.requireUserId(), request.command()
-        );
+            @PathVariable UUID tripId,
+            @Valid @RequestBody ResearchSourceDuplicateQueryRequest request) {
+        return useCase.researchSourceDuplicates(tripId, actor.requireUserId(), request.command());
     }
 }
 
 record ResearchSourceDuplicateQueryRequest(
-    UUID anchorId,
-    Map<String, Object> payload,
-    @DecimalMin("0.0") @DecimalMax("1.0") Double minimumScore
-) {
+        UUID anchorId,
+        Map<String, Object> payload,
+        @DecimalMin("0.0") @DecimalMax("1.0") Double minimumScore) {
     PlanningCollectionUseCase.DuplicateQuery command() {
         return new PlanningCollectionUseCase.DuplicateQuery(anchorId, payload, minimumScore);
     }

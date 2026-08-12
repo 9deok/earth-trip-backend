@@ -24,57 +24,51 @@ import org.springframework.http.MediaType;
 final class HttpLogSanitizer {
 
     private static final String REDACTED = "[REDACTED]";
-    private static final Set<String> REQUEST_HEADER_NAMES = Set.of(
-        "accept",
-        "authorization",
-        "contentlength",
-        "contenttype",
-        "idempotencykey",
-        "useragent",
-        "xoperationid",
-        "xrequestid",
-        "xtraceid"
-    );
-    private static final Set<String> RESPONSE_HEADER_NAMES = Set.of(
-        "contentlength",
-        "contenttype",
-        "etag",
-        "location",
-        "retryafter",
-        "xtraceid"
-    );
-    private static final Set<String> SENSITIVE_NAMES = Set.of(
-        "authorization",
-        "proxyauthorization",
-        "cookie",
-        "setcookie",
-        "password",
-        "newpassword",
-        "currentpassword",
-        "passwordconfirmation",
-        "accesstoken",
-        "refreshtoken",
-        "idtoken",
-        "sessiontoken",
-        "authorizationcode",
-        "codeverifier",
-        "apikey",
-        "servicekey",
-        "privatekey",
-        "signingkey",
-        "encryptionkey",
-        "credential",
-        "pin"
-    );
-    private static final Pattern SENSITIVE_PATH = Pattern.compile(
-        "(?i)(/api/v1/(?:invitations|shared-trips|storage/(?:uploads|downloads))/)"
-            + "([^/?#\\s]+)"
-    );
-    private static final Pattern SENSITIVE_TEXT_PAIR = Pattern.compile(
-        "(?i)(\\b(?:password|newPassword|currentPassword|accessToken|refreshToken|"
-            + "idToken|sessionToken|authorizationCode|codeVerifier|apiKey|serviceKey|"
-            + "secret|signature|credential|token)\\b\\s*[=:]\\s*)([^&;,\\s]+)"
-    );
+    private static final Set<String> REQUEST_HEADER_NAMES =
+            Set.of(
+                    "accept",
+                    "authorization",
+                    "contentlength",
+                    "contenttype",
+                    "idempotencykey",
+                    "useragent",
+                    "xoperationid",
+                    "xrequestid",
+                    "xtraceid");
+    private static final Set<String> RESPONSE_HEADER_NAMES =
+            Set.of("contentlength", "contenttype", "etag", "location", "retryafter", "xtraceid");
+    private static final Set<String> SENSITIVE_NAMES =
+            Set.of(
+                    "authorization",
+                    "proxyauthorization",
+                    "cookie",
+                    "setcookie",
+                    "password",
+                    "newpassword",
+                    "currentpassword",
+                    "passwordconfirmation",
+                    "accesstoken",
+                    "refreshtoken",
+                    "idtoken",
+                    "sessiontoken",
+                    "authorizationcode",
+                    "codeverifier",
+                    "apikey",
+                    "servicekey",
+                    "privatekey",
+                    "signingkey",
+                    "encryptionkey",
+                    "credential",
+                    "pin");
+    private static final Pattern SENSITIVE_PATH =
+            Pattern.compile(
+                    "(?i)(/api/v1/(?:invitations|shared-trips|storage/(?:uploads|downloads))/)"
+                            + "([^/?#\\s]+)");
+    private static final Pattern SENSITIVE_TEXT_PAIR =
+            Pattern.compile(
+                    "(?i)(\\b(?:password|newPassword|currentPassword|accessToken|refreshToken|"
+                            + "idToken|sessionToken|authorizationCode|codeVerifier|apiKey|serviceKey|"
+                            + "secret|signature|credential|token)\\b\\s*[=:]\\s*)([^&;,\\s]+)");
 
     private final ObjectMapper objectMapper;
 
@@ -85,18 +79,14 @@ final class HttpLogSanitizer {
     String requestHeaders(HttpServletRequest request) {
         List<String> names = Collections.list(request.getHeaderNames());
         return headers(
-            names,
-            name -> Collections.list(request.getHeaders(name)),
-            REQUEST_HEADER_NAMES
-        );
+                names, name -> Collections.list(request.getHeaders(name)), REQUEST_HEADER_NAMES);
     }
 
     String responseHeaders(HttpServletResponse response) {
         return headers(
-            response.getHeaderNames(),
-            name -> new ArrayList<>(response.getHeaders(name)),
-            RESPONSE_HEADER_NAMES
-        );
+                response.getHeaderNames(),
+                name -> new ArrayList<>(response.getHeaders(name)),
+                RESPONSE_HEADER_NAMES);
     }
 
     String query(String rawQuery) {
@@ -109,7 +99,7 @@ final class HttpLogSanitizer {
             String name = decode(separator < 0 ? pair : pair.substring(0, separator));
             String value = separator < 0 ? "" : decode(pair.substring(separator + 1));
             values.computeIfAbsent(oneLine(name), ignored -> new ArrayList<>())
-                .add(isSensitiveName(name) ? REDACTED : oneLineWithSafePath(value));
+                    .add(isSensitiveName(name) ? REDACTED : oneLineWithSafePath(value));
         }
         return values.toString();
     }
@@ -122,27 +112,34 @@ final class HttpLogSanitizer {
     }
 
     String payload(
-        byte[] content,
-        String contentType,
-        String characterEncoding,
-        boolean overflowed,
-        long totalOrDeclaredBytes
-    ) {
+            byte[] content,
+            String contentType,
+            String characterEncoding,
+            boolean overflowed,
+            long totalOrDeclaredBytes) {
         if (content.length == 0) {
             return totalOrDeclaredBytes > 0
-                ? "[not captured; declaredBytes=" + totalOrDeclaredBytes + "]"
-                : "[empty]";
+                    ? "[not captured; declaredBytes=" + totalOrDeclaredBytes + "]"
+                    : "[empty]";
         }
         MediaType mediaType = mediaType(contentType);
         if (!isTextual(mediaType)) {
-            return "[binary payload omitted; contentType=" + safeContentType(contentType)
-                + "; capturedBytes=" + content.length
-                + "; totalOrDeclaredBytes=" + totalOrDeclaredBytes + "]";
+            return "[binary payload omitted; contentType="
+                    + safeContentType(contentType)
+                    + "; capturedBytes="
+                    + content.length
+                    + "; totalOrDeclaredBytes="
+                    + totalOrDeclaredBytes
+                    + "]";
         }
         if (overflowed) {
-            return "[text payload truncated; contentType=" + safeContentType(contentType)
-                + "; capturedBytes=" + content.length
-                + "; totalOrDeclaredBytes=" + totalOrDeclaredBytes + "]";
+            return "[text payload truncated; contentType="
+                    + safeContentType(contentType)
+                    + "; capturedBytes="
+                    + content.length
+                    + "; totalOrDeclaredBytes="
+                    + totalOrDeclaredBytes
+                    + "]";
         }
 
         String text = new String(content, charset(mediaType, characterEncoding));
@@ -159,36 +156,35 @@ final class HttpLogSanitizer {
         if (value == null) {
             return "-";
         }
-        return value
-            .replace("\\", "\\\\")
-            .replace("\r", "\\r")
-            .replace("\n", "\\n")
-            .replace("\t", "\\t");
+        return value.replace("\\", "\\\\")
+                .replace("\r", "\\r")
+                .replace("\n", "\\n")
+                .replace("\t", "\\t");
     }
 
     private String headers(
-        Iterable<String> names,
-        Function<String, List<String>> valuesProvider,
-        Set<String> includedNames
-    ) {
+            Iterable<String> names,
+            Function<String, List<String>> valuesProvider,
+            Set<String> includedNames) {
         Map<String, List<String>> headers = new LinkedHashMap<>();
         for (String name : names) {
             if (!includedNames.contains(normalizeName(name))) {
                 continue;
             }
-            List<String> values = isSensitiveName(name)
-                ? List.of(REDACTED)
-                : valuesProvider.apply(name).stream()
-                    .map(this::oneLineWithSafePath)
-                    .toList();
+            List<String> values =
+                    isSensitiveName(name)
+                            ? List.of(REDACTED)
+                            : valuesProvider.apply(name).stream()
+                                    .map(this::oneLineWithSafePath)
+                                    .toList();
             headers.put(oneLine(name), values);
         }
         if (headers.isEmpty()) {
             return "[none]";
         }
         return headers.entrySet().stream()
-            .map(entry -> entry.getKey() + ": " + String.join(", ", entry.getValue()))
-            .collect(java.util.stream.Collectors.joining("\n"));
+                .map(entry -> entry.getKey() + ": " + String.join(", ", entry.getValue()))
+                .collect(java.util.stream.Collectors.joining("\n"));
     }
 
     private String json(String text) {
@@ -211,9 +207,7 @@ final class HttpLogSanitizer {
                     objectNode.set(fieldName, TextNode.valueOf(REDACTED));
                 } else if (value.isTextual()) {
                     objectNode.set(
-                        fieldName,
-                        TextNode.valueOf(oneLineWithSafePath(value.textValue()))
-                    );
+                            fieldName, TextNode.valueOf(oneLineWithSafePath(value.textValue())));
                 } else {
                     redactJson(value);
                 }
@@ -228,8 +222,7 @@ final class HttpLogSanitizer {
     }
 
     private String redactText(String text) {
-        String withRedactedPairs = SENSITIVE_TEXT_PAIR.matcher(text)
-            .replaceAll("$1" + REDACTED);
+        String withRedactedPairs = SENSITIVE_TEXT_PAIR.matcher(text).replaceAll("$1" + REDACTED);
         return oneLineWithSafePath(withRedactedPairs);
     }
 
@@ -243,13 +236,13 @@ final class HttpLogSanitizer {
     private static boolean isSensitiveName(String name) {
         String normalized = normalizeName(name);
         return SENSITIVE_NAMES.contains(normalized)
-            || normalized.endsWith("password")
-            || normalized.endsWith("token")
-            || normalized.endsWith("secret")
-            || normalized.endsWith("signature")
-            || normalized.endsWith("credential")
-            || normalized.endsWith("apikey")
-            || normalized.endsWith("servicekey");
+                || normalized.endsWith("password")
+                || normalized.endsWith("token")
+                || normalized.endsWith("secret")
+                || normalized.endsWith("signature")
+                || normalized.endsWith("credential")
+                || normalized.endsWith("apikey")
+                || normalized.endsWith("servicekey");
     }
 
     private static String normalizeName(String name) {
@@ -273,10 +266,10 @@ final class HttpLogSanitizer {
     private static boolean isTextual(MediaType mediaType) {
         String subtype = mediaType.getSubtype().toLowerCase(Locale.ROOT);
         return "text".equals(mediaType.getType())
-            || isJson(mediaType)
-            || subtype.equals("xml")
-            || subtype.endsWith("+xml")
-            || MediaType.APPLICATION_FORM_URLENCODED.includes(mediaType);
+                || isJson(mediaType)
+                || subtype.equals("xml")
+                || subtype.endsWith("+xml")
+                || MediaType.APPLICATION_FORM_URLENCODED.includes(mediaType);
     }
 
     private static boolean isJson(MediaType mediaType) {
@@ -287,6 +280,9 @@ final class HttpLogSanitizer {
     private static Charset charset(MediaType mediaType, String characterEncoding) {
         if (mediaType.getCharset() != null) {
             return mediaType.getCharset();
+        }
+        if (isJson(mediaType)) {
+            return StandardCharsets.UTF_8;
         }
         if (characterEncoding != null && !characterEncoding.isBlank()) {
             try {

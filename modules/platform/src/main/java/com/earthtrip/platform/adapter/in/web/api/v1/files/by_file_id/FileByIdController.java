@@ -38,21 +38,25 @@ class FileByIdController {
 }
 
 record FileMetadataResponse(
-    UUID fileId,
-    String fileName,
-    String mimeType,
-    long sizeBytes,
-    String checksumSha256,
-    String status,
-    long version,
-    Instant createdAt,
-    Instant completedAt
-) {
+        UUID fileId,
+        String fileName,
+        String mimeType,
+        long sizeBytes,
+        String checksumSha256,
+        String status,
+        long version,
+        Instant createdAt,
+        Instant completedAt) {
     static FileMetadataResponse from(FileUseCase.FileResult result) {
         return new FileMetadataResponse(
-            result.fileId(), result.fileName(), result.mimeType(), result.sizeBytes(),
-            result.checksumSha256(), result.status(), result.version(), result.createdAt(),
-            result.completedAt()
-        );
+                result.fileId(),
+                result.fileName(),
+                result.mimeType(),
+                result.sizeBytes(),
+                result.checksumSha256(),
+                result.status(),
+                result.version(),
+                result.createdAt(),
+                result.completedAt());
     }
 }

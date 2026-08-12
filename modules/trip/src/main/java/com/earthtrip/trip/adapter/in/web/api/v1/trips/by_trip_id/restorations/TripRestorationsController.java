@@ -30,26 +30,25 @@ class TripRestorationsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     TripRestorationResponse post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody TripRestorationRequest request
-    ) {
-        TripManagementUseCase.TripResult result = useCase.restore(
-            tripId, currentActor.requireUserId(), request.baseVersion()
-        );
+            @PathVariable UUID tripId, @Valid @RequestBody TripRestorationRequest request) {
+        TripManagementUseCase.TripResult result =
+                useCase.restore(tripId, currentActor.requireUserId(), request.baseVersion());
         return new TripRestorationResponse(
-            result.tripId(), result.status(), result.startDate(), result.endDate(),
-            result.version(), result.updatedAt()
-        );
+                result.tripId(),
+                result.status(),
+                result.startDate(),
+                result.endDate(),
+                result.version(),
+                result.updatedAt());
     }
 }
 
-record TripRestorationRequest(@Min(0) long baseVersion) { }
+record TripRestorationRequest(@Min(0) long baseVersion) {}
 
 record TripRestorationResponse(
-    UUID tripId,
-    String status,
-    LocalDate startDate,
-    LocalDate endDate,
-    long version,
-    Instant updatedAt
-) { }
+        UUID tripId,
+        String status,
+        LocalDate startDate,
+        LocalDate endDate,
+        long version,
+        Instant updatedAt) {}

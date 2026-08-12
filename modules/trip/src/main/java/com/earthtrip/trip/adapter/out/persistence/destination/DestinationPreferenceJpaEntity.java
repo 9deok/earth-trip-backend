@@ -9,20 +9,44 @@ import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
 
-@Entity @Table(name = "destination_candidate_preferences") @IdClass(DestinationPreferenceId.class)
+@Entity
+@Table(name = "destination_candidate_preferences")
+@IdClass(DestinationPreferenceId.class)
 class DestinationPreferenceJpaEntity {
-    @Id @Column(name = "candidate_id", nullable = false, length = 36) private String candidateId;
-    @Id @Column(name = "user_id", nullable = false, length = 36) private String userId;
-    @Column(name = "preference", nullable = false, length = 20) private String preference;
-    @Column(name = "updated_at", nullable = false) private Instant updatedAt;
-    protected DestinationPreferenceJpaEntity() { }
-    DestinationPreferenceJpaEntity(String candidateId, String userId, String preference, Instant now) {
-        this.candidateId = candidateId; this.userId = userId; apply(preference, now);
+    @Id
+    @Column(name = "candidate_id", nullable = false, length = 36)
+    private String candidateId;
+
+    @Id
+    @Column(name = "user_id", nullable = false, length = 36)
+    private String userId;
+
+    @Column(name = "preference", nullable = false, length = 20)
+    private String preference;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    protected DestinationPreferenceJpaEntity() {}
+
+    DestinationPreferenceJpaEntity(
+            String candidateId, String userId, String preference, Instant now) {
+        this.candidateId = candidateId;
+        this.userId = userId;
+        apply(preference, now);
     }
-    void apply(String value, Instant now) { preference = value; updatedAt = now; }
+
+    void apply(String value, Instant now) {
+        preference = value;
+        updatedAt = now;
+    }
+
+    UUID candidateId() {
+        return UUID.fromString(candidateId);
+    }
+
     DestinationCandidateStorePort.PreferenceRecord toRecord() {
         return new DestinationCandidateStorePort.PreferenceRecord(
-            UUID.fromString(userId), preference, updatedAt
-        );
+                UUID.fromString(userId), preference, updatedAt);
     }
 }

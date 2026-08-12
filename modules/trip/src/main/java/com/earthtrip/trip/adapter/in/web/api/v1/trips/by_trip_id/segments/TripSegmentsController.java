@@ -27,63 +27,111 @@ class TripSegmentsController {
     private final CurrentActor currentActor;
 
     TripSegmentsController(TripSegmentUseCase useCase, CurrentActor currentActor) {
-        this.useCase = useCase; this.currentActor = currentActor;
+        this.useCase = useCase;
+        this.currentActor = currentActor;
     }
 
     @GetMapping
     List<TripSegmentResponse> get(@PathVariable UUID tripId) {
         return useCase.list(tripId, currentActor.requireUserId()).stream()
-            .map(TripSegmentsController::response).toList();
+                .map(TripSegmentsController::response)
+                .toList();
     }
 
-    @PostMapping @ResponseStatus(HttpStatus.CREATED)
-    TripSegmentResponse post(@PathVariable UUID tripId, @Valid @RequestBody TripSegmentRequest request) {
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    TripSegmentResponse post(
+            @PathVariable UUID tripId, @Valid @RequestBody TripSegmentRequest request) {
         return response(useCase.create(tripId, currentActor.requireUserId(), command(request, 0)));
     }
 
-    private static TripSegmentUseCase.SegmentCommand command(TripSegmentRequest r, long baseVersion) {
+    private static TripSegmentUseCase.SegmentCommand command(
+            TripSegmentRequest r, long baseVersion) {
         return new TripSegmentUseCase.SegmentCommand(
-            r.requestId(), r.type(), r.cityName(), r.countryCode(), r.placeId(), r.latitude(),
-            r.longitude(), r.startDate(), r.endDate(), r.accommodationName(), r.accommodationPlaceId(),
-            r.checkInAt(), r.checkOutAt(), r.transportMode(), r.departureAt(), r.arrivalAt(),
-            r.sortOrder(), baseVersion
-        );
+                r.requestId(),
+                r.type(),
+                r.cityName(),
+                r.countryCode(),
+                r.placeId(),
+                r.latitude(),
+                r.longitude(),
+                r.startDate(),
+                r.endDate(),
+                r.accommodationName(),
+                r.accommodationPlaceId(),
+                r.checkInAt(),
+                r.checkOutAt(),
+                r.transportMode(),
+                r.departureAt(),
+                r.arrivalAt(),
+                r.sortOrder(),
+                baseVersion);
     }
 
     private static TripSegmentResponse response(TripSegmentUseCase.SegmentResult s) {
         return new TripSegmentResponse(
-            s.segmentId(), s.tripId(), s.type(), s.cityName(), s.countryCode(), s.placeId(),
-            s.latitude(), s.longitude(), s.startDate(), s.endDate(), s.accommodationName(),
-            s.accommodationPlaceId(), s.checkInAt(), s.checkOutAt(), s.transportMode(),
-            s.departureAt(), s.arrivalAt(), s.sortOrder(), s.version(), s.updatedBy(), s.updatedAt()
-        );
+                s.segmentId(),
+                s.tripId(),
+                s.type(),
+                s.cityName(),
+                s.countryCode(),
+                s.placeId(),
+                s.latitude(),
+                s.longitude(),
+                s.startDate(),
+                s.endDate(),
+                s.accommodationName(),
+                s.accommodationPlaceId(),
+                s.checkInAt(),
+                s.checkOutAt(),
+                s.transportMode(),
+                s.departureAt(),
+                s.arrivalAt(),
+                s.sortOrder(),
+                s.version(),
+                s.updatedBy(),
+                s.updatedAt());
     }
 }
 
 record TripSegmentRequest(
-    @NotNull UUID requestId,
-    @NotBlank String type,
-    String cityName,
-    String countryCode,
-    String placeId,
-    BigDecimal latitude,
-    BigDecimal longitude,
-    @NotNull LocalDate startDate,
-    @NotNull LocalDate endDate,
-    String accommodationName,
-    String accommodationPlaceId,
-    Instant checkInAt,
-    Instant checkOutAt,
-    String transportMode,
-    Instant departureAt,
-    Instant arrivalAt,
-    @Min(0) Integer sortOrder
-) { }
+        @NotNull UUID requestId,
+        @NotBlank String type,
+        String cityName,
+        String countryCode,
+        String placeId,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        @NotNull LocalDate startDate,
+        @NotNull LocalDate endDate,
+        String accommodationName,
+        String accommodationPlaceId,
+        Instant checkInAt,
+        Instant checkOutAt,
+        String transportMode,
+        Instant departureAt,
+        Instant arrivalAt,
+        @Min(0) Integer sortOrder) {}
 
 record TripSegmentResponse(
-    UUID segmentId, UUID tripId, String type, String cityName, String countryCode, String placeId,
-    BigDecimal latitude, BigDecimal longitude, LocalDate startDate, LocalDate endDate,
-    String accommodationName, String accommodationPlaceId, Instant checkInAt, Instant checkOutAt,
-    String transportMode, Instant departureAt, Instant arrivalAt, int sortOrder,
-    long version, UUID updatedBy, Instant updatedAt
-) { }
+        UUID segmentId,
+        UUID tripId,
+        String type,
+        String cityName,
+        String countryCode,
+        String placeId,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        LocalDate startDate,
+        LocalDate endDate,
+        String accommodationName,
+        String accommodationPlaceId,
+        Instant checkInAt,
+        Instant checkOutAt,
+        String transportMode,
+        Instant departureAt,
+        Instant arrivalAt,
+        int sortOrder,
+        long version,
+        UUID updatedBy,
+        Instant updatedAt) {}

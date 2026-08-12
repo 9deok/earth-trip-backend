@@ -35,54 +35,44 @@ class MeController {
 
     @PatchMapping
     MeResponse update(@Valid @RequestBody UpdateMeRequest request) {
-        return MeResponse.from(useCase.updateName(
-            currentUser.requireUserId(),
-            request.displayName()
-        ));
+        return MeResponse.from(
+                useCase.updateName(currentUser.requireUserId(), request.displayName()));
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     AccountDeletionResponse requestDeletion() {
-        CurrentAccountUseCase.DeletionResult result = useCase.requestDeletion(
-            currentUser.requireUserId()
-        );
+        CurrentAccountUseCase.DeletionResult result =
+                useCase.requestDeletion(currentUser.requireUserId());
         return new AccountDeletionResponse(
-            result.requestId(),
-            result.requestedAt(),
-            result.scheduledDeletionAt(),
-            result.status()
-        );
+                result.requestId(),
+                result.requestedAt(),
+                result.scheduledDeletionAt(),
+                result.status());
     }
 }
 
-record UpdateMeRequest(@NotBlank @Size(max = 80) String displayName) { }
+record UpdateMeRequest(@NotBlank @Size(max = 80) String displayName) {}
 
 record MeResponse(
-    UUID userId,
-    String email,
-    String displayName,
-    String status,
-    Instant emailVerifiedAt,
-    Instant createdAt,
-    Instant updatedAt
-) {
+        UUID userId,
+        String email,
+        String displayName,
+        String status,
+        Instant emailVerifiedAt,
+        Instant createdAt,
+        Instant updatedAt) {
     static MeResponse from(CurrentAccountUseCase.AccountResult result) {
         return new MeResponse(
-            result.userId(),
-            result.email(),
-            result.displayName(),
-            result.status(),
-            result.emailVerifiedAt(),
-            result.createdAt(),
-            result.updatedAt()
-        );
+                result.userId(),
+                result.email(),
+                result.displayName(),
+                result.status(),
+                result.emailVerifiedAt(),
+                result.createdAt(),
+                result.updatedAt());
     }
 }
 
 record AccountDeletionResponse(
-    UUID requestId,
-    Instant requestedAt,
-    Instant scheduledDeletionAt,
-    String status
-) { }
+        UUID requestId, Instant requestedAt, Instant scheduledDeletionAt, String status) {}

@@ -9,19 +9,38 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController @RequestMapping("/api/v1/invitations/{token}")
+@RestController
+@RequestMapping("/api/v1/invitations/{token}")
 class InvitationPreviewController {
     private final InvitationUseCase useCase;
-    InvitationPreviewController(InvitationUseCase useCase) { this.useCase = useCase; }
-    @GetMapping InvitationPreviewResponse get(@PathVariable String token) {
+
+    InvitationPreviewController(InvitationUseCase useCase) {
+        this.useCase = useCase;
+    }
+
+    @GetMapping
+    InvitationPreviewResponse get(@PathVariable String token) {
         InvitationUseCase.PreviewResult p = useCase.preview(token);
         return new InvitationPreviewResponse(
-            p.invitationId(), p.tripId(), p.tripTitle(), p.startDate(), p.endDate(),
-            p.invitedEmail(), p.role(), p.status(), p.expiresAt()
-        );
+                p.invitationId(),
+                p.tripId(),
+                p.tripTitle(),
+                p.startDate(),
+                p.endDate(),
+                p.invitedEmail(),
+                p.role(),
+                p.status(),
+                p.expiresAt());
     }
 }
+
 record InvitationPreviewResponse(
-    UUID invitationId, UUID tripId, String tripTitle, LocalDate startDate, LocalDate endDate,
-    String invitedEmail, String role, String status, Instant expiresAt
-) { }
+        UUID invitationId,
+        UUID tripId,
+        String tripTitle,
+        LocalDate startDate,
+        LocalDate endDate,
+        String invitedEmail,
+        String role,
+        String status,
+        Instant expiresAt) {}

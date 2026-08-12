@@ -12,21 +12,20 @@ public interface TripExportStorePort {
     ExportRecord save(ExportRecord export);
 
     record ExportRecord(
-        UUID id,
-        UUID tripId,
-        String format,
-        Set<String> scopes,
-        String status,
-        String fileName,
-        String mimeType,
-        byte[] artifact,
-        String checksumSha256,
-        String failureCode,
-        String failureMessage,
-        int attemptCount,
-        UUID createdBy,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            String format,
+            Set<String> scopes,
+            String status,
+            String fileName,
+            String mimeType,
+            byte[] artifact,
+            String checksumSha256,
+            String failureCode,
+            String failureMessage,
+            int attemptCount,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 }

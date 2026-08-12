@@ -28,25 +28,33 @@ class ExpenseReceiptAnalysisTargetService implements ExpenseReceiptAnalysisTarge
 
     @Override
     public TargetResult confirm(
-        UUID tripId,
-        UUID expenseId,
-        UUID actorUserId,
-        Map<String, Object> fields,
-        long baseVersion
-    ) {
+            UUID tripId,
+            UUID expenseId,
+            UUID actorUserId,
+            Map<String, Object> fields,
+            long baseVersion) {
         ExpenseUseCase.ExpenseResult current = expenses.get(tripId, expenseId, actorUserId);
         Map<String, Object> value = fields == null ? Map.of() : fields;
         Long amount = longValue(value.get("amountMinor"));
         Instant occurredAt = instant(value.get("occurredAt"));
-        ExpenseUseCase.ExpenseResult updated = expenses.update(
-            tripId, expenseId, actorUserId,
-            new ExpenseUseCase.ExpenseCommand(
-                expenseId, text(value, "title"), text(value, "categoryCode"), amount,
-                text(value, "currency"), occurredAt, null, null,
-                text(value, "visibility"), text(value, "status"),
-                text(value, "note"), baseVersion
-            )
-        );
+        ExpenseUseCase.ExpenseResult updated =
+                expenses.update(
+                        tripId,
+                        expenseId,
+                        actorUserId,
+                        new ExpenseUseCase.ExpenseCommand(
+                                expenseId,
+                                text(value, "title"),
+                                text(value, "categoryCode"),
+                                amount,
+                                text(value, "currency"),
+                                occurredAt,
+                                null,
+                                null,
+                                text(value, "visibility"),
+                                text(value, "status"),
+                                text(value, "note"),
+                                baseVersion));
         return result(updated);
     }
 
@@ -76,12 +84,10 @@ class ExpenseReceiptAnalysisTargetService implements ExpenseReceiptAnalysisTarge
         }
         try {
             return value instanceof Number number
-                ? number.longValue()
-                : Long.parseLong(String.valueOf(value));
+                    ? number.longValue()
+                    : Long.parseLong(String.valueOf(value));
         } catch (NumberFormatException exception) {
-            throw EarthTripException.badRequest(
-                "INVALID_RECEIPT_AMOUNT", "영수증 금액 형식이 올바르지 않습니다."
-            );
+            throw EarthTripException.badRequest("INVALID_RECEIPT_AMOUNT", "영수증 금액 형식이 올바르지 않습니다.");
         }
     }
 
@@ -93,8 +99,7 @@ class ExpenseReceiptAnalysisTargetService implements ExpenseReceiptAnalysisTarge
             return Instant.parse(String.valueOf(value));
         } catch (RuntimeException exception) {
             throw EarthTripException.badRequest(
-                "INVALID_RECEIPT_OCCURRED_AT", "영수증 지출 시각 형식이 올바르지 않습니다."
-            );
+                    "INVALID_RECEIPT_OCCURRED_AT", "영수증 지출 시각 형식이 올바르지 않습니다.");
         }
     }
 }

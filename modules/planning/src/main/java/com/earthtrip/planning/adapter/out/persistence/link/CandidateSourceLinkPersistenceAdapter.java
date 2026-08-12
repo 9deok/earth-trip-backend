@@ -17,24 +17,23 @@ class CandidateSourceLinkPersistenceAdapter implements CandidateSourceLinkStoreP
 
     @Override
     public Optional<LinkRecord> find(UUID candidateId, UUID sourceId) {
-        return repository.findById(new CandidateSourceLinkId(
-                candidateId.toString(), sourceId.toString()
-            ))
-            .map(CandidateSourceLinkJpaEntity::toRecord);
+        return repository
+                .findById(new CandidateSourceLinkId(candidateId.toString(), sourceId.toString()))
+                .map(CandidateSourceLinkJpaEntity::toRecord);
     }
 
     @Override
     public List<LinkRecord> findByCandidateId(UUID candidateId) {
         return repository.findAllById_CandidateId(candidateId.toString()).stream()
-            .map(CandidateSourceLinkJpaEntity::toRecord)
-            .toList();
+                .map(CandidateSourceLinkJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
     public List<LinkRecord> findBySourceId(UUID sourceId) {
         return repository.findAllById_SourceId(sourceId.toString()).stream()
-            .map(CandidateSourceLinkJpaEntity::toRecord)
-            .toList();
+                .map(CandidateSourceLinkJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
@@ -44,8 +43,7 @@ class CandidateSourceLinkPersistenceAdapter implements CandidateSourceLinkStoreP
 
     @Override
     public void delete(UUID candidateId, UUID sourceId) {
-        repository.deleteById(new CandidateSourceLinkId(
-            candidateId.toString(), sourceId.toString()
-        ));
+        repository.deleteById(
+                new CandidateSourceLinkId(candidateId.toString(), sourceId.toString()));
     }
 }

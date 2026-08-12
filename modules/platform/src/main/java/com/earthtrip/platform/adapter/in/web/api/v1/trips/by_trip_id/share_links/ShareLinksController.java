@@ -1,6 +1,6 @@
 package com.earthtrip.platform.adapter.in.web.api.v1.trips.by_trip_id.share_links;
 
-import com.earthtrip.platform.application.port.in.TripShareUseCase;
+import com.earthtrip.platform.application.port.in.TripShareManagementUseCase;
 import com.earthtrip.sharedkernel.security.CurrentActor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -21,39 +21,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/trips/{tripId}/share-links")
 class ShareLinksController {
 
-    private final TripShareUseCase useCase;
+    private final TripShareManagementUseCase useCase;
     private final CurrentActor actor;
 
-    ShareLinksController(TripShareUseCase useCase, CurrentActor actor) {
+    ShareLinksController(TripShareManagementUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @GetMapping
-    List<TripShareUseCase.ShareLinkResult> get(@PathVariable UUID tripId) {
+    List<TripShareManagementUseCase.ShareLinkResult> get(@PathVariable UUID tripId) {
         return useCase.list(tripId, actor.requireUserId());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    TripShareUseCase.ShareLinkResult post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ShareLinkRequest request
-    ) {
+    TripShareManagementUseCase.ShareLinkResult post(
+            @PathVariable UUID tripId, @Valid @RequestBody ShareLinkRequest request) {
         return useCase.create(tripId, actor.requireUserId(), request.toCommand());
     }
 }
 
 record ShareLinkRequest(
-    @NotNull UUID requestId,
-    @Size(min = 1, max = 120) String name,
-    @NotNull @Size(min = 1, max = 4) List<String> scopes,
-    @Size(min = 4, max = 128) String password,
-    Instant expiresAt
-) {
-    TripShareUseCase.ShareLinkCommand toCommand() {
-        return new TripShareUseCase.ShareLinkCommand(
-            requestId, name, scopes, password, false, expiresAt, false, 0
-        );
+        @NotNull UUID requestId,
+        @Size(min = 1, max = 120) String name,
+        @NotNull @Size(min = 1, max = 4) List<String> scopes,
+        @Size(min = 4, max = 128) String password,
+        Instant expiresAt) {
+    TripShareManagementUseCase.ShareLinkCommand toCommand() {
+        return new TripShareManagementUseCase.ShareLinkCommand(
+                requestId, name, scopes, password, false, expiresAt, false, 0);
     }
 }

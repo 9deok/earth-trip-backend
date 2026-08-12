@@ -9,10 +9,9 @@ public interface SyncSnapshotUseCase {
     SnapshotResult get(UUID tripId, UUID actorUserId);
 
     record SnapshotResult(
-        UUID tripId,
-        int schemaVersion,
-        long cursor,
-        Instant generatedAt,
-        List<PlanningResourceUseCase.ResourceResult> planningResources
-    ) { }
+            UUID tripId,
+            int schemaVersion,
+            long cursor,
+            Instant generatedAt,
+            List<PlanningResourceUseCase.ResourceResult> planningResources) {}
 }

@@ -39,22 +39,18 @@ class PolicyDocumentJpaEntity {
     @Column(name = "active", nullable = false)
     private boolean active;
 
-    protected PolicyDocumentJpaEntity() { }
+    protected PolicyDocumentJpaEntity() {}
 
-    String id() { return id; }
+    String id() {
+        return id;
+    }
 
-    boolean active() { return active; }
+    boolean active() {
+        return active;
+    }
 
     PolicyStorePort.PolicyRecord toRecord() {
         return new PolicyStorePort.PolicyRecord(
-            id,
-            policyType,
-            versionName,
-            required,
-            title,
-            summary,
-            contentUrl,
-            publishedAt
-        );
+                id, policyType, versionName, required, title, summary, contentUrl, publishedAt);
     }
 }

@@ -24,19 +24,23 @@ class DevicesController {
     @GetMapping
     List<DeviceResponse> get() {
         return useCase.list(currentUser.requireUserId(), currentUser.requireSessionId()).stream()
-            .map(session -> new DeviceResponse(
-                session.sessionId(), session.deviceName(), session.current(), session.active(),
-                session.lastUsedAt(), session.createdAt()
-            ))
-            .toList();
+                .map(
+                        session ->
+                                new DeviceResponse(
+                                        session.sessionId(),
+                                        session.deviceName(),
+                                        session.current(),
+                                        session.active(),
+                                        session.lastUsedAt(),
+                                        session.createdAt()))
+                .toList();
     }
 }
 
 record DeviceResponse(
-    UUID sessionId,
-    String deviceName,
-    boolean current,
-    boolean active,
-    Instant lastUsedAt,
-    Instant createdAt
-) { }
+        UUID sessionId,
+        String deviceName,
+        boolean current,
+        boolean active,
+        Instant lastUsedAt,
+        Instant createdAt) {}

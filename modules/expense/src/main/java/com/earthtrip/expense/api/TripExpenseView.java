@@ -1,8 +1,7 @@
 package com.earthtrip.expense.api;
 
-import java.util.List;
 import java.time.Instant;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 public interface TripExpenseView {
@@ -11,18 +10,17 @@ public interface TripExpenseView {
 
     List<Entry> searchEntries(UUID tripId, UUID actorUserId);
 
-    record ExpenseSummary(int activeCount, int provisionalCount, List<Total> totals) { }
+    record ExpenseSummary(int activeCount, int provisionalCount, List<Total> totals) {}
 
-    record Total(String currency, long amountMinor) { }
+    record Total(String currency, long amountMinor) {}
 
     record Entry(
-        UUID expenseId,
-        String title,
-        String categoryCode,
-        long amountMinor,
-        String currency,
-        Instant occurredAt,
-        String note,
-        String status
-    ) { }
+            UUID expenseId,
+            String title,
+            String categoryCode,
+            long amountMinor,
+            String currency,
+            Instant occurredAt,
+            String note,
+            String status) {}
 }

@@ -28,14 +28,12 @@ class ActivityRevertsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     ActivityFeedUseCase.RevertResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID activityId,
-        @Valid @RequestBody ActivityRevertRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID activityId,
+            @Valid @RequestBody ActivityRevertRequest request) {
         return useCase.revert(
-            tripId, activityId, actor.requireUserId(), request.resourceBaseVersion()
-        );
+                tripId, activityId, actor.requireUserId(), request.resourceBaseVersion());
     }
 }
 
-record ActivityRevertRequest(@PositiveOrZero long resourceBaseVersion) { }
+record ActivityRevertRequest(@PositiveOrZero long resourceBaseVersion) {}

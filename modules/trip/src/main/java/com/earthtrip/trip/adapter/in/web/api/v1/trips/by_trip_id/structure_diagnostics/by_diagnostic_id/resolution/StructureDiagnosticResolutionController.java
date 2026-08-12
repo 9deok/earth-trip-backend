@@ -28,13 +28,10 @@ class StructureDiagnosticResolutionController {
 
     @PutMapping
     TripStructureUseCase.DiagnosticResult put(
-        @PathVariable UUID tripId,
-        @PathVariable UUID diagnosticId,
-        @Valid @RequestBody StructureDiagnosticResolutionRequest request
-    ) {
-        return useCase.resolve(
-            tripId, diagnosticId, actor.requireUserId(), request.note()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID diagnosticId,
+            @Valid @RequestBody StructureDiagnosticResolutionRequest request) {
+        return useCase.resolve(tripId, diagnosticId, actor.requireUserId(), request.note());
     }
 
     @DeleteMapping
@@ -44,4 +41,4 @@ class StructureDiagnosticResolutionController {
     }
 }
 
-record StructureDiagnosticResolutionRequest(@Size(max = 1000) String note) { }
+record StructureDiagnosticResolutionRequest(@Size(max = 1000) String note) {}

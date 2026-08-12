@@ -22,13 +22,10 @@ class ObjectStorageWebhookController {
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     InternalOperationsUseCase.WebhookResult post(
-        @RequestHeader("X-EarthTrip-Webhook-Id") String eventId,
-        @RequestHeader("X-EarthTrip-Webhook-Timestamp") String timestamp,
-        @RequestHeader("X-EarthTrip-Webhook-Signature") String signature,
-        @RequestBody String rawBody
-    ) {
-        return useCase.acceptWebhook(
-            "object-storage", eventId, timestamp, signature, rawBody
-        );
+            @RequestHeader("X-EarthTrip-Webhook-Id") String eventId,
+            @RequestHeader("X-EarthTrip-Webhook-Timestamp") String timestamp,
+            @RequestHeader("X-EarthTrip-Webhook-Signature") String signature,
+            @RequestBody String rawBody) {
+        return useCase.acceptWebhook("object-storage", eventId, timestamp, signature, rawBody);
     }
 }

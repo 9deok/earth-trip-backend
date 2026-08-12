@@ -13,7 +13,8 @@ class SecurityCurrentUserProvider implements CurrentUserProvider {
     @Override
     public Optional<UUID> currentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof EarthTripPrincipal principal)) {
+        if (authentication == null
+                || !(authentication.getPrincipal() instanceof EarthTripPrincipal principal)) {
             return Optional.empty();
         }
         return Optional.of(principal.userId());
@@ -22,7 +23,8 @@ class SecurityCurrentUserProvider implements CurrentUserProvider {
     @Override
     public Optional<UUID> currentSessionId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !(authentication.getPrincipal() instanceof EarthTripPrincipal principal)) {
+        if (authentication == null
+                || !(authentication.getPrincipal() instanceof EarthTripPrincipal principal)) {
             return Optional.empty();
         }
         return Optional.of(principal.sessionId());

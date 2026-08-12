@@ -22,9 +22,7 @@ class SettlementDifferencesController {
 
     @GetMapping
     SettlementAdjustmentUseCase.DifferenceResult get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID settlementId
-    ) {
+            @PathVariable UUID tripId, @PathVariable UUID settlementId) {
         return useCase.differences(tripId, settlementId, actor.requireUserId());
     }
 }

@@ -14,10 +14,9 @@ class FilePersistenceAdapter implements FileStorePort {
     private final FileLinkJpaRepository links;
 
     FilePersistenceAdapter(
-        FileJpaRepository files,
-        UploadSessionJpaRepository uploads,
-        FileLinkJpaRepository links
-    ) {
+            FileJpaRepository files,
+            UploadSessionJpaRepository uploads,
+            FileLinkJpaRepository links) {
         this.files = files;
         this.uploads = uploads;
         this.links = links;
@@ -30,12 +29,14 @@ class FilePersistenceAdapter implements FileStorePort {
 
     @Override
     public FileRecord saveFile(FileRecord record) {
-        FileJpaEntity entity = files.findById(record.id().toString())
-            .map(current -> {
-                current.apply(record);
-                return current;
-            })
-            .orElseGet(() -> new FileJpaEntity(record));
+        FileJpaEntity entity =
+                files.findById(record.id().toString())
+                        .map(
+                                current -> {
+                                    current.apply(record);
+                                    return current;
+                                })
+                        .orElseGet(() -> new FileJpaEntity(record));
         return files.saveAndFlush(entity).toRecord();
     }
 
@@ -46,36 +47,39 @@ class FilePersistenceAdapter implements FileStorePort {
 
     @Override
     public UploadRecord saveUpload(UploadRecord record) {
-        UploadSessionJpaEntity entity = uploads.findById(record.id().toString())
-            .map(current -> {
-                current.apply(record);
-                return current;
-            })
-            .orElseGet(() -> new UploadSessionJpaEntity(record));
+        UploadSessionJpaEntity entity =
+                uploads.findById(record.id().toString())
+                        .map(
+                                current -> {
+                                    current.apply(record);
+                                    return current;
+                                })
+                        .orElseGet(() -> new UploadSessionJpaEntity(record));
         return uploads.save(entity).toRecord();
     }
 
     @Override
     public List<LinkRecord> links(UUID fileId) {
         return links.findAllByFileIdOrderByLinkedAtAsc(fileId.toString()).stream()
-            .map(FileLinkJpaEntity::toRecord)
-            .toList();
+                .map(FileLinkJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
     public List<LinkRecord> linksForTrip(UUID tripId) {
         return links.findAllByTripIdOrderByLinkedAtAsc(tripId.toString()).stream()
-            .map(FileLinkJpaEntity::toRecord)
-            .toList();
+                .map(FileLinkJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
     public List<LinkRecord> links(UUID tripId, String resourceType, UUID resourceId) {
-        return links.findAllByTripIdAndResourceTypeAndResourceIdOrderByLinkedAtAsc(
-                tripId.toString(), resourceType, resourceId.toString()
-            ).stream()
-            .map(FileLinkJpaEntity::toRecord)
-            .toList();
+        return links
+                .findAllByTripIdAndResourceTypeAndResourceIdOrderByLinkedAtAsc(
+                        tripId.toString(), resourceType, resourceId.toString())
+                .stream()
+                .map(FileLinkJpaEntity::toRecord)
+                .toList();
     }
 
     @Override

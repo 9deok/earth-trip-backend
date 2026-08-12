@@ -17,46 +17,96 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController @RequestMapping("/api/v1/trips/{tripId}/destination-candidates/{candidateId}")
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/destination-candidates/{candidateId}")
 class DestinationCandidateByIdController {
-    private final DestinationCandidateUseCase useCase; private final CurrentActor actor;
+    private final DestinationCandidateUseCase useCase;
+    private final CurrentActor actor;
+
     DestinationCandidateByIdController(DestinationCandidateUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @PatchMapping DestinationCandidateResponse patch(
-        @PathVariable UUID tripId, @PathVariable UUID candidateId,
-        @Valid @RequestBody DestinationCandidateUpdateRequest r
-    ) {
-        return response(useCase.update(
-            tripId, candidateId, actor.requireUserId(),
-            new DestinationCandidateUseCase.CandidateCommand(
-                candidateId, r.name(), r.countryCode(), r.placeId(), r.latitude(), r.longitude(),
-                r.note(), r.status(), r.baseVersion()
-            )
-        ));
+
+    @PatchMapping
+    DestinationCandidateResponse patch(
+            @PathVariable UUID tripId,
+            @PathVariable UUID candidateId,
+            @Valid @RequestBody DestinationCandidateUpdateRequest r) {
+        return response(
+                useCase.update(
+                        tripId,
+                        candidateId,
+                        actor.requireUserId(),
+                        new DestinationCandidateUseCase.CandidateCommand(
+                                candidateId,
+                                r.name(),
+                                r.countryCode(),
+                                r.placeId(),
+                                r.latitude(),
+                                r.longitude(),
+                                r.note(),
+                                r.status(),
+                                r.baseVersion())));
     }
-    @DeleteMapping @ResponseStatus(HttpStatus.NO_CONTENT)
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId, @PathVariable UUID candidateId,
-        @Valid @RequestBody CandidateDeleteRequest r
-    ) { useCase.delete(tripId, candidateId, actor.requireUserId(), r.baseVersion()); }
-    private static DestinationCandidateResponse response(DestinationCandidateUseCase.CandidateResult c) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID candidateId,
+            @Valid @RequestBody CandidateDeleteRequest r) {
+        useCase.delete(tripId, candidateId, actor.requireUserId(), r.baseVersion());
+    }
+
+    private static DestinationCandidateResponse response(
+            DestinationCandidateUseCase.CandidateResult c) {
         return new DestinationCandidateResponse(
-            c.candidateId(), c.tripId(), c.name(), c.countryCode(), c.placeId(), c.latitude(),
-            c.longitude(), c.note(), c.status(), c.preferences().stream().map(p ->
-                new PreferenceResponse(p.userId(), p.preference(), p.updatedAt())).toList(),
-            c.version(), c.createdBy(), c.createdAt(), c.updatedAt()
-        );
+                c.candidateId(),
+                c.tripId(),
+                c.name(),
+                c.countryCode(),
+                c.placeId(),
+                c.latitude(),
+                c.longitude(),
+                c.note(),
+                c.status(),
+                c.preferences().stream()
+                        .map(p -> new PreferenceResponse(p.userId(), p.preference(), p.updatedAt()))
+                        .toList(),
+                c.version(),
+                c.createdBy(),
+                c.createdAt(),
+                c.updatedAt());
     }
 }
+
 record DestinationCandidateUpdateRequest(
-    String name, String countryCode, String placeId, BigDecimal latitude,
-    BigDecimal longitude, String note, String status, @Min(0) long baseVersion
-) { }
-record CandidateDeleteRequest(@Min(0) long baseVersion) { }
-record PreferenceResponse(UUID userId, String preference, Instant updatedAt) { }
+        String name,
+        String countryCode,
+        String placeId,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String note,
+        String status,
+        @Min(0) long baseVersion) {}
+
+record CandidateDeleteRequest(@Min(0) long baseVersion) {}
+
+record PreferenceResponse(UUID userId, String preference, Instant updatedAt) {}
+
 record DestinationCandidateResponse(
-    UUID candidateId, UUID tripId, String name, String countryCode, String placeId,
-    BigDecimal latitude, BigDecimal longitude, String note, String status,
-    List<PreferenceResponse> preferences, long version, UUID createdBy, Instant createdAt, Instant updatedAt
-) { }
+        UUID candidateId,
+        UUID tripId,
+        String name,
+        String countryCode,
+        String placeId,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        String note,
+        String status,
+        List<PreferenceResponse> preferences,
+        long version,
+        UUID createdBy,
+        Instant createdAt,
+        Instant updatedAt) {}

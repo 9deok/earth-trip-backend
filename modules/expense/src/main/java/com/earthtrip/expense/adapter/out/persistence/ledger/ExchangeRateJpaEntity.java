@@ -1,2 +1,66 @@
-package com.earthtrip.expense.adapter.out.persistence.ledger;import com.earthtrip.expense.application.port.out.FinanceLedgerStorePort;import jakarta.persistence.*;import java.math.BigDecimal;import java.time.Instant;import java.util.UUID;
-@Entity @Table(name="exchange_rate_snapshots") class ExchangeRateJpaEntity{@Id @Column(name="id",nullable=false,length=36)private String id;@Column(name="trip_id",nullable=false,length=36)private String tripId;@Column(name="base_currency",nullable=false,length=3)private String baseCurrency;@Column(name="quote_currency",nullable=false,length=3)private String quoteCurrency;@Column(name="rate_value",nullable=false,precision=24,scale=12)private BigDecimal rate;@Column(name="source",nullable=false,length=80)private String source;@Column(name="observed_at",nullable=false)private Instant observedAt;@Column(name="created_by",nullable=false,length=36)private String createdBy;@Column(name="created_at",nullable=false)private Instant createdAt;protected ExchangeRateJpaEntity(){}ExchangeRateJpaEntity(FinanceLedgerStorePort.RateRecord r){id=r.id().toString();tripId=r.tripId().toString();baseCurrency=r.baseCurrency();quoteCurrency=r.quoteCurrency();rate=r.rate();source=r.source();observedAt=r.observedAt();createdBy=r.createdBy().toString();createdAt=r.createdAt();}FinanceLedgerStorePort.RateRecord record(){return new FinanceLedgerStorePort.RateRecord(UUID.fromString(id),UUID.fromString(tripId),baseCurrency,quoteCurrency,rate,source,observedAt,UUID.fromString(createdBy),createdAt);}}
+package com.earthtrip.expense.adapter.out.persistence.ledger;
+
+import com.earthtrip.expense.application.port.out.FinanceLedgerStorePort;
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "exchange_rate_snapshots")
+class ExchangeRateJpaEntity {
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
+
+    @Column(name = "trip_id", nullable = false, length = 36)
+    private String tripId;
+
+    @Column(name = "base_currency", nullable = false, length = 3)
+    private String baseCurrency;
+
+    @Column(name = "quote_currency", nullable = false, length = 3)
+    private String quoteCurrency;
+
+    @Column(name = "rate_value", nullable = false, precision = 24, scale = 12)
+    private BigDecimal rate;
+
+    @Column(name = "source", nullable = false, length = 80)
+    private String source;
+
+    @Column(name = "observed_at", nullable = false)
+    private Instant observedAt;
+
+    @Column(name = "created_by", nullable = false, length = 36)
+    private String createdBy;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    protected ExchangeRateJpaEntity() {}
+
+    ExchangeRateJpaEntity(FinanceLedgerStorePort.RateRecord r) {
+        id = r.id().toString();
+        tripId = r.tripId().toString();
+        baseCurrency = r.baseCurrency();
+        quoteCurrency = r.quoteCurrency();
+        rate = r.rate();
+        source = r.source();
+        observedAt = r.observedAt();
+        createdBy = r.createdBy().toString();
+        createdAt = r.createdAt();
+    }
+
+    FinanceLedgerStorePort.RateRecord record() {
+        return new FinanceLedgerStorePort.RateRecord(
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                baseCurrency,
+                quoteCurrency,
+                rate,
+                source,
+                observedAt,
+                UUID.fromString(createdBy),
+                createdAt);
+    }
+}

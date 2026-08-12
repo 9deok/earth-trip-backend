@@ -2,8 +2,16 @@ package com.earthtrip.notification.application.service.notification;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.earthtrip.notification.application.port.out.NotificationStorePort;
+import com.earthtrip.notification.application.port.out.NotificationPreferenceStorePort;
+import com.earthtrip.notification.application.port.out.NotificationRecordStorePort;
+import com.earthtrip.notification.application.port.out.NotificationStoreRecords;
+import com.earthtrip.notification.application.port.out.NotificationStoreRecords.DeliveryAttemptRecord;
+import com.earthtrip.notification.application.port.out.NotificationStoreRecords.DeviceRecord;
+import com.earthtrip.notification.application.port.out.NotificationStoreRecords.NotificationRecord;
+import com.earthtrip.notification.application.port.out.NotificationStoreRecords.PreferenceRecord;
 import com.earthtrip.notification.application.port.out.PushDeliveryPort;
+import com.earthtrip.notification.application.port.out.PushDeliveryStorePort;
+import com.earthtrip.notification.application.port.out.PushDeviceStorePort;
 import com.earthtrip.notification.application.port.out.PushTokenProtectorPort;
 import java.time.Clock;
 import java.time.Instant;
@@ -27,18 +35,19 @@ class PushDeliveryCoordinatorTest {
         store.notification = notification;
         store.device = device;
         int[] calls = {0};
-        PushDeliveryPort delivery = (ignoredToken, ignoredMessage) -> ++calls[0] == 1
-            ? new PushDeliveryPort.DeliveryResult(
-                "TEMPORARY_FAILURE", null, "FCM_HTTP_503"
-            )
-            : new PushDeliveryPort.DeliveryResult("DELIVERED", "message-1", null);
-        PushDeliveryCoordinator coordinator = new PushDeliveryCoordinator(
-            store, new PlainTokenProtector(), delivery, clock
-        );
+        PushDeliveryPort delivery =
+                (ignoredToken, ignoredMessage) ->
+                        ++calls[0] == 1
+                                ? new PushDeliveryPort.DeliveryResult(
+                                        "TEMPORARY_FAILURE", null, "FCM_HTTP_503")
+                                : new PushDeliveryPort.DeliveryResult(
+                                        "DELIVERED", "message-1", null);
+        PushDeliveryCoordinator coordinator =
+                new PushDeliveryCoordinator(
+                        store, store, store, new PlainTokenProtector(), delivery, clock);
 
-        PushDeliveryCoordinator.DeliverySummary first = coordinator.deliver(
-            notification, List.of(device)
-        );
+        PushDeliveryCoordinator.DeliverySummary first =
+                coordinator.deliver(notification, List.of(device));
 
         assertThat(first.failed()).isEqualTo(1);
         assertThat(store.attempt.status()).isEqualTo("RETRY");
@@ -53,19 +62,25 @@ class PushDeliveryCoordinatorTest {
         assertThat(store.attempt.providerMessageId()).isEqualTo("message-1");
     }
 
-    private static NotificationStorePort.NotificationRecord notification(Instant now) {
-        return new NotificationStorePort.NotificationRecord(
-            UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "SCHEDULE_CHANGED",
-            "일정 변경", "일정이 바뀌었습니다.", "earthtrip://today", Map.of(),
-            now, null, null, 0
-        );
+    private static NotificationStoreRecords.NotificationRecord notification(Instant now) {
+        return new NotificationStoreRecords.NotificationRecord(
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "SCHEDULE_CHANGED",
+                "일정 변경",
+                "일정이 바뀌었습니다.",
+                "earthtrip://today",
+                Map.of(),
+                now,
+                null,
+                null,
+                0);
     }
 
-    private static NotificationStorePort.DeviceRecord device(Instant now) {
-        return new NotificationStorePort.DeviceRecord(
-            "device-1", UUID.randomUUID(), "ANDROID", "hash", "token", 1,
-            true, now, now
-        );
+    private static NotificationStoreRecords.DeviceRecord device(Instant now) {
+        return new NotificationStoreRecords.DeviceRecord(
+                "device-1", UUID.randomUUID(), "ANDROID", "hash", "token", 1, true, now, now);
     }
 
     private static final class MutableClock extends Clock {
@@ -79,67 +94,115 @@ class PushDeliveryCoordinatorTest {
             instant = instant.plusSeconds(seconds);
         }
 
-        @Override public ZoneId getZone() { return ZoneOffset.UTC; }
-        @Override public Clock withZone(ZoneId zone) { return this; }
-        @Override public Instant instant() { return instant; }
+        @Override
+        public ZoneId getZone() {
+            return ZoneOffset.UTC;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return this;
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
     }
 
     private static final class PlainTokenProtector implements PushTokenProtectorPort {
-        @Override public ProtectedToken protect(String rawToken) {
+        @Override
+        public ProtectedToken protect(String rawToken) {
             return new ProtectedToken(rawToken, rawToken);
         }
-        @Override public String reveal(String cipherText) { return cipherText; }
+
+        @Override
+        public String reveal(String cipherText) {
+            return cipherText;
+        }
     }
 
-    private static final class MemoryStore implements NotificationStorePort {
+    private static final class MemoryStore
+            implements NotificationRecordStorePort,
+                    NotificationPreferenceStorePort,
+                    PushDeviceStorePort,
+                    PushDeliveryStorePort {
         private NotificationRecord notification;
         private DeviceRecord device;
         private DeliveryAttemptRecord attempt;
 
-        @Override public List<NotificationRecord> list(UUID userId) {
+        @Override
+        public List<NotificationRecord> list(UUID userId) {
             return notification == null ? List.of() : List.of(notification);
         }
-        @Override public Optional<NotificationRecord> find(UUID notificationId) {
+
+        @Override
+        public Optional<NotificationRecord> find(UUID notificationId) {
             return Optional.ofNullable(notification)
-                .filter(item -> item.id().equals(notificationId));
+                    .filter(item -> item.id().equals(notificationId));
         }
-        @Override public NotificationRecord save(NotificationRecord record) {
-            notification = record; return record;
-        }
-        @Override public Optional<PreferenceRecord> preference(UUID userId) {
-            return Optional.empty();
-        }
-        @Override public PreferenceRecord savePreference(PreferenceRecord record) {
+
+        @Override
+        public NotificationRecord save(NotificationRecord record) {
+            notification = record;
             return record;
         }
-        @Override public void saveDevice(DeviceRecord record) { device = record; }
-        @Override public Optional<DeviceRecord> device(String deviceId) {
+
+        @Override
+        public Optional<PreferenceRecord> preference(UUID userId) {
+            return Optional.empty();
+        }
+
+        @Override
+        public PreferenceRecord savePreference(PreferenceRecord record) {
+            return record;
+        }
+
+        @Override
+        public void saveDevice(DeviceRecord record) {
+            device = record;
+        }
+
+        @Override
+        public Optional<DeviceRecord> device(String deviceId) {
             return Optional.ofNullable(device).filter(item -> item.deviceId().equals(deviceId));
         }
-        @Override public List<DeviceRecord> activeDevices(UUID userId) {
+
+        @Override
+        public Optional<DeviceRecord> deviceByTokenHash(String tokenHash) {
+            return Optional.ofNullable(device).filter(item -> item.tokenHash().equals(tokenHash));
+        }
+
+        @Override
+        public List<DeviceRecord> activeDevices(UUID userId) {
             return device == null || !device.active() ? List.of() : List.of(device);
         }
-        @Override public Optional<DeliveryAttemptRecord> deliveryAttempt(
-            UUID notificationId, String deviceId
-        ) {
-            return Optional.ofNullable(attempt).filter(item ->
-                item.notificationId().equals(notificationId) && item.deviceId().equals(deviceId)
-            );
+
+        @Override
+        public Optional<DeliveryAttemptRecord> deliveryAttempt(
+                UUID notificationId, String deviceId) {
+            return Optional.ofNullable(attempt)
+                    .filter(
+                            item ->
+                                    item.notificationId().equals(notificationId)
+                                            && item.deviceId().equals(deviceId));
         }
-        @Override public List<DeliveryAttemptRecord> dueDeliveryAttempts(
-            Instant now, int limit
-        ) {
+
+        @Override
+        public List<DeliveryAttemptRecord> dueDeliveryAttempts(Instant now, int limit) {
             List<DeliveryAttemptRecord> result = new ArrayList<>();
-            if (attempt != null && attempt.status().equals("RETRY")
-                && !attempt.nextAttemptAt().isAfter(now)) {
+            if (attempt != null
+                    && attempt.status().equals("RETRY")
+                    && !attempt.nextAttemptAt().isAfter(now)) {
                 result.add(attempt);
             }
             return result;
         }
-        @Override public DeliveryAttemptRecord saveDeliveryAttempt(
-            DeliveryAttemptRecord record
-        ) {
-            attempt = record; return record;
+
+        @Override
+        public DeliveryAttemptRecord saveDeliveryAttempt(DeliveryAttemptRecord record) {
+            attempt = record;
+            return record;
         }
     }
 }

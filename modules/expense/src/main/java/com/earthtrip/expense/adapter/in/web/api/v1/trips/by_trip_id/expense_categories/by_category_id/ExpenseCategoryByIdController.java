@@ -31,46 +31,44 @@ class ExpenseCategoryByIdController {
 
     @GetMapping
     ExpenseCategoryUseCase.CategoryResult get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID categoryId
-    ) {
+            @PathVariable UUID tripId, @PathVariable UUID categoryId) {
         return useCase.get(tripId, categoryId, actor.requireUserId());
     }
 
     @PatchMapping
     ExpenseCategoryUseCase.CategoryResult patch(
-        @PathVariable UUID tripId,
-        @PathVariable UUID categoryId,
-        @Valid @RequestBody ExpenseCategoryUpdateRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID categoryId,
+            @Valid @RequestBody ExpenseCategoryUpdateRequest request) {
         return useCase.update(
-            tripId, categoryId, actor.requireUserId(), request.name(), request.color(),
-            request.sortOrder(), request.baseVersion()
-        );
+                tripId,
+                categoryId,
+                actor.requireUserId(),
+                request.name(),
+                request.color(),
+                request.sortOrder(),
+                request.baseVersion());
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId,
-        @PathVariable UUID categoryId,
-        @Valid @RequestBody ExpenseCategoryDeleteRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID categoryId,
+            @Valid @RequestBody ExpenseCategoryDeleteRequest request) {
         useCase.delete(
-            tripId, categoryId, actor.requireUserId(), request.replacementCode(),
-            request.baseVersion()
-        );
+                tripId,
+                categoryId,
+                actor.requireUserId(),
+                request.replacementCode(),
+                request.baseVersion());
     }
 }
 
 record ExpenseCategoryUpdateRequest(
-    @Size(min = 1, max = 100) String name,
-    @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
-    @PositiveOrZero Integer sortOrder,
-    @PositiveOrZero long baseVersion
-) { }
+        @Size(min = 1, max = 100) String name,
+        @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
+        @PositiveOrZero Integer sortOrder,
+        @PositiveOrZero long baseVersion) {}
 
-record ExpenseCategoryDeleteRequest(
-    String replacementCode,
-    @PositiveOrZero long baseVersion
-) { }
+record ExpenseCategoryDeleteRequest(String replacementCode, @PositiveOrZero long baseVersion) {}

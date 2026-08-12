@@ -49,7 +49,7 @@ class AuthSessionJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected AuthSessionJpaEntity() { }
+    protected AuthSessionJpaEntity() {}
 
     private AuthSessionJpaEntity(AuthSession session) {
         id = session.id().toString();
@@ -74,16 +74,15 @@ class AuthSessionJpaEntity {
 
     AuthSession toDomain() {
         return AuthSession.restore(
-            UUID.fromString(id),
-            UserId.from(userId),
-            accessTokenHash,
-            refreshTokenHash,
-            deviceName,
-            accessExpiresAt,
-            refreshExpiresAt,
-            lastUsedAt,
-            revokedAt,
-            createdAt
-        );
+                UUID.fromString(id),
+                UserId.from(userId),
+                accessTokenHash,
+                refreshTokenHash,
+                deviceName,
+                accessExpiresAt,
+                refreshExpiresAt,
+                lastUsedAt,
+                revokedAt,
+                createdAt);
     }
 }

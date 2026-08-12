@@ -4,7 +4,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 interface CandidateSourceLinkJpaRepository
-    extends JpaRepository<CandidateSourceLinkJpaEntity, CandidateSourceLinkId> {
+        extends JpaRepository<CandidateSourceLinkJpaEntity, CandidateSourceLinkId> {
 
     List<CandidateSourceLinkJpaEntity> findAllById_CandidateId(String candidateId);
 

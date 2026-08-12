@@ -11,37 +11,31 @@ public interface ActivityFeedUseCase {
 
     ChangePage changes(UUID tripId, UUID actorUserId, Long after, Integer limit);
 
+    ChangeCursorResult latestCursor(UUID tripId, UUID actorUserId);
+
     ReadCursorResult updateReadCursor(UUID tripId, UUID actorUserId, long sequenceId);
 
-    RevertResult revert(
-        UUID tripId,
-        UUID activityId,
-        UUID actorUserId,
-        long resourceBaseVersion
-    );
+    RevertResult revert(UUID tripId, UUID activityId, UUID actorUserId, long resourceBaseVersion);
 
     record ActivityItem(
-        long sequenceId,
-        UUID activityId,
-        UUID actorId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> details,
-        Instant occurredAt,
-        boolean revertible
-    ) { }
+            long sequenceId,
+            UUID activityId,
+            UUID actorId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> details,
+            Instant occurredAt,
+            boolean revertible) {}
 
     record ActivityPage(
-        List<ActivityItem> items,
-        long nextCursor,
-        boolean hasMore,
-        long readCursor
-    ) { }
+            List<ActivityItem> items, long nextCursor, boolean hasMore, long readCursor) {}
 
-    record ChangePage(List<ActivityItem> changes, long nextCursor, boolean hasMore) { }
+    record ChangePage(List<ActivityItem> changes, long nextCursor, boolean hasMore) {}
 
-    record ReadCursorResult(long sequenceId, Instant updatedAt) { }
+    record ChangeCursorResult(long cursor) {}
 
-    record RevertResult(UUID activityId, String status, UUID resourceId) { }
+    record ReadCursorResult(long sequenceId, Instant updatedAt) {}
+
+    record RevertResult(UUID activityId, String status, UUID resourceId) {}
 }

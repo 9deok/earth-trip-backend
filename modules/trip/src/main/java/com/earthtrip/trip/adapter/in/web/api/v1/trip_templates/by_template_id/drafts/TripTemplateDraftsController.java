@@ -31,23 +31,22 @@ class TripTemplateDraftsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     TripManagementUseCase.TripResult create(
-        @PathVariable UUID templateId,
-        @Valid @RequestBody TripTemplateDraftRequest request
-    ) {
+            @PathVariable UUID templateId, @Valid @RequestBody TripTemplateDraftRequest request) {
         return useCase.createDraft(
-            templateId, actor.requireUserId(),
-            new TripTemplateUseCase.DraftCommand(
-                request.requestId(), request.title(), request.startDate(),
-                request.timeZone(), request.defaultCurrency()
-            )
-        );
+                templateId,
+                actor.requireUserId(),
+                new TripTemplateUseCase.DraftCommand(
+                        request.requestId(),
+                        request.title(),
+                        request.startDate(),
+                        request.timeZone(),
+                        request.defaultCurrency()));
     }
 }
 
 record TripTemplateDraftRequest(
-    @NotNull UUID requestId,
-    @Size(min = 1, max = 120) String title,
-    LocalDate startDate,
-    String timeZone,
-    String defaultCurrency
-) { }
+        @NotNull UUID requestId,
+        @Size(min = 1, max = 120) String title,
+        LocalDate startDate,
+        String timeZone,
+        String defaultCurrency) {}

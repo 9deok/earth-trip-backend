@@ -25,12 +25,10 @@ class ReservationFileByIdController {
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId,
-        @PathVariable UUID reservationId,
-        @PathVariable UUID fileId
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID reservationId,
+            @PathVariable UUID fileId) {
         useCase.unlinkResourceFile(
-            actor.requireUserId(), tripId, "RESERVATION", reservationId, fileId
-        );
+                actor.requireUserId(), tripId, "RESERVATION", reservationId, fileId);
     }
 }

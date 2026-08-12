@@ -23,14 +23,10 @@ class ApiRequestResponseLoggingFilterTest {
 
     @Test
     void JSON_request와_response를_기록하되_인증정보와_비밀번호는_가린다() throws Exception {
-        ApiRequestResponseLoggingFilter filter = new ApiRequestResponseLoggingFilter(
-            new ObjectMapper(),
-            4096
-        );
-        MockHttpServletRequest request = new MockHttpServletRequest(
-            "POST",
-            "/api/v1/invitations/path-secret/acceptances"
-        );
+        ApiRequestResponseLoggingFilter filter =
+                new ApiRequestResponseLoggingFilter(new ObjectMapper(), 4096, true);
+        MockHttpServletRequest request =
+                new MockHttpServletRequest("POST", "/api/v1/invitations/path-secret/acceptances");
         request.setContentType(MediaType.APPLICATION_JSON_VALUE);
         request.setCharacterEncoding(StandardCharsets.UTF_8.name());
         request.setQueryString("page=1&token=query-secret");
@@ -39,29 +35,32 @@ class ApiRequestResponseLoggingFilterTest {
         request.addHeader("Cf-Ray", "cloudflare-noise");
         request.setAttribute("earthTripTraceId", "trace-123");
         request.setAttribute(
-            HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE,
-            "/api/v1/invitations/{token}/acceptances"
-        );
-        request.setContent(("{\"email\":\"traveler@example.com\","
-            + "\"password\":\"request-password\","
-            + "\"nested\":{\"accessToken\":\"request-token\"}}").getBytes(
-                StandardCharsets.UTF_8
-            ));
+                HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE,
+                "/api/v1/invitations/{token}/acceptances");
+        request.setContent(
+                ("{\"email\":\"traveler@example.com\","
+                                + "\"password\":\"request-password\","
+                                + "\"nested\":{\"accessToken\":\"request-token\"}}")
+                        .getBytes(StandardCharsets.UTF_8));
         MockHttpServletResponse response = new MockHttpServletResponse();
         CapturedLogs logs = captureLogs();
 
         try {
-            filter.doFilter(request, response, (wrappedRequest, wrappedResponse) -> {
-                wrappedRequest.getInputStream().readAllBytes();
-                HttpServletResponse httpResponse = (HttpServletResponse) wrappedResponse;
-                httpResponse.setStatus(201);
-                httpResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                httpResponse.setHeader("Set-Cookie", "session=response-cookie-secret");
-                httpResponse.getWriter().write(
-                    "{\"displayName\":\"Earth Traveler\","
-                        + "\"sessionToken\":\"response-token\"}"
-                );
-            });
+            filter.doFilter(
+                    request,
+                    response,
+                    (wrappedRequest, wrappedResponse) -> {
+                        wrappedRequest.getInputStream().readAllBytes();
+                        HttpServletResponse httpResponse = (HttpServletResponse) wrappedResponse;
+                        httpResponse.setStatus(201);
+                        httpResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        httpResponse.setHeader("Set-Cookie", "session=response-cookie-secret");
+                        httpResponse
+                                .getWriter()
+                                .write(
+                                        "{\"displayName\":\"Earth Traveler\","
+                                                + "\"sessionToken\":\"response-token\"}");
+                    });
         } finally {
             logs.close();
         }
@@ -72,55 +71,142 @@ class ApiRequestResponseLoggingFilterTest {
         String message = logs.events().getFirst().getFormattedMessage();
         assertThat(logs.events().getFirst().getLevel()).isEqualTo(Level.INFO);
         assertThat(message)
-            .startsWith(
-                "HTTP_EXCHANGE POST /api/v1/invitations/[REDACTED]/acceptances -> 201"
-            )
-            .contains("traceId=trace-123")
-            .contains("route: /api/v1/invitations/{token}/acceptances")
-            .contains("\n  REQUEST\n")
-            .contains("\n    headers:\n")
-            .contains("\n    body:\n")
-            .contains("\n  RESPONSE\n")
-            .contains("Authorization: [REDACTED]")
-            .contains("User-Agent: earth-trip-test")
-            .contains("\"email\" : \"traveler@example.com\"")
-            .contains("\"displayName\" : \"Earth Traveler\"")
-            .contains("traveler@example.com")
-            .contains("Earth Traveler")
-            .doesNotContain(
-                "path-secret",
-                "query-secret",
-                "header-secret",
-                "request-password",
-                "request-token",
-                "response-cookie-secret",
-                "response-token",
-                "Cf-Ray",
-                "cloudflare-noise",
-                "Set-Cookie"
-            );
+                .startsWith("HTTP_EXCHANGE POST /api/v1/invitations/[REDACTED]/acceptances -> 201")
+                .contains("traceId=trace-123")
+                .contains("route: /api/v1/invitations/{token}/acceptances")
+                .contains("\n  REQUEST\n")
+                .contains("\n    headers:\n")
+                .contains("\n    body:\n")
+                .contains("\n  RESPONSE\n")
+                .contains("Authorization: [REDACTED]")
+                .contains("User-Agent: earth-trip-test")
+                .contains("\"email\" : \"traveler@example.com\"")
+                .contains("\"displayName\" : \"Earth Traveler\"")
+                .contains("traveler@example.com")
+                .contains("Earth Traveler")
+                .doesNotContain(
+                        "path-secret",
+                        "query-secret",
+                        "header-secret",
+                        "request-password",
+                        "request-token",
+                        "response-cookie-secret",
+                        "response-token",
+                        "Cf-Ray",
+                        "cloudflare-noise",
+                        "Set-Cookie");
+    }
+
+    @Test
+    void 성공_요청은_기본적으로_개인정보_본문_없이_요약만_기록한다() throws Exception {
+        ApiRequestResponseLoggingFilter filter =
+                new ApiRequestResponseLoggingFilter(new ObjectMapper(), 4096, false);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/me");
+        request.addHeader("Authorization", "Bearer header-secret");
+        request.setAttribute("earthTripTraceId", "trace-summary");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        CapturedLogs logs = captureLogs();
+
+        try {
+            filter.doFilter(
+                    request,
+                    response,
+                    (wrappedRequest, wrappedResponse) -> {
+                        wrappedResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        wrappedResponse
+                                .getOutputStream()
+                                .write(
+                                        "{\"email\":\"traveler@example.com\"}"
+                                                .getBytes(StandardCharsets.UTF_8));
+                    });
+        } finally {
+            logs.close();
+        }
+
+        assertThat(logs.events()).hasSize(1);
+        assertThat(logs.events().getFirst().getFormattedMessage())
+                .startsWith("HTTP_EXCHANGE GET /api/v1/me -> 200")
+                .contains("responseBytes=32", "traceId=trace-summary")
+                .doesNotContain(
+                        "REQUEST",
+                        "RESPONSE",
+                        "Authorization",
+                        "header-secret",
+                        "traveler@example.com");
+    }
+
+    @Test
+    void 요약만_남기는_성공_응답은_본문을_메모리에_복사하지_않는다() throws Exception {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        CapturingHttpServletResponseWrapper wrapper =
+                new CapturingHttpServletResponseWrapper(response, 4096, false);
+        byte[] body = "{\"title\":\"success\"}".getBytes(StandardCharsets.UTF_8);
+
+        wrapper.getOutputStream().write(body);
+
+        assertThat(wrapper.getTotalBytes()).isEqualTo(body.length);
+        assertThat(wrapper.getCapturedContent()).isEmpty();
+        assertThat(response.getContentAsByteArray()).containsExactly(body);
+    }
+
+    @Test
+    void 오류_응답은_요약_설정에서도_상세_본문을_캡처한다() throws Exception {
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        CapturingHttpServletResponseWrapper wrapper =
+                new CapturingHttpServletResponseWrapper(response, 4096, false);
+        byte[] body = "{\"detail\":\"failed\"}".getBytes(StandardCharsets.UTF_8);
+        wrapper.setStatus(400);
+
+        wrapper.getOutputStream().write(body);
+
+        assertThat(wrapper.getCapturedContent()).containsExactly(body);
+    }
+
+    @Test
+    void 상세_JSON_로그는_charset_표시가_없어도_UTF8로_기록한다() throws Exception {
+        ApiRequestResponseLoggingFilter filter =
+                new ApiRequestResponseLoggingFilter(new ObjectMapper(), 4096, true);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/me");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        CapturedLogs logs = captureLogs();
+
+        try {
+            filter.doFilter(
+                    request,
+                    response,
+                    (wrappedRequest, wrappedResponse) -> {
+                        wrappedResponse.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                        wrappedResponse
+                                .getOutputStream()
+                                .write(
+                                        "{\"displayName\":\"김성주\"}"
+                                                .getBytes(StandardCharsets.UTF_8));
+                    });
+        } finally {
+            logs.close();
+        }
+
+        assertThat(logs.events().getFirst().getFormattedMessage()).contains("김성주");
     }
 
     @Test
     void binary_response는_원문을_변경하지_않고_크기만_기록한다() throws Exception {
-        ApiRequestResponseLoggingFilter filter = new ApiRequestResponseLoggingFilter(
-            new ObjectMapper(),
-            16
-        );
-        MockHttpServletRequest request = new MockHttpServletRequest(
-            "GET",
-            "/api/v1/files/export"
-        );
+        ApiRequestResponseLoggingFilter filter =
+                new ApiRequestResponseLoggingFilter(new ObjectMapper(), 16, true);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/files/export");
         MockHttpServletResponse response = new MockHttpServletResponse();
         byte[] binary = new byte[128];
         Arrays.fill(binary, (byte) 7);
         CapturedLogs logs = captureLogs();
 
         try {
-            filter.doFilter(request, response, (wrappedRequest, wrappedResponse) -> {
-                wrappedResponse.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-                wrappedResponse.getOutputStream().write(binary);
-            });
+            filter.doFilter(
+                    request,
+                    response,
+                    (wrappedRequest, wrappedResponse) -> {
+                        wrappedResponse.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+                        wrappedResponse.getOutputStream().write(binary);
+                    });
         } finally {
             logs.close();
         }
@@ -128,32 +214,30 @@ class ApiRequestResponseLoggingFilterTest {
         assertThat(response.getContentAsByteArray()).containsExactly(binary);
         assertThat(logs.events()).hasSize(1);
         assertThat(logs.events().getFirst().getFormattedMessage())
-            .contains("binary payload omitted")
-            .contains("capturedBytes=16")
-            .contains("bytes: 128");
+                .contains("binary payload omitted")
+                .contains("capturedBytes=16")
+                .contains("bytes: 128");
     }
 
     @Test
     void 처리되지_않은_예외는_로그에_500으로_기록한다() {
-        ApiRequestResponseLoggingFilter filter = new ApiRequestResponseLoggingFilter(
-            new ObjectMapper(),
-            4096
-        );
-        MockHttpServletRequest request = new MockHttpServletRequest(
-            "GET",
-            "/api/v1/places/search"
-        );
+        ApiRequestResponseLoggingFilter filter =
+                new ApiRequestResponseLoggingFilter(new ObjectMapper(), 4096, false);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/places/search");
         MockHttpServletResponse response = new MockHttpServletResponse();
         CapturedLogs logs = captureLogs();
 
         try {
-            assertThatThrownBy(() -> filter.doFilter(
-                request,
-                response,
-                (wrappedRequest, wrappedResponse) -> {
-                    throw new ServletException("JSON conversion failed");
-                }
-            )).isInstanceOf(ServletException.class);
+            assertThatThrownBy(
+                            () ->
+                                    filter.doFilter(
+                                            request,
+                                            response,
+                                            (wrappedRequest, wrappedResponse) -> {
+                                                throw new ServletException(
+                                                        "JSON conversion failed");
+                                            }))
+                    .isInstanceOf(ServletException.class);
         } finally {
             logs.close();
         }
@@ -162,27 +246,24 @@ class ApiRequestResponseLoggingFilterTest {
         ILoggingEvent event = logs.events().getFirst();
         assertThat(event.getLevel()).isEqualTo(Level.ERROR);
         assertThat(event.getFormattedMessage())
-            .startsWith("HTTP_EXCHANGE GET /api/v1/places/search -> 500")
-            .contains("failure: jakarta.servlet.ServletException");
+                .startsWith("HTTP_EXCHANGE GET /api/v1/places/search -> 500")
+                .contains("failure: jakarta.servlet.ServletException");
     }
 
     @Test
     void 클라이언트_오류는_WARN으로_기록한다() throws Exception {
-        ApiRequestResponseLoggingFilter filter = new ApiRequestResponseLoggingFilter(
-            new ObjectMapper(),
-            4096
-        );
-        MockHttpServletRequest request = new MockHttpServletRequest(
-            "GET",
-            "/api/v1/missing"
-        );
+        ApiRequestResponseLoggingFilter filter =
+                new ApiRequestResponseLoggingFilter(new ObjectMapper(), 4096, false);
+        MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/v1/missing");
         MockHttpServletResponse response = new MockHttpServletResponse();
         CapturedLogs logs = captureLogs();
 
         try {
-            filter.doFilter(request, response, (wrappedRequest, wrappedResponse) ->
-                ((HttpServletResponse) wrappedResponse).setStatus(404)
-            );
+            filter.doFilter(
+                    request,
+                    response,
+                    (wrappedRequest, wrappedResponse) ->
+                            ((HttpServletResponse) wrappedResponse).setStatus(404));
         } finally {
             logs.close();
         }
@@ -191,13 +272,11 @@ class ApiRequestResponseLoggingFilterTest {
         ILoggingEvent event = logs.events().getFirst();
         assertThat(event.getLevel()).isEqualTo(Level.WARN);
         assertThat(event.getFormattedMessage())
-            .startsWith("HTTP_EXCHANGE GET /api/v1/missing -> 404");
+                .startsWith("HTTP_EXCHANGE GET /api/v1/missing -> 404");
     }
 
     private static CapturedLogs captureLogs() {
-        Logger logger = (Logger) LoggerFactory.getLogger(
-            ApiRequestResponseLoggingFilter.class
-        );
+        Logger logger = (Logger) LoggerFactory.getLogger(ApiRequestResponseLoggingFilter.class);
         Level previousLevel = logger.getLevel();
         ListAppender<ILoggingEvent> appender = new ListAppender<>();
         appender.start();
@@ -207,10 +286,7 @@ class ApiRequestResponseLoggingFilterTest {
     }
 
     private record CapturedLogs(
-        Logger logger,
-        ListAppender<ILoggingEvent> appender,
-        Level previousLevel
-    ) {
+            Logger logger, ListAppender<ILoggingEvent> appender, Level previousLevel) {
         private java.util.List<ILoggingEvent> events() {
             return appender.list;
         }

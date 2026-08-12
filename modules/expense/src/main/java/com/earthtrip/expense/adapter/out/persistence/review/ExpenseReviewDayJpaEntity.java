@@ -37,7 +37,7 @@ class ExpenseReviewDayJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected ExpenseReviewDayJpaEntity() { }
+    protected ExpenseReviewDayJpaEntity() {}
 
     ExpenseReviewDayJpaEntity(ExpenseReviewStorePort.ReviewRecord record) {
         tripId = record.tripId().toString();
@@ -53,8 +53,11 @@ class ExpenseReviewDayJpaEntity {
 
     ExpenseReviewStorePort.ReviewRecord toRecord() {
         return new ExpenseReviewStorePort.ReviewRecord(
-            UUID.fromString(tripId), localDate, UUID.fromString(completedBy), note,
-            completedAt, version
-        );
+                UUID.fromString(tripId),
+                localDate,
+                UUID.fromString(completedBy),
+                note,
+                completedAt,
+                version);
     }
 }

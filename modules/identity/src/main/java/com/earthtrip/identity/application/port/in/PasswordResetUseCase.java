@@ -9,5 +9,5 @@ public interface PasswordResetUseCase {
 
     void reset(String token, String newPassword);
 
-    record RequestResult(UUID requestId, Instant expiresAt, String deliveryStatus) { }
+    record RequestResult(UUID requestId, Instant expiresAt, String deliveryStatus) {}
 }

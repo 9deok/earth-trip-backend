@@ -15,13 +15,15 @@ import org.springframework.web.bind.annotation.RestController;
 class AnalysisJobRetriesController {
     private final AnalysisJobUseCase useCase;
     private final CurrentActor actor;
+
     AnalysisJobRetriesController(AnalysisJobUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @PostMapping AnalysisJobUseCase.JobResult post(
-        @PathVariable UUID jobId,
-        @RequestParam @PositiveOrZero long baseVersion
-    ) {
+
+    @PostMapping
+    AnalysisJobUseCase.JobResult post(
+            @PathVariable UUID jobId, @RequestParam @PositiveOrZero long baseVersion) {
         return useCase.retry(jobId, actor.requireUserId(), baseVersion);
     }
 }

@@ -24,10 +24,9 @@ class TripExportCancellationsController {
 
     @PostMapping
     TripExportUseCase.ExportResult cancel(
-        @PathVariable UUID tripId,
-        @PathVariable UUID exportId,
-        @RequestParam @PositiveOrZero long baseVersion
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID exportId,
+            @RequestParam @PositiveOrZero long baseVersion) {
         return useCase.cancel(tripId, exportId, actor.requireUserId(), baseVersion);
     }
 }

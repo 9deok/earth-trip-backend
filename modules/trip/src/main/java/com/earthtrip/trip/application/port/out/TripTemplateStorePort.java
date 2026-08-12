@@ -20,24 +20,18 @@ public interface TripTemplateStorePort {
     DraftRecord saveDraft(DraftRecord draft);
 
     record TemplateRecord(
-        UUID id,
-        UUID ownerUserId,
-        UUID sourceTripId,
-        String name,
-        String description,
-        Set<String> includeScopes,
-        Map<String, Object> snapshot,
-        Instant createdAt,
-        Instant updatedAt,
-        Instant deletedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID ownerUserId,
+            UUID sourceTripId,
+            String name,
+            String description,
+            Set<String> includeScopes,
+            Map<String, Object> snapshot,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt,
+            long version) {}
 
     record DraftRecord(
-        UUID requestId,
-        UUID templateId,
-        UUID tripId,
-        UUID createdBy,
-        Instant createdAt
-    ) { }
+            UUID requestId, UUID templateId, UUID tripId, UUID createdBy, Instant createdAt) {}
 }

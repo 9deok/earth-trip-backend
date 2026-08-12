@@ -17,54 +17,42 @@ class AesSensitiveWalletDataAdapterTest {
 
     @Test
     void 민감값을_AES_GCM으로_암호화하고_원래_자료형으로_복호화한다() {
-        AesSensitiveWalletDataAdapter adapter = new AesSensitiveWalletDataAdapter(
-            "primary:" + OLD_KEY,
-            "primary",
-            JSON
-        );
+        AesSensitiveWalletDataAdapter adapter =
+                new AesSensitiveWalletDataAdapter("primary:" + OLD_KEY, "primary", JSON);
 
-        Object protectedValue = adapter.protect(
-            "passengerNames",
-            List.of("홍길동", "김여행")
-        );
+        Object protectedValue = adapter.protect("passengerNames", List.of("홍길동", "김여행"));
 
         assertThat(adapter.isProtected(protectedValue)).isTrue();
         assertThat(protectedValue.toString()).doesNotContain("홍길동", "김여행");
         assertThat(adapter.reveal("passengerNames", protectedValue))
-            .isEqualTo(List.of("홍길동", "김여행"));
+                .isEqualTo(List.of("홍길동", "김여행"));
     }
 
     @Test
     void 이전_key를_key_ring에_유지하면_rotation_후에도_복호화한다() {
-        AesSensitiveWalletDataAdapter oldAdapter = new AesSensitiveWalletDataAdapter(
-            "old:" + OLD_KEY,
-            "old",
-            JSON
-        );
+        AesSensitiveWalletDataAdapter oldAdapter =
+                new AesSensitiveWalletDataAdapter("old:" + OLD_KEY, "old", JSON);
         Object protectedValue = oldAdapter.protect("confirmationNumber", "ABC-1234");
-        AesSensitiveWalletDataAdapter rotated = new AesSensitiveWalletDataAdapter(
-            "primary:" + NEW_KEY + ",old:" + OLD_KEY,
-            "primary",
-            JSON
-        );
+        AesSensitiveWalletDataAdapter rotated =
+                new AesSensitiveWalletDataAdapter(
+                        "primary:" + NEW_KEY + ",old:" + OLD_KEY, "primary", JSON);
 
-        assertThat(rotated.reveal("confirmationNumber", protectedValue))
-            .isEqualTo("ABC-1234");
+        assertThat(rotated.reveal("confirmationNumber", protectedValue)).isEqualTo("ABC-1234");
     }
 
     @Test
     void key가_없으면_민감값을_평문으로_저장하지_않는다() {
-        AesSensitiveWalletDataAdapter adapter = new AesSensitiveWalletDataAdapter(
-            "",
-            "primary",
-            JSON
-        );
+        AesSensitiveWalletDataAdapter adapter =
+                new AesSensitiveWalletDataAdapter("", "primary", JSON);
 
         assertThatThrownBy(() -> adapter.protect("confirmationNumber", "ABC-1234"))
-            .isInstanceOfSatisfying(EarthTripException.class, exception -> {
-                assertThat(exception.code()).isEqualTo("WALLET_ENCRYPTION_NOT_CONFIGURED");
-                assertThat(exception.httpStatus()).isEqualTo(503);
-            });
+                .isInstanceOfSatisfying(
+                        EarthTripException.class,
+                        exception -> {
+                            assertThat(exception.code())
+                                    .isEqualTo("WALLET_ENCRYPTION_NOT_CONFIGURED");
+                            assertThat(exception.httpStatus()).isEqualTo(503);
+                        });
     }
 
     private static byte[] bytes(int value) {

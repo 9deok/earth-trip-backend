@@ -4,28 +4,25 @@ import com.earthtrip.trip.application.port.out.LoadTripPort;
 import com.earthtrip.trip.application.port.out.SaveTripPort;
 import com.earthtrip.trip.domain.Trip;
 import com.earthtrip.trip.domain.TripId;
-import java.util.Optional;
-import java.util.List;
-import java.util.UUID;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 @Component
 class TripPersistenceAdapter implements LoadTripPort, SaveTripPort {
 
-    private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() { };
+    private static final TypeReference<List<String>> STRING_LIST = new TypeReference<>() {};
 
     private final TripJpaRepository repository;
     private final TripQuerydslSupport querydslSupport;
     private final ObjectMapper json;
 
     TripPersistenceAdapter(
-        TripJpaRepository repository,
-        TripQuerydslSupport querydslSupport,
-        ObjectMapper json
-    ) {
+            TripJpaRepository repository, TripQuerydslSupport querydslSupport, ObjectMapper json) {
         this.repository = repository;
         this.querydslSupport = querydslSupport;
         this.json = json;
@@ -33,34 +30,37 @@ class TripPersistenceAdapter implements LoadTripPort, SaveTripPort {
 
     @Override
     public Optional<Trip> findById(TripId tripId) {
-        return querydslSupport.findById(tripId.toString())
-            .map(this::toDomain);
+        return querydslSupport.findById(tripId.toString()).map(this::toDomain);
     }
 
     @Override
     public Trip save(Trip trip) {
-        TripJpaEntity entity = repository.findById(trip.id().toString())
-            .map(existing -> {
-                existing.apply(trip, writeNames(trip.companionNames()));
-                return existing;
-            })
-            .orElseGet(() -> TripJpaEntity.from(trip, writeNames(trip.companionNames())));
+        TripJpaEntity entity =
+                repository
+                        .findById(trip.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(trip, writeNames(trip.companionNames()));
+                                    return existing;
+                                })
+                        .orElseGet(
+                                () -> TripJpaEntity.from(trip, writeNames(trip.companionNames())));
         return toDomain(repository.saveAndFlush(entity));
     }
 
     @Override
     public List<Trip> findAllByOwner(UUID ownerUserId) {
         return repository.findAllByOwnerUserIdOrderByUpdatedAtDesc(ownerUserId.toString()).stream()
-            .map(this::toDomain)
-            .toList();
+                .map(this::toDomain)
+                .toList();
     }
 
     @Override
     public List<Trip> findAllByIds(List<UUID> tripIds) {
         if (tripIds.isEmpty()) return List.of();
         return repository.findAllById(tripIds.stream().map(UUID::toString).toList()).stream()
-            .map(this::toDomain)
-            .toList();
+                .map(this::toDomain)
+                .toList();
     }
 
     private Trip toDomain(TripJpaEntity entity) {

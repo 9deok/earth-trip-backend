@@ -14,11 +14,14 @@ public interface TripBootstrapUseCase {
     BootstrapResult get(UUID tripId, UUID actorUserId);
 
     record BootstrapResult(
-        TripStructureView.StructureSnapshot structure,
-        List<TripMemberView.Member> members,
-        TripPlanningView.PlanningSnapshot planning,
-        TripWalletView.WalletSnapshot wallet,
-        TripExpenseView.ExpenseSummary expenses,
-        Instant generatedAt
-    ) { }
+            TripStructureView.StructureSnapshot structure,
+            List<TripMemberView.Member> members,
+            TripPlanningView.PlanningSnapshot planning,
+            TripPlanningView.NextDecision nextDecision,
+            TripWalletView.WalletSnapshot wallet,
+            TripWalletView.PreparationSummary preparation,
+            TripExpenseView.ExpenseSummary expenses,
+            long unreadNotificationCount,
+            long changeCursor,
+            Instant generatedAt) {}
 }

@@ -8,10 +8,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController @RequestMapping("/api/v1/invitations/{token}/declines")
+@RestController
+@RequestMapping("/api/v1/invitations/{token}/declines")
 class InvitationDeclinesController {
     private final InvitationUseCase useCase;
-    InvitationDeclinesController(InvitationUseCase useCase) { this.useCase = useCase; }
-    @PostMapping @ResponseStatus(HttpStatus.NO_CONTENT)
-    void post(@PathVariable String token) { useCase.decline(token); }
+
+    InvitationDeclinesController(InvitationUseCase useCase) {
+        this.useCase = useCase;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void post(@PathVariable String token) {
+        useCase.decline(token);
+    }
 }

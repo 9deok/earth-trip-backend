@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 class ReservationImportPersistenceAdapter implements ReservationImportStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
     private static final String PROTECTED_PAYLOAD = "_earthTripEncryptedPayload";
     private static final String JOB_PAYLOAD_FIELD = "reservationImportSourcePayload";
     private static final String CANDIDATE_PAYLOAD_FIELD = "reservationImportCandidatePayload";
@@ -25,11 +25,10 @@ class ReservationImportPersistenceAdapter implements ReservationImportStorePort 
     private final ObjectMapper json;
 
     ReservationImportPersistenceAdapter(
-        ReservationImportJobJpaRepository jobs,
-        ReservationImportCandidateJpaRepository candidates,
-        SensitiveWalletDataPort sensitiveData,
-        ObjectMapper json
-    ) {
+            ReservationImportJobJpaRepository jobs,
+            ReservationImportCandidateJpaRepository candidates,
+            SensitiveWalletDataPort sensitiveData,
+            ObjectMapper json) {
         this.jobs = jobs;
         this.candidates = candidates;
         this.sensitiveData = sensitiveData;
@@ -44,20 +43,22 @@ class ReservationImportPersistenceAdapter implements ReservationImportStorePort 
     @Override
     public JobRecord saveJob(JobRecord job) {
         String payload = writeProtected(JOB_PAYLOAD_FIELD, job.sourcePayload());
-        ReservationImportJobJpaEntity entity = jobs.findById(job.id().toString())
-            .map(existing -> {
-                existing.apply(job, payload);
-                return existing;
-            })
-            .orElseGet(() -> new ReservationImportJobJpaEntity(job, payload));
+        ReservationImportJobJpaEntity entity =
+                jobs.findById(job.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(job, payload);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new ReservationImportJobJpaEntity(job, payload));
         return job(jobs.saveAndFlush(entity));
     }
 
     @Override
     public List<CandidateRecord> findCandidates(UUID jobId) {
         return candidates.findAllByJobIdOrderByCreatedAtAsc(jobId.toString()).stream()
-            .map(this::candidate)
-            .toList();
+                .map(this::candidate)
+                .toList();
     }
 
     @Override
@@ -68,13 +69,16 @@ class ReservationImportPersistenceAdapter implements ReservationImportStorePort 
     @Override
     public CandidateRecord saveCandidate(CandidateRecord candidate) {
         String payload = writeProtected(CANDIDATE_PAYLOAD_FIELD, candidate.payload());
-        ReservationImportCandidateJpaEntity entity = candidates
-            .findById(candidate.id().toString())
-            .map(existing -> {
-                existing.apply(candidate, payload);
-                return existing;
-            })
-            .orElseGet(() -> new ReservationImportCandidateJpaEntity(candidate, payload));
+        ReservationImportCandidateJpaEntity entity =
+                candidates
+                        .findById(candidate.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(candidate, payload);
+                                    return existing;
+                                })
+                        .orElseGet(
+                                () -> new ReservationImportCandidateJpaEntity(candidate, payload));
         return candidate(candidates.saveAndFlush(entity));
     }
 

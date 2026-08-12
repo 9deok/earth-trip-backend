@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Component
 class TripExportPersistenceAdapter implements TripExportStorePort {
 
-    private static final TypeReference<Set<String>> SCOPES = new TypeReference<>() { };
+    private static final TypeReference<Set<String>> SCOPES = new TypeReference<>() {};
     private final TripExportJpaRepository repository;
     private final ObjectMapper json;
 
@@ -29,12 +29,15 @@ class TripExportPersistenceAdapter implements TripExportStorePort {
     @Override
     public ExportRecord save(ExportRecord export) {
         String scopes = write(export.scopes());
-        TripExportJpaEntity entity = repository.findById(export.id().toString())
-            .map(existing -> {
-                existing.apply(export, scopes);
-                return existing;
-            })
-            .orElseGet(() -> new TripExportJpaEntity(export, scopes));
+        TripExportJpaEntity entity =
+                repository
+                        .findById(export.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(export, scopes);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new TripExportJpaEntity(export, scopes));
         return record(repository.saveAndFlush(entity));
     }
 

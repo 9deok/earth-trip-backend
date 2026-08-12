@@ -15,29 +15,39 @@ import java.util.UUID;
 @Table(name = "admin_audit_events")
 class AdminAuditJpaEntity {
 
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "sequence_id", nullable = false)
     private Long sequenceId;
+
     @Column(name = "event_id", nullable = false, length = 36)
     private String eventId;
+
     @Column(name = "actor_type", nullable = false, length = 30)
     private String actorType;
+
     @Column(name = "actor_id", length = 160)
     private String actorId;
+
     @Column(name = "action", nullable = false, length = 80)
     private String action;
+
     @Column(name = "target_type", nullable = false, length = 50)
     private String targetType;
+
     @Column(name = "target_id", length = 160)
     private String targetId;
+
     @Column(name = "outcome", nullable = false, length = 30)
     private String outcome;
+
     @Column(name = "metadata", nullable = false, columnDefinition = "JSON")
     private String metadata;
+
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
-    protected AdminAuditJpaEntity() { }
+    protected AdminAuditJpaEntity() {}
 
     AdminAuditJpaEntity(OperationalStorePort.AuditRecord record, String metadata) {
         eventId = record.eventId().toString();
@@ -57,16 +67,15 @@ class AdminAuditJpaEntity {
 
     OperationalStorePort.AuditRecord record(Map<String, Object> metadataValue) {
         return new OperationalStorePort.AuditRecord(
-            sequenceId,
-            UUID.fromString(eventId),
-            actorType,
-            actorId,
-            action,
-            targetType,
-            targetId,
-            outcome,
-            metadataValue,
-            occurredAt
-        );
+                sequenceId,
+                UUID.fromString(eventId),
+                actorType,
+                actorId,
+                action,
+                targetType,
+                targetId,
+                outcome,
+                metadataValue,
+                occurredAt);
     }
 }

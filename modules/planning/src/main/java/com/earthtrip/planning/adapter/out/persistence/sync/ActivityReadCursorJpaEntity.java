@@ -28,7 +28,7 @@ class ActivityReadCursorJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected ActivityReadCursorJpaEntity() { }
+    protected ActivityReadCursorJpaEntity() {}
 
     ActivityReadCursorJpaEntity(SyncStateStorePort.ReadCursorRecord record) {
         tripId = record.tripId().toString();
@@ -43,7 +43,6 @@ class ActivityReadCursorJpaEntity {
 
     SyncStateStorePort.ReadCursorRecord toRecord() {
         return new SyncStateStorePort.ReadCursorRecord(
-            UUID.fromString(tripId), UUID.fromString(userId), sequenceId, updatedAt
-        );
+                UUID.fromString(tripId), UUID.fromString(userId), sequenceId, updatedAt);
     }
 }

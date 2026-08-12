@@ -32,10 +32,7 @@ class AesPushTokenProtector implements PushTokenProtectorPort {
     public ProtectedToken protect(String token) {
         requireConfigured();
         if (token == null || token.isBlank()) {
-            throw EarthTripException.badRequest(
-                "PUSH_TOKEN_REQUIRED",
-                "푸시 토큰이 필요합니다."
-            );
+            throw EarthTripException.badRequest("PUSH_TOKEN_REQUIRED", "푸시 토큰이 필요합니다.");
         }
         try {
             byte[] iv = new byte[IV_LENGTH];
@@ -61,7 +58,8 @@ class AesPushTokenProtector implements PushTokenProtectorPort {
             }
             byte[] iv = Arrays.copyOfRange(joined, 0, IV_LENGTH);
             byte[] encrypted = Arrays.copyOfRange(joined, IV_LENGTH, joined.length);
-            return new String(cipher(Cipher.DECRYPT_MODE, iv).doFinal(encrypted), StandardCharsets.UTF_8);
+            return new String(
+                    cipher(Cipher.DECRYPT_MODE, iv).doFinal(encrypted), StandardCharsets.UTF_8);
         } catch (GeneralSecurityException | IllegalArgumentException exception) {
             throw new IllegalStateException("푸시 토큰을 복호화할 수 없습니다.", exception);
         }
@@ -76,17 +74,15 @@ class AesPushTokenProtector implements PushTokenProtectorPort {
     private void requireConfigured() {
         if (key.length != 32) {
             throw EarthTripException.unavailable(
-                "PUSH_TOKEN_ENCRYPTION_NOT_CONFIGURED",
-                "푸시 토큰 암호화 키가 설정되지 않았습니다."
-            );
+                    "PUSH_TOKEN_ENCRYPTION_NOT_CONFIGURED", "푸시 토큰 암호화 키가 설정되지 않았습니다.");
         }
     }
 
     private static byte[] decodeKey(String encoded) {
         try {
             return encoded == null || encoded.isBlank()
-                ? new byte[0]
-                : Base64.getDecoder().decode(encoded);
+                    ? new byte[0]
+                    : Base64.getDecoder().decode(encoded);
         } catch (IllegalArgumentException exception) {
             return new byte[0];
         }
@@ -94,9 +90,10 @@ class AesPushTokenProtector implements PushTokenProtectorPort {
 
     private static String hash(String token) {
         try {
-            return HexFormat.of().formatHex(
-                MessageDigest.getInstance("SHA-256").digest(token.getBytes(StandardCharsets.UTF_8))
-            );
+            return HexFormat.of()
+                    .formatHex(
+                            MessageDigest.getInstance("SHA-256")
+                                    .digest(token.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException exception) {
             throw new IllegalStateException(exception);
         }

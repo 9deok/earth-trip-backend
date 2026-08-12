@@ -14,21 +14,25 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auth/oauth/google/sessions")
 class GoogleOAuthSessionsController {
     private final AccountIdentityUseCase useCase;
-    GoogleOAuthSessionsController(AccountIdentityUseCase useCase) { this.useCase = useCase; }
-    @PostMapping SessionUseCase.SessionResult post(@Valid @RequestBody GoogleOAuthRequest request) {
+
+    GoogleOAuthSessionsController(AccountIdentityUseCase useCase) {
+        this.useCase = useCase;
+    }
+
+    @PostMapping
+    SessionUseCase.SessionResult post(@Valid @RequestBody GoogleOAuthRequest request) {
         return useCase.oauthSession("GOOGLE", request.command());
     }
 }
+
 record GoogleOAuthRequest(
-    @Size(max = 4096) String authorizationCode,
-    @NotBlank @Size(max = 8192) String idToken,
-    @Size(max = 2048) String redirectUri,
-    @Size(max = 256) String codeVerifier,
-    @Size(max = 120) String deviceName
-) {
+        @Size(max = 4096) String authorizationCode,
+        @NotBlank @Size(max = 8192) String idToken,
+        @Size(max = 2048) String redirectUri,
+        @Size(max = 256) String codeVerifier,
+        @Size(max = 120) String deviceName) {
     AccountIdentityUseCase.OAuthCommand command() {
         return new AccountIdentityUseCase.OAuthCommand(
-            authorizationCode, idToken, redirectUri, codeVerifier, deviceName
-        );
+                authorizationCode, idToken, redirectUri, codeVerifier, deviceName);
     }
 }

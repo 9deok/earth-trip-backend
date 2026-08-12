@@ -42,7 +42,7 @@ class PackingTemplateJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected PackingTemplateJpaEntity() { }
+    protected PackingTemplateJpaEntity() {}
 
     PackingTemplateJpaEntity(PackingTemplateStorePort.TemplateRecord record, String items) {
         id = record.id().toString();
@@ -59,21 +59,39 @@ class PackingTemplateJpaEntity {
         deletedAt = record.deletedAt();
     }
 
-    UUID id() { return UUID.fromString(id); }
+    UUID id() {
+        return UUID.fromString(id);
+    }
 
-    UUID userId() { return UUID.fromString(userId); }
+    UUID userId() {
+        return UUID.fromString(userId);
+    }
 
-    String name() { return name; }
+    String name() {
+        return name;
+    }
 
-    String visibility() { return visibility; }
+    String visibility() {
+        return visibility;
+    }
 
-    String items() { return items; }
+    String items() {
+        return items;
+    }
 
-    Instant createdAt() { return createdAt; }
+    Instant createdAt() {
+        return createdAt;
+    }
 
-    Instant updatedAt() { return updatedAt; }
+    Instant updatedAt() {
+        return updatedAt;
+    }
 
-    Instant deletedAt() { return deletedAt; }
+    Instant deletedAt() {
+        return deletedAt;
+    }
 
-    long version() { return version; }
+    long version() {
+        return version;
+    }
 }

@@ -37,22 +37,21 @@ class TripTemplatesController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     TripTemplateUseCase.TemplateResult create(
-        @Valid @RequestBody TripTemplateCreateRequest request
-    ) {
+            @Valid @RequestBody TripTemplateCreateRequest request) {
         return useCase.create(
-            actor.requireUserId(),
-            new TripTemplateUseCase.CreateCommand(
-                request.requestId(), request.sourceTripId(), request.name(),
-                request.description(), request.includeScopes()
-            )
-        );
+                actor.requireUserId(),
+                new TripTemplateUseCase.CreateCommand(
+                        request.requestId(),
+                        request.sourceTripId(),
+                        request.name(),
+                        request.description(),
+                        request.includeScopes()));
     }
 }
 
 record TripTemplateCreateRequest(
-    @NotNull UUID requestId,
-    @NotNull UUID sourceTripId,
-    @NotBlank @Size(max = 120) String name,
-    @Size(max = 500) String description,
-    Set<String> includeScopes
-) { }
+        @NotNull UUID requestId,
+        @NotNull UUID sourceTripId,
+        @NotBlank @Size(max = 120) String name,
+        @Size(max = 500) String description,
+        Set<String> includeScopes) {}

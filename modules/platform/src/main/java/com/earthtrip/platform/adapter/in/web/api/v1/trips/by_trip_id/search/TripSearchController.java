@@ -24,11 +24,10 @@ class TripSearchController {
 
     @GetMapping
     TripSearchUseCase.SearchResult get(
-        @PathVariable UUID tripId,
-        @RequestParam String query,
-        @RequestParam(required = false) List<String> types,
-        @RequestParam(required = false) Integer limit
-    ) {
+            @PathVariable UUID tripId,
+            @RequestParam String query,
+            @RequestParam(required = false) List<String> types,
+            @RequestParam(required = false) Integer limit) {
         return useCase.search(tripId, actor.requireUserId(), query, types, limit);
     }
 }

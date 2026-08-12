@@ -16,10 +16,12 @@ class IntegrationProviderRegistry {
     }
 
     ExternalAccountProviderPort require(String provider) {
-        return find(provider).orElseThrow(() -> EarthTripException.badRequest(
-            "UNSUPPORTED_INTEGRATION_PROVIDER",
-            "지원하지 않는 외부 계정 제공자입니다."
-        ));
+        return find(provider)
+                .orElseThrow(
+                        () ->
+                                EarthTripException.badRequest(
+                                        "UNSUPPORTED_INTEGRATION_PROVIDER",
+                                        "지원하지 않는 외부 계정 제공자입니다."));
     }
 
     Optional<ExternalAccountProviderPort> find(String provider) {

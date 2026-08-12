@@ -5,14 +5,14 @@
 다음 네 신호를 서로 대체하지 않고 모두 확인한다.
 
 1. `systemctl is-active earth-trip`이 `active`
-2. `curl --fail http://127.0.0.1:8080/actuator/health/readiness` 성공
+2. `curl --fail http://127.0.0.1:8050/actuator/health/readiness` 성공
 3. 공개 HTTPS의 `/actuator/health/readiness` 성공
 4. 인증된 staging 기기에서 REST 호출과 WebSocket 재연결 성공
 
 ```bash
 sudo systemctl status earth-trip --no-pager
 sudo journalctl -u earth-trip -n 200 --no-pager
-curl --fail --silent --show-error http://127.0.0.1:8080/actuator/health/readiness
+curl --fail --silent --show-error http://127.0.0.1:8050/actuator/health/readiness
 curl --fail --silent --show-error https://earth-trip.example.com/actuator/health/readiness
 sudo nginx -t
 sudo ss -lntp

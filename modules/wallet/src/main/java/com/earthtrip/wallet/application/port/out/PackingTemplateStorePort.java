@@ -23,31 +23,24 @@ public interface PackingTemplateStorePort {
     void saveDismissal(DismissalRecord record);
 
     record TemplateRecord(
-        UUID id,
-        UUID userId,
-        String name,
-        String visibility,
-        List<PackingTemplateUseCase.TemplateItem> items,
-        Instant createdAt,
-        Instant updatedAt,
-        Instant deletedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID userId,
+            String name,
+            String visibility,
+            List<PackingTemplateUseCase.TemplateItem> items,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt,
+            long version) {}
 
     record ApplicationRecord(
-        UUID id,
-        UUID tripId,
-        UUID templateId,
-        UUID appliedBy,
-        Instant appliedAt,
-        List<UUID> itemIds
-    ) { }
+            UUID id,
+            UUID tripId,
+            UUID templateId,
+            UUID appliedBy,
+            Instant appliedAt,
+            List<UUID> itemIds) {}
 
     record DismissalRecord(
-        UUID suggestionId,
-        UUID tripId,
-        UUID userId,
-        String reason,
-        Instant dismissedAt
-    ) { }
+            UUID suggestionId, UUID tripId, UUID userId, String reason, Instant dismissedAt) {}
 }

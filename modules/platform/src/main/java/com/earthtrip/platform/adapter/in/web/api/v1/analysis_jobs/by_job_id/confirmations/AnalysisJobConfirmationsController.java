@@ -18,25 +18,26 @@ import org.springframework.web.bind.annotation.RestController;
 class AnalysisJobConfirmationsController {
     private final AnalysisJobUseCase useCase;
     private final CurrentActor actor;
+
     AnalysisJobConfirmationsController(AnalysisJobUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @PostMapping AnalysisJobUseCase.ConfirmationResult post(
-        @PathVariable UUID jobId,
-        @Valid @RequestBody AnalysisConfirmationRequest request
-    ) {
+
+    @PostMapping
+    AnalysisJobUseCase.ConfirmationResult post(
+            @PathVariable UUID jobId, @Valid @RequestBody AnalysisConfirmationRequest request) {
         return useCase.confirm(jobId, actor.requireUserId(), request.command());
     }
 }
+
 record AnalysisConfirmationRequest(
-    @NotNull UUID requestId,
-    @NotNull Map<String, Object> confirmedFields,
-    @PositiveOrZero long targetBaseVersion,
-    @PositiveOrZero long jobBaseVersion
-) {
+        @NotNull UUID requestId,
+        @NotNull Map<String, Object> confirmedFields,
+        @PositiveOrZero long targetBaseVersion,
+        @PositiveOrZero long jobBaseVersion) {
     AnalysisJobUseCase.ConfirmationCommand command() {
         return new AnalysisJobUseCase.ConfirmationCommand(
-            requestId, confirmedFields, targetBaseVersion, jobBaseVersion
-        );
+                requestId, confirmedFields, targetBaseVersion, jobBaseVersion);
     }
 }

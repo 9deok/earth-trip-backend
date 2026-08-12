@@ -24,24 +24,22 @@ public interface AccountIdentityStorePort {
     EmailChangeRecord saveEmailChange(EmailChangeRecord request);
 
     record IdentityRecord(
-        UUID id,
-        UUID userId,
-        String provider,
-        String providerSubject,
-        String providerEmail,
-        Instant createdAt,
-        Instant lastUsedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID userId,
+            String provider,
+            String providerSubject,
+            String providerEmail,
+            Instant createdAt,
+            Instant lastUsedAt,
+            long version) {}
 
     record EmailChangeRecord(
-        UUID id,
-        UUID userId,
-        String newEmail,
-        String tokenHash,
-        String status,
-        Instant expiresAt,
-        Instant createdAt,
-        Instant confirmedAt
-    ) { }
+            UUID id,
+            UUID userId,
+            String newEmail,
+            String tokenHash,
+            String status,
+            Instant expiresAt,
+            Instant createdAt,
+            Instant confirmedAt) {}
 }

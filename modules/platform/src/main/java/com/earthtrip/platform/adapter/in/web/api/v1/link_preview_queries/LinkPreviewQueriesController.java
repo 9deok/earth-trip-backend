@@ -20,11 +20,9 @@ class LinkPreviewQueriesController {
     }
 
     @PostMapping
-    ProviderProxyUseCase.LinkPreviewResult post(
-        @Valid @RequestBody LinkPreviewRequest request
-    ) {
+    ProviderProxyUseCase.LinkPreviewResult post(@Valid @RequestBody LinkPreviewRequest request) {
         return useCase.linkPreview(request.url());
     }
 }
 
-record LinkPreviewRequest(@NotBlank @Size(max = 2048) String url) { }
+record LinkPreviewRequest(@NotBlank @Size(max = 2048) String url) {}

@@ -28,11 +28,9 @@ class ReservationImportRetriesController {
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     ReservationImportUseCase.ImportResult retry(
-        @PathVariable UUID jobId,
-        @Valid @RequestBody ReservationImportRetryRequest request
-    ) {
+            @PathVariable UUID jobId, @Valid @RequestBody ReservationImportRetryRequest request) {
         return useCase.retry(jobId, actor.requireUserId(), request.baseVersion());
     }
 }
 
-record ReservationImportRetryRequest(@PositiveOrZero long baseVersion) { }
+record ReservationImportRetryRequest(@PositiveOrZero long baseVersion) {}

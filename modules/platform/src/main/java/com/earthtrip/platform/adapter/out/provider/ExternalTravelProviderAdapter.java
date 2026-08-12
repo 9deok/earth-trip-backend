@@ -16,30 +16,22 @@ class ExternalTravelProviderAdapter implements ExternalTravelProviderPort {
     private final MofaTravelInformationClient mofa;
 
     ExternalTravelProviderAdapter(
-        GoogleGeoTravelClient google,
-        AmadeusTravelClient amadeus,
-        MofaTravelInformationClient mofa
-    ) {
+            GoogleGeoTravelClient google,
+            AmadeusTravelClient amadeus,
+            MofaTravelInformationClient mofa) {
         this.google = google;
         this.amadeus = amadeus;
         this.mofa = mofa;
     }
 
     @Override
-    public List<ExternalTravelUseCase.GeoResult> forward(
-        String query,
-        String language,
-        int limit
-    ) {
+    public List<ExternalTravelUseCase.GeoResult> forward(String query, String language, int limit) {
         return google.forward(query, language, limit);
     }
 
     @Override
     public ExternalTravelUseCase.GeoResult reverse(
-        BigDecimal latitude,
-        BigDecimal longitude,
-        String language
-    ) {
+            BigDecimal latitude, BigDecimal longitude, String language) {
         return google.reverse(latitude, longitude, language);
     }
 
@@ -50,33 +42,25 @@ class ExternalTravelProviderAdapter implements ExternalTravelProviderPort {
 
     @Override
     public ExternalTravelUseCase.TimeZoneResult timeZone(
-        BigDecimal latitude,
-        BigDecimal longitude
-    ) {
+            BigDecimal latitude, BigDecimal longitude) {
         return google.timeZone(latitude, longitude);
     }
 
     @Override
     public List<ExternalTravelUseCase.TransportStatusResult> transportStatuses(
-        List<String> references,
-        Instant observedAt
-    ) {
+            List<String> references, Instant observedAt) {
         return amadeus.statuses(references, observedAt);
     }
 
     @Override
     public List<ExternalTravelUseCase.InformationResult> emergency(
-        List<String> countryCodes,
-        String language
-    ) {
+            List<String> countryCodes, String language) {
         return mofa.emergency(countryCodes, language);
     }
 
     @Override
     public List<ExternalTravelUseCase.InformationResult> advisories(
-        List<String> countryCodes,
-        String language
-    ) {
+            List<String> countryCodes, String language) {
         return mofa.advisories(countryCodes, language);
     }
 

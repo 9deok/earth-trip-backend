@@ -20,8 +20,8 @@ class ShareAccessRecorder {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void record(UUID shareId, boolean success, String reason) {
-        store.appendAccess(new TripShareStorePort.AccessRecord(
-            UUID.randomUUID(), shareId, success, reason, clock.instant()
-        ));
+        store.appendAccess(
+                new TripShareStorePort.AccessRecord(
+                        UUID.randomUUID(), shareId, success, reason, clock.instant()));
     }
 }

@@ -28,7 +28,7 @@ class DiagnosticResolutionJpaEntity {
     @Column(name = "resolved_at", nullable = false)
     private Instant resolvedAt;
 
-    protected DiagnosticResolutionJpaEntity() { }
+    protected DiagnosticResolutionJpaEntity() {}
 
     DiagnosticResolutionJpaEntity(TripStructureStorePort.ResolutionRecord record) {
         diagnosticId = record.diagnosticId().toString();
@@ -44,8 +44,10 @@ class DiagnosticResolutionJpaEntity {
 
     TripStructureStorePort.ResolutionRecord toRecord() {
         return new TripStructureStorePort.ResolutionRecord(
-            UUID.fromString(diagnosticId), UUID.fromString(tripId), note,
-            UUID.fromString(resolvedBy), resolvedAt
-        );
+                UUID.fromString(diagnosticId),
+                UUID.fromString(tripId),
+                note,
+                UUID.fromString(resolvedBy),
+                resolvedAt);
     }
 }

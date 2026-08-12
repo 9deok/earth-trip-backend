@@ -1,3 +1,24 @@
 package com.earthtrip.platform.adapter.in.web.api.v1.trips.by_trip_id.travel_advisories;
-import com.earthtrip.platform.application.port.in.ExternalTravelUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import java.util.*;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/v1/trips/{tripId}/travel-advisories")class TravelAdvisoriesController{private final ExternalTravelUseCase u;private final CurrentActor a;TravelAdvisoriesController(ExternalTravelUseCase u,CurrentActor a){this.u=u;this.a=a;}@GetMapping List<ExternalTravelUseCase.InformationResult>get(@PathVariable UUID tripId,@RequestParam(required=false)String language){return u.travelAdvisories(tripId,a.requireUserId(),language);}}
+
+import com.earthtrip.platform.application.port.in.ExternalTravelUseCase;
+import com.earthtrip.sharedkernel.security.CurrentActor;
+import java.util.*;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/travel-advisories")
+class TravelAdvisoriesController {
+    private final ExternalTravelUseCase u;
+    private final CurrentActor a;
+
+    TravelAdvisoriesController(ExternalTravelUseCase u, CurrentActor a) {
+        this.u = u;
+        this.a = a;
+    }
+
+    @GetMapping
+    List<ExternalTravelUseCase.InformationResult> get(
+            @PathVariable UUID tripId, @RequestParam(required = false) String language) {
+        return u.travelAdvisories(tripId, a.requireUserId(), language);
+    }
+}

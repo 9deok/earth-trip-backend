@@ -10,22 +10,20 @@ public interface PreferenceUseCase {
     PreferenceResult update(UUID userId, UpdatePreferenceCommand command);
 
     record UpdatePreferenceCommand(
-        String locale,
-        String defaultCurrency,
-        String timeZone,
-        Boolean shareTicketNames,
-        Boolean sharePersonalExpense,
-        Boolean optionalAnalytics
-    ) { }
+            String locale,
+            String defaultCurrency,
+            String timeZone,
+            Boolean shareTicketNames,
+            Boolean sharePersonalExpense,
+            Boolean optionalAnalytics) {}
 
     record PreferenceResult(
-        String locale,
-        String defaultCurrency,
-        String timeZone,
-        boolean shareTicketNames,
-        boolean sharePersonalExpense,
-        boolean optionalAnalytics,
-        long version,
-        Instant updatedAt
-    ) { }
+            String locale,
+            String defaultCurrency,
+            String timeZone,
+            boolean shareTicketNames,
+            boolean sharePersonalExpense,
+            boolean optionalAnalytics,
+            long version,
+            Instant updatedAt) {}
 }

@@ -25,27 +25,31 @@ class PolicyConsentByIdController {
 
     @PutMapping
     PolicyConsentResponse put(
-        @PathVariable String policyId,
-        @Valid @RequestBody PolicyConsentRequest request
-    ) {
-        PolicyUseCase.ConsentResult result = useCase.decide(
-            currentUser.requireUserId(), policyId, request.decision(), request.source()
-        );
+            @PathVariable String policyId, @Valid @RequestBody PolicyConsentRequest request) {
+        PolicyUseCase.ConsentResult result =
+                useCase.decide(
+                        currentUser.requireUserId(),
+                        policyId,
+                        request.decision(),
+                        request.source());
         return new PolicyConsentResponse(
-            result.policyId(), result.policyType(), result.policyVersion(), result.required(),
-            result.decision(), result.decidedAt(), result.source()
-        );
+                result.policyId(),
+                result.policyType(),
+                result.policyVersion(),
+                result.required(),
+                result.decision(),
+                result.decidedAt(),
+                result.source());
     }
 }
 
-record PolicyConsentRequest(@NotBlank String decision, @NotBlank String source) { }
+record PolicyConsentRequest(@NotBlank String decision, @NotBlank String source) {}
 
 record PolicyConsentResponse(
-    String policyId,
-    String policyType,
-    String policyVersion,
-    boolean required,
-    String decision,
-    Instant decidedAt,
-    String source
-) { }
+        String policyId,
+        String policyType,
+        String policyVersion,
+        boolean required,
+        String decision,
+        Instant decidedAt,
+        String source) {}

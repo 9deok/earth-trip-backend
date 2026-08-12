@@ -19,11 +19,15 @@ class CurrenciesController {
     @GetMapping
     List<CurrencyResponse> get() {
         return useCase.currencies().stream()
-            .map(currency -> new CurrencyResponse(
-                currency.code(), currency.fractionDigits(), currency.numericCode(), currency.displayName()
-            ))
-            .toList();
+                .map(
+                        currency ->
+                                new CurrencyResponse(
+                                        currency.code(),
+                                        currency.fractionDigits(),
+                                        currency.numericCode(),
+                                        currency.displayName()))
+                .toList();
     }
 }
 
-record CurrencyResponse(String code, int fractionDigits, int numericCode, String displayName) { }
+record CurrencyResponse(String code, int fractionDigits, int numericCode, String displayName) {}

@@ -14,19 +14,18 @@ import org.springframework.stereotype.Component;
 @Component
 class IntegrationPersistenceAdapter implements IntegrationStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
-    private static final TypeReference<Set<String>> SET = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
+    private static final TypeReference<Set<String>> SET = new TypeReference<>() {};
     private final IntegrationConnectionJpaRepository connections;
     private final IntegrationSyncJpaRepository syncs;
     private final CalendarSyncJpaRepository calendars;
     private final ObjectMapper json;
 
     IntegrationPersistenceAdapter(
-        IntegrationConnectionJpaRepository connections,
-        IntegrationSyncJpaRepository syncs,
-        CalendarSyncJpaRepository calendars,
-        ObjectMapper json
-    ) {
+            IntegrationConnectionJpaRepository connections,
+            IntegrationSyncJpaRepository syncs,
+            CalendarSyncJpaRepository calendars,
+            ObjectMapper json) {
         this.connections = connections;
         this.syncs = syncs;
         this.calendars = calendars;
@@ -35,10 +34,12 @@ class IntegrationPersistenceAdapter implements IntegrationStorePort {
 
     @Override
     public List<ConnectionRecord> connections(UUID userId, String kind) {
-        return connections.findAllByUserIdAndKindAndRevokedAtIsNullOrderByCreatedAtDesc(
-            userId.toString(),
-            kind
-        ).stream().map(this::connection).toList();
+        return connections
+                .findAllByUserIdAndKindAndRevokedAtIsNullOrderByCreatedAtDesc(
+                        userId.toString(), kind)
+                .stream()
+                .map(this::connection)
+                .toList();
     }
 
     @Override
@@ -50,12 +51,16 @@ class IntegrationPersistenceAdapter implements IntegrationStorePort {
     public ConnectionRecord saveConnection(ConnectionRecord record) {
         String scopes = write(record.scopes());
         String metadata = write(record.metadata());
-        IntegrationConnectionJpaEntity entity = connections.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record, scopes, metadata);
-                return existing;
-            })
-            .orElseGet(() -> new IntegrationConnectionJpaEntity(record, scopes, metadata));
+        IntegrationConnectionJpaEntity entity =
+                connections
+                        .findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, scopes, metadata);
+                                    return existing;
+                                })
+                        .orElseGet(
+                                () -> new IntegrationConnectionJpaEntity(record, scopes, metadata));
         return connection(connections.saveAndFlush(entity));
     }
 
@@ -68,12 +73,14 @@ class IntegrationPersistenceAdapter implements IntegrationStorePort {
     public SyncRecord saveSync(SyncRecord record) {
         String request = write(record.request());
         String result = write(record.result());
-        IntegrationSyncJpaEntity entity = syncs.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record, request, result);
-                return existing;
-            })
-            .orElseGet(() -> new IntegrationSyncJpaEntity(record, request, result));
+        IntegrationSyncJpaEntity entity =
+                syncs.findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, request, result);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new IntegrationSyncJpaEntity(record, request, result));
         return sync(syncs.saveAndFlush(entity));
     }
 
@@ -85,12 +92,15 @@ class IntegrationPersistenceAdapter implements IntegrationStorePort {
     @Override
     public CalendarRecord saveCalendar(CalendarRecord record) {
         String scope = write(record.scopeConfig());
-        CalendarSyncJpaEntity entity = calendars.findById(record.tripId().toString())
-            .map(existing -> {
-                existing.apply(record, scope);
-                return existing;
-            })
-            .orElseGet(() -> new CalendarSyncJpaEntity(record, scope));
+        CalendarSyncJpaEntity entity =
+                calendars
+                        .findById(record.tripId().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, scope);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new CalendarSyncJpaEntity(record, scope));
         return calendar(calendars.saveAndFlush(entity));
     }
 

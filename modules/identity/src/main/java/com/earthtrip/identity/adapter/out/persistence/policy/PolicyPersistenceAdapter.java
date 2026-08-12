@@ -16,9 +16,8 @@ class PolicyPersistenceAdapter implements PolicyStorePort {
     private final PolicyConsentJpaRepository consentRepository;
 
     PolicyPersistenceAdapter(
-        PolicyDocumentJpaRepository policyRepository,
-        PolicyConsentJpaRepository consentRepository
-    ) {
+            PolicyDocumentJpaRepository policyRepository,
+            PolicyConsentJpaRepository consentRepository) {
         this.policyRepository = policyRepository;
         this.consentRepository = consentRepository;
     }
@@ -26,14 +25,15 @@ class PolicyPersistenceAdapter implements PolicyStorePort {
     @Override
     public List<PolicyRecord> findActivePolicies() {
         return policyRepository.findAllByActiveTrueOrderByPublishedAtAsc().stream()
-            .map(PolicyDocumentJpaEntity::toRecord)
-            .toList();
+                .map(PolicyDocumentJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
     public Optional<PolicyRecord> findActivePolicy(String policyId) {
-        return policyRepository.findByIdAndActiveTrue(policyId)
-            .map(PolicyDocumentJpaEntity::toRecord);
+        return policyRepository
+                .findByIdAndActiveTrue(policyId)
+                .map(PolicyDocumentJpaEntity::toRecord);
     }
 
     @Override
@@ -41,37 +41,37 @@ class PolicyPersistenceAdapter implements PolicyStorePort {
         Map<String, PolicyRecord> policies = new LinkedHashMap<>();
         findActivePolicies().forEach(policy -> policies.put(policy.id(), policy));
         return consentRepository.findAllByUserId(userId.toString()).stream()
-            .filter(consent -> policies.containsKey(consent.policyId()))
-            .map(consent -> new ConsentRecord(
-                policies.get(consent.policyId()),
-                consent.decision(),
-                consent.decidedAt(),
-                consent.source()
-            ))
-            .toList();
+                .filter(consent -> policies.containsKey(consent.policyId()))
+                .map(
+                        consent ->
+                                new ConsentRecord(
+                                        policies.get(consent.policyId()),
+                                        consent.decision(),
+                                        consent.decidedAt(),
+                                        consent.source()))
+                .toList();
     }
 
     @Override
     public ConsentRecord saveConsent(
-        UUID userId,
-        PolicyRecord policy,
-        String decision,
-        String source,
-        Instant now
-    ) {
+            UUID userId, PolicyRecord policy, String decision, String source, Instant now) {
         PolicyConsentId id = new PolicyConsentId(userId.toString(), policy.id());
-        PolicyConsentJpaEntity entity = consentRepository.findById(id)
-            .map(existing -> {
-                existing.apply(decision, now, source);
-                return existing;
-            })
-            .orElseGet(() -> new PolicyConsentJpaEntity(
-                userId.toString(),
-                policy.id(),
-                decision,
-                now,
-                source
-            ));
+        PolicyConsentJpaEntity entity =
+                consentRepository
+                        .findById(id)
+                        .map(
+                                existing -> {
+                                    existing.apply(decision, now, source);
+                                    return existing;
+                                })
+                        .orElseGet(
+                                () ->
+                                        new PolicyConsentJpaEntity(
+                                                userId.toString(),
+                                                policy.id(),
+                                                decision,
+                                                now,
+                                                source));
         PolicyConsentJpaEntity saved = consentRepository.save(entity);
         return new ConsentRecord(policy, saved.decision(), saved.decidedAt(), saved.source());
     }

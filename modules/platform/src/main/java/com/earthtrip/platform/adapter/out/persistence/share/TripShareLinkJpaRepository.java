@@ -6,5 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface TripShareLinkJpaRepository extends JpaRepository<TripShareLinkJpaEntity, String> {
     List<TripShareLinkJpaEntity> findAllByTripIdOrderByCreatedAtDesc(String tripId);
+
     Optional<TripShareLinkJpaEntity> findByTokenHash(String tokenHash);
 }

@@ -20,33 +20,31 @@ public interface ReservationImportStorePort {
     CandidateRecord saveCandidate(CandidateRecord candidate);
 
     record JobRecord(
-        UUID id,
-        UUID tripId,
-        String sourceType,
-        Map<String, Object> sourcePayload,
-        String status,
-        String failureCode,
-        String failureMessage,
-        int attemptCount,
-        UUID createdBy,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            String sourceType,
+            Map<String, Object> sourcePayload,
+            String status,
+            String failureCode,
+            String failureMessage,
+            int attemptCount,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 
     record CandidateRecord(
-        UUID id,
-        UUID jobId,
-        UUID tripId,
-        String title,
-        String candidateType,
-        Map<String, Object> payload,
-        BigDecimal confidence,
-        String status,
-        UUID reservationId,
-        String dismissalReason,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID jobId,
+            UUID tripId,
+            String title,
+            String candidateType,
+            Map<String, Object> payload,
+            BigDecimal confidence,
+            String status,
+            UUID reservationId,
+            String dismissalReason,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 }

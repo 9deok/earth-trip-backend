@@ -9,7 +9,7 @@ public interface EmailVerificationUseCase {
 
     ConfirmResult confirm(String token);
 
-    record RequestResult(UUID requestId, Instant expiresAt, String deliveryStatus) { }
+    record RequestResult(UUID requestId, Instant expiresAt, String deliveryStatus) {}
 
-    record ConfirmResult(UUID userId, String email, Instant verifiedAt) { }
+    record ConfirmResult(UUID userId, String email, Instant verifiedAt) {}
 }

@@ -10,24 +10,45 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController @RequestMapping("/api/v1/trips/{tripId}/members")
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/members")
 class TripMembersController {
-    private final TripMemberUseCase useCase; private final CurrentUserProvider currentUser;
+    private final TripMemberUseCase useCase;
+    private final CurrentUserProvider currentUser;
+
     TripMembersController(TripMemberUseCase useCase, CurrentUserProvider currentUser) {
-        this.useCase = useCase; this.currentUser = currentUser;
+        this.useCase = useCase;
+        this.currentUser = currentUser;
     }
-    @GetMapping List<MemberResponse> get(@PathVariable UUID tripId) {
+
+    @GetMapping
+    List<MemberResponse> get(@PathVariable UUID tripId) {
         return useCase.list(tripId, currentUser.requireUserId()).stream()
-            .map(TripMembersController::response).toList();
+                .map(TripMembersController::response)
+                .toList();
     }
+
     private static MemberResponse response(TripMemberUseCase.MemberResult m) {
         return new MemberResponse(
-            m.memberId(), m.userId(), m.displayName(), m.email(), m.role(), m.status(),
-            m.currentUser(), m.joinedAt(), m.version()
-        );
+                m.memberId(),
+                m.userId(),
+                m.displayName(),
+                m.email(),
+                m.role(),
+                m.status(),
+                m.currentUser(),
+                m.joinedAt(),
+                m.version());
     }
 }
+
 record MemberResponse(
-    UUID memberId, UUID userId, String displayName, String email, String role, String status,
-    boolean currentUser, Instant joinedAt, long version
-) { }
+        UUID memberId,
+        UUID userId,
+        String displayName,
+        String email,
+        String role,
+        String status,
+        boolean currentUser,
+        Instant joinedAt,
+        long version) {}

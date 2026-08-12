@@ -15,40 +15,58 @@ import java.util.UUID;
 @Table(name = "trip_export_jobs")
 class TripExportJpaEntity {
 
-    @Id @Column(name = "id", nullable = false, length = 36)
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
+
     @Column(name = "trip_id", nullable = false, length = 36)
     private String tripId;
+
     @Column(name = "format", nullable = false, length = 10)
     private String format;
+
     @Column(name = "scopes", nullable = false, columnDefinition = "JSON")
     private String scopes;
+
     @Column(name = "status", nullable = false, length = 20)
     private String status;
+
     @Column(name = "file_name", length = 255)
     private String fileName;
+
     @Column(name = "mime_type", length = 100)
     private String mimeType;
-    @Lob @Column(name = "artifact", columnDefinition = "LONGBLOB")
+
+    @Lob
+    @Column(name = "artifact", columnDefinition = "LONGBLOB")
     private byte[] artifact;
+
     @Column(name = "checksum_sha256", length = 64)
     private String checksumSha256;
+
     @Column(name = "failure_code", length = 80)
     private String failureCode;
+
     @Column(name = "failure_message", length = 500)
     private String failureMessage;
+
     @Column(name = "attempt_count", nullable = false)
     private int attemptCount;
+
     @Column(name = "created_by", nullable = false, length = 36)
     private String createdBy;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
-    @Version @Column(name = "version", nullable = false)
+
+    @Version
+    @Column(name = "version", nullable = false)
     private long version;
 
-    protected TripExportJpaEntity() { }
+    protected TripExportJpaEntity() {}
 
     TripExportJpaEntity(TripExportStorePort.ExportRecord record, String scopes) {
         id = record.id().toString();
@@ -72,13 +90,27 @@ class TripExportJpaEntity {
         updatedAt = record.updatedAt();
     }
 
-    String scopes() { return scopes; }
+    String scopes() {
+        return scopes;
+    }
 
     TripExportStorePort.ExportRecord toRecord(Set<String> scopeSet) {
         return new TripExportStorePort.ExportRecord(
-            UUID.fromString(id), UUID.fromString(tripId), format, scopeSet, status,
-            fileName, mimeType, artifact, checksumSha256, failureCode, failureMessage,
-            attemptCount, UUID.fromString(createdBy), createdAt, updatedAt, version
-        );
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                format,
+                scopeSet,
+                status,
+                fileName,
+                mimeType,
+                artifact,
+                checksumSha256,
+                failureCode,
+                failureMessage,
+                attemptCount,
+                UUID.fromString(createdBy),
+                createdAt,
+                updatedAt,
+                version);
     }
 }

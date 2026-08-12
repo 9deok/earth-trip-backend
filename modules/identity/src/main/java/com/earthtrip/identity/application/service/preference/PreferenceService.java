@@ -32,34 +32,45 @@ class PreferenceService implements PreferenceUseCase {
     public PreferenceResult update(UUID userId, UpdatePreferenceCommand command) {
         PreferenceStorePort.PreferenceRecord current = loadOrCreate(userId);
         String locale = command.locale() == null ? current.locale() : validLocale(command.locale());
-        String currency = command.defaultCurrency() == null
-            ? current.defaultCurrency()
-            : validCurrency(command.defaultCurrency());
-        String timeZone = command.timeZone() == null
-            ? current.timeZone()
-            : validTimeZone(command.timeZone());
-        PreferenceStorePort.PreferenceRecord updated = new PreferenceStorePort.PreferenceRecord(
-            userId,
-            locale,
-            currency,
-            timeZone,
-            valueOr(command.shareTicketNames(), current.shareTicketNames()),
-            valueOr(command.sharePersonalExpense(), current.sharePersonalExpense()),
-            valueOr(command.optionalAnalytics(), current.optionalAnalytics()),
-            current.version(),
-            current.createdAt(),
-            clock.instant()
-        );
+        String currency =
+                command.defaultCurrency() == null
+                        ? current.defaultCurrency()
+                        : validCurrency(command.defaultCurrency());
+        String timeZone =
+                command.timeZone() == null ? current.timeZone() : validTimeZone(command.timeZone());
+        PreferenceStorePort.PreferenceRecord updated =
+                new PreferenceStorePort.PreferenceRecord(
+                        userId,
+                        locale,
+                        currency,
+                        timeZone,
+                        valueOr(command.shareTicketNames(), current.shareTicketNames()),
+                        valueOr(command.sharePersonalExpense(), current.sharePersonalExpense()),
+                        valueOr(command.optionalAnalytics(), current.optionalAnalytics()),
+                        current.version(),
+                        current.createdAt(),
+                        clock.instant());
         return result(store.save(updated));
     }
 
     private PreferenceStorePort.PreferenceRecord loadOrCreate(UUID userId) {
-        return store.find(userId).orElseGet(() -> {
-            Instant now = clock.instant();
-            return store.save(new PreferenceStorePort.PreferenceRecord(
-                userId, "ko-KR", "KRW", "Asia/Seoul", false, false, false, 0, now, now
-            ));
-        });
+        return store.find(userId)
+                .orElseGet(
+                        () -> {
+                            Instant now = clock.instant();
+                            return store.save(
+                                    new PreferenceStorePort.PreferenceRecord(
+                                            userId,
+                                            "ko-KR",
+                                            "KRW",
+                                            "Asia/Seoul",
+                                            false,
+                                            false,
+                                            false,
+                                            0,
+                                            now,
+                                            now));
+                        });
     }
 
     private static boolean valueOr(Boolean candidate, boolean fallback) {
@@ -85,14 +96,13 @@ class PreferenceService implements PreferenceUseCase {
 
     private static PreferenceResult result(PreferenceStorePort.PreferenceRecord preference) {
         return new PreferenceResult(
-            preference.locale(),
-            preference.defaultCurrency(),
-            preference.timeZone(),
-            preference.shareTicketNames(),
-            preference.sharePersonalExpense(),
-            preference.optionalAnalytics(),
-            preference.version(),
-            preference.updatedAt()
-        );
+                preference.locale(),
+                preference.defaultCurrency(),
+                preference.timeZone(),
+                preference.shareTicketNames(),
+                preference.sharePersonalExpense(),
+                preference.optionalAnalytics(),
+                preference.version(),
+                preference.updatedAt());
     }
 }

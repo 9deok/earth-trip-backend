@@ -24,9 +24,7 @@ class FavoriteCompanionsController {
     private final CurrentUserProvider currentUser;
 
     FavoriteCompanionsController(
-        FavoriteCompanionUseCase useCase,
-        CurrentUserProvider currentUser
-    ) {
+            FavoriteCompanionUseCase useCase, CurrentUserProvider currentUser) {
         this.useCase = useCase;
         this.currentUser = currentUser;
     }
@@ -39,18 +37,18 @@ class FavoriteCompanionsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     FavoriteCompanionUseCase.FavoriteResult post(
-        @Valid @RequestBody FavoriteCompanionRequest request
-    ) {
+            @Valid @RequestBody FavoriteCompanionRequest request) {
         return useCase.add(
-            currentUser.requireUserId(), request.requestId(), request.companionUserId(),
-            request.displayName(), request.email()
-        );
+                currentUser.requireUserId(),
+                request.requestId(),
+                request.companionUserId(),
+                request.displayName(),
+                request.email());
     }
 }
 
 record FavoriteCompanionRequest(
-    @NotNull UUID requestId,
-    UUID companionUserId,
-    @Size(min = 1, max = 80) String displayName,
-    @Email @Size(max = 320) String email
-) { }
+        @NotNull UUID requestId,
+        UUID companionUserId,
+        @Size(min = 1, max = 80) String displayName,
+        @Email @Size(max = 320) String email) {}

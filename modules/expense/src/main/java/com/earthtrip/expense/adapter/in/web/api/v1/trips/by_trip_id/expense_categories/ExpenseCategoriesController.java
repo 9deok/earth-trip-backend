@@ -38,19 +38,19 @@ class ExpenseCategoriesController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     ExpenseCategoryUseCase.CategoryResult post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ExpenseCategoryCreateRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody ExpenseCategoryCreateRequest request) {
         return useCase.create(
-            tripId, actor.requireUserId(), request.requestId(), request.name(),
-            request.color(), request.sortOrder()
-        );
+                tripId,
+                actor.requireUserId(),
+                request.requestId(),
+                request.name(),
+                request.color(),
+                request.sortOrder());
     }
 }
 
 record ExpenseCategoryCreateRequest(
-    @NotNull UUID requestId,
-    @NotBlank String name,
-    @NotBlank @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
-    @PositiveOrZero Integer sortOrder
-) { }
+        @NotNull UUID requestId,
+        @NotBlank String name,
+        @NotBlank @Pattern(regexp = "#[0-9A-Fa-f]{6}") String color,
+        @PositiveOrZero Integer sortOrder) {}

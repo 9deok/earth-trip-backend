@@ -16,7 +16,7 @@ class CandidateSourceLinkId implements Serializable {
     @Column(name = "source_id", nullable = false, length = 36)
     private String sourceId;
 
-    protected CandidateSourceLinkId() { }
+    protected CandidateSourceLinkId() {}
 
     CandidateSourceLinkId(String candidateId, String sourceId) {
         this.candidateId = candidateId;
@@ -33,9 +33,10 @@ class CandidateSourceLinkId implements Serializable {
 
     @Override
     public boolean equals(Object other) {
-        return this == other || other instanceof CandidateSourceLinkId that
-            && Objects.equals(candidateId, that.candidateId)
-            && Objects.equals(sourceId, that.sourceId);
+        return this == other
+                || other instanceof CandidateSourceLinkId that
+                        && Objects.equals(candidateId, that.candidateId)
+                        && Objects.equals(sourceId, that.sourceId);
     }
 
     @Override

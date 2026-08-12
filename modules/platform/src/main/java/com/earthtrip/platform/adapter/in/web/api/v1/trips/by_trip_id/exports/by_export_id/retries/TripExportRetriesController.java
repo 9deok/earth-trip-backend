@@ -24,10 +24,9 @@ class TripExportRetriesController {
 
     @PostMapping
     TripExportUseCase.ExportResult retry(
-        @PathVariable UUID tripId,
-        @PathVariable UUID exportId,
-        @RequestParam @PositiveOrZero long baseVersion
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID exportId,
+            @RequestParam @PositiveOrZero long baseVersion) {
         return useCase.retry(tripId, exportId, actor.requireUserId(), baseVersion);
     }
 }

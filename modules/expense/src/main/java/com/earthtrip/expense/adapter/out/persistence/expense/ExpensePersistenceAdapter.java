@@ -1,2 +1,114 @@
-package com.earthtrip.expense.adapter.out.persistence.expense;import com.earthtrip.expense.application.port.out.ExpenseStorePort;import com.earthtrip.expense.domain.Expense;import com.fasterxml.jackson.core.JsonProcessingException;import com.fasterxml.jackson.core.type.TypeReference;import com.fasterxml.jackson.databind.ObjectMapper;import java.util.*;import org.springframework.stereotype.Component;
-@Component class ExpensePersistenceAdapter implements ExpenseStorePort{private static final TypeReference<Map<String,Long>> AMOUNTS=new TypeReference<>(){};private static final TypeReference<Map<String,Object>> DATA=new TypeReference<>(){};private final ExpenseJpaRepository expenses;private final ExpenseAdjustmentJpaRepository adjustments;private final ObjectMapper json;ExpensePersistenceAdapter(ExpenseJpaRepository e,ExpenseAdjustmentJpaRepository a,ObjectMapper j){expenses=e;adjustments=a;json=j;}@Override public List<Expense> findAll(UUID trip){return expenses.findAllByTripIdAndDeletedAtIsNullOrderByOccurredAtDescCreatedAtDesc(trip.toString()).stream().map(this::domain).toList();}@Override public Optional<Expense> findById(UUID id){return expenses.findById(id.toString()).map(this::domain).filter(e->e.deletedAt()==null);}@Override public Expense save(Expense e){String p=writeAmounts(e.payers()),s=writeAmounts(e.shares());ExpenseJpaEntity entity=expenses.findById(e.id().toString()).map(x->{x.apply(e,p,s);return x;}).orElseGet(()->new ExpenseJpaEntity(e,p,s));return domain(expenses.saveAndFlush(entity));}@Override public Optional<AdjustmentRecord>findAdjustment(UUID id){return adjustments.findById(id.toString()).map(this::adjustment);}@Override public List<AdjustmentRecord>findAdjustments(UUID expenseId){return adjustments.findAllByExpenseIdOrderByCreatedAtAsc(expenseId.toString()).stream().map(this::adjustment).toList();}@Override public AdjustmentRecord saveAdjustment(AdjustmentRecord a){return adjustment(adjustments.save(new ExpenseAdjustmentJpaEntity(a,write(a.payload()))));}private AdjustmentRecord adjustment(ExpenseAdjustmentJpaEntity e){return e.toRecord(readData(e.payload()));}private Expense domain(ExpenseJpaEntity e){return e.toDomain(readAmounts(e.payers()),readAmounts(e.shares()));}private String writeAmounts(Map<UUID,Long> m){Map<String,Long>x=new LinkedHashMap<>();m.forEach((k,v)->x.put(k.toString(),v));return write(x);}private Map<UUID,Long> readAmounts(String s){try{Map<String,Long>x=json.readValue(s,AMOUNTS);Map<UUID,Long>r=new LinkedHashMap<>();x.forEach((k,v)->r.put(UUID.fromString(k),v));return r;}catch(JsonProcessingException e){throw new IllegalStateException("저장된 분담액을 읽을 수 없습니다.",e);}}private Map<String,Object>readData(String s){try{return json.readValue(s,DATA);}catch(JsonProcessingException e){throw new IllegalStateException("저장된 조정 내역을 읽을 수 없습니다.",e);}}private String write(Object o){try{return json.writeValueAsString(o);}catch(JsonProcessingException e){throw new IllegalArgumentException("JSON으로 저장할 수 없습니다.",e);}}}
+package com.earthtrip.expense.adapter.out.persistence.expense;
+
+import com.earthtrip.expense.application.port.out.ExpenseStorePort;
+import com.earthtrip.expense.domain.Expense;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.*;
+import org.springframework.stereotype.Component;
+
+@Component
+class ExpensePersistenceAdapter implements ExpenseStorePort {
+    private static final TypeReference<Map<String, Long>> AMOUNTS = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> DATA = new TypeReference<>() {};
+    private final ExpenseJpaRepository expenses;
+    private final ExpenseAdjustmentJpaRepository adjustments;
+    private final ObjectMapper json;
+
+    ExpensePersistenceAdapter(
+            ExpenseJpaRepository e, ExpenseAdjustmentJpaRepository a, ObjectMapper j) {
+        expenses = e;
+        adjustments = a;
+        json = j;
+    }
+
+    @Override
+    public List<Expense> findAll(UUID trip) {
+        return expenses
+                .findAllByTripIdAndDeletedAtIsNullOrderByOccurredAtDescCreatedAtDesc(
+                        trip.toString())
+                .stream()
+                .map(this::domain)
+                .toList();
+    }
+
+    @Override
+    public Optional<Expense> findById(UUID id) {
+        return expenses.findById(id.toString())
+                .map(this::domain)
+                .filter(e -> e.deletedAt() == null);
+    }
+
+    @Override
+    public Expense save(Expense e) {
+        String p = writeAmounts(e.payers()), s = writeAmounts(e.shares());
+        ExpenseJpaEntity entity =
+                expenses.findById(e.id().toString())
+                        .map(
+                                x -> {
+                                    x.apply(e, p, s);
+                                    return x;
+                                })
+                        .orElseGet(() -> new ExpenseJpaEntity(e, p, s));
+        return domain(expenses.saveAndFlush(entity));
+    }
+
+    @Override
+    public Optional<AdjustmentRecord> findAdjustment(UUID id) {
+        return adjustments.findById(id.toString()).map(this::adjustment);
+    }
+
+    @Override
+    public List<AdjustmentRecord> findAdjustments(UUID expenseId) {
+        return adjustments.findAllByExpenseIdOrderByCreatedAtAsc(expenseId.toString()).stream()
+                .map(this::adjustment)
+                .toList();
+    }
+
+    @Override
+    public AdjustmentRecord saveAdjustment(AdjustmentRecord a) {
+        return adjustment(adjustments.save(new ExpenseAdjustmentJpaEntity(a, write(a.payload()))));
+    }
+
+    private AdjustmentRecord adjustment(ExpenseAdjustmentJpaEntity e) {
+        return e.toRecord(readData(e.payload()));
+    }
+
+    private Expense domain(ExpenseJpaEntity e) {
+        return e.toDomain(readAmounts(e.payers()), readAmounts(e.shares()));
+    }
+
+    private String writeAmounts(Map<UUID, Long> m) {
+        Map<String, Long> x = new LinkedHashMap<>();
+        m.forEach((k, v) -> x.put(k.toString(), v));
+        return write(x);
+    }
+
+    private Map<UUID, Long> readAmounts(String s) {
+        try {
+            Map<String, Long> x = json.readValue(s, AMOUNTS);
+            Map<UUID, Long> r = new LinkedHashMap<>();
+            x.forEach((k, v) -> r.put(UUID.fromString(k), v));
+            return r;
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("저장된 분담액을 읽을 수 없습니다.", e);
+        }
+    }
+
+    private Map<String, Object> readData(String s) {
+        try {
+            return json.readValue(s, DATA);
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("저장된 조정 내역을 읽을 수 없습니다.", e);
+        }
+    }
+
+    private String write(Object o) {
+        try {
+            return json.writeValueAsString(o);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("JSON으로 저장할 수 없습니다.", e);
+        }
+    }
+}

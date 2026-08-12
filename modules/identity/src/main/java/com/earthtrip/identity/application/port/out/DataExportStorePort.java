@@ -14,14 +14,13 @@ public interface DataExportStorePort {
     ExportRecord save(ExportRecord record);
 
     record ExportRecord(
-        UUID id,
-        UUID userId,
-        String status,
-        String format,
-        UUID fileId,
-        String errorCode,
-        Instant createdAt,
-        Instant completedAt,
-        Instant expiresAt
-    ) { }
+            UUID id,
+            UUID userId,
+            String status,
+            String format,
+            UUID fileId,
+            String errorCode,
+            Instant createdAt,
+            Instant completedAt,
+            Instant expiresAt) {}
 }

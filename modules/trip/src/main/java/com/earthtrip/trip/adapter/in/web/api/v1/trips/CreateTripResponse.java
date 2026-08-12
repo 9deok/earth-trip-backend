@@ -7,10 +7,6 @@ import java.util.UUID;
 record CreateTripResponse(UUID tripId, String title, Instant createdAt) {
 
     static CreateTripResponse from(CreateTripResult result) {
-        return new CreateTripResponse(
-            result.tripId(),
-            result.title(),
-            result.createdAt()
-        );
+        return new CreateTripResponse(result.tripId(), result.title(), result.createdAt());
     }
 }

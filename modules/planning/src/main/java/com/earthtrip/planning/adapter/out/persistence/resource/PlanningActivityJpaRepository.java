@@ -5,14 +5,10 @@ import java.util.Optional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-interface PlanningActivityJpaRepository
-    extends JpaRepository<PlanningActivityJpaEntity, Long> {
+interface PlanningActivityJpaRepository extends JpaRepository<PlanningActivityJpaEntity, Long> {
 
     List<PlanningActivityJpaEntity> findAllByTripIdAndSequenceIdGreaterThanOrderBySequenceIdAsc(
-        String tripId,
-        long sequenceId,
-        Pageable pageable
-    );
+            String tripId, long sequenceId, Pageable pageable);
 
     Optional<PlanningActivityJpaEntity> findByEventId(String eventId);
 

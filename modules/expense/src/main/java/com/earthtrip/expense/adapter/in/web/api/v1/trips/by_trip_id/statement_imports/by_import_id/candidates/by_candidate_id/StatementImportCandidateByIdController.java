@@ -16,46 +16,44 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    "/api/v1/trips/{tripId}/statement-imports/{importId}/candidates/{candidateId}"
-)
+@RequestMapping("/api/v1/trips/{tripId}/statement-imports/{importId}/candidates/{candidateId}")
 class StatementImportCandidateByIdController {
 
     private final StatementImportUseCase useCase;
     private final CurrentActor actor;
 
-    StatementImportCandidateByIdController(
-        StatementImportUseCase useCase,
-        CurrentActor actor
-    ) {
+    StatementImportCandidateByIdController(StatementImportUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PatchMapping
     StatementImportUseCase.CandidateResult patch(
-        @PathVariable UUID tripId,
-        @PathVariable UUID importId,
-        @PathVariable UUID candidateId,
-        @Valid @RequestBody StatementCandidatePatchRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID importId,
+            @PathVariable UUID candidateId,
+            @Valid @RequestBody StatementCandidatePatchRequest request) {
         return useCase.updateCandidate(
-            tripId, importId, candidateId, actor.requireUserId(),
-            new StatementImportUseCase.CandidateUpdate(
-                request.title(), request.amountMinor(), request.currency(),
-                request.occurredAt(), request.payerUserId(), request.payload(),
-                request.baseVersion()
-            )
-        );
+                tripId,
+                importId,
+                candidateId,
+                actor.requireUserId(),
+                new StatementImportUseCase.CandidateUpdate(
+                        request.title(),
+                        request.amountMinor(),
+                        request.currency(),
+                        request.occurredAt(),
+                        request.payerUserId(),
+                        request.payload(),
+                        request.baseVersion()));
     }
 }
 
 record StatementCandidatePatchRequest(
-    @Size(min = 1, max = 200) String title,
-    @Positive Long amountMinor,
-    String currency,
-    Instant occurredAt,
-    UUID payerUserId,
-    Map<String, Object> payload,
-    @PositiveOrZero long baseVersion
-) { }
+        @Size(min = 1, max = 200) String title,
+        @Positive Long amountMinor,
+        String currency,
+        Instant occurredAt,
+        UUID payerUserId,
+        Map<String, Object> payload,
+        @PositiveOrZero long baseVersion) {}

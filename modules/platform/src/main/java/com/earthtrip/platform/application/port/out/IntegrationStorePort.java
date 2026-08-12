@@ -26,47 +26,44 @@ public interface IntegrationStorePort {
     void deleteCalendar(UUID tripId);
 
     record ConnectionRecord(
-        UUID id,
-        UUID userId,
-        String kind,
-        String provider,
-        String status,
-        Set<String> scopes,
-        Map<String, Object> metadata,
-        String authorizationState,
-        Instant authorizationExpiresAt,
-        Instant lastSuccessAt,
-        String errorCode,
-        Instant createdAt,
-        Instant updatedAt,
-        Instant revokedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID userId,
+            String kind,
+            String provider,
+            String status,
+            Set<String> scopes,
+            Map<String, Object> metadata,
+            String authorizationState,
+            Instant authorizationExpiresAt,
+            Instant lastSuccessAt,
+            String errorCode,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant revokedAt,
+            long version) {}
 
     record SyncRecord(
-        UUID id,
-        UUID userId,
-        UUID connectionId,
-        UUID tripId,
-        String jobType,
-        String status,
-        Map<String, Object> request,
-        Map<String, Object> result,
-        String errorCode,
-        int attemptCount,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID userId,
+            UUID connectionId,
+            UUID tripId,
+            String jobType,
+            String status,
+            Map<String, Object> request,
+            Map<String, Object> result,
+            String errorCode,
+            int attemptCount,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 
     record CalendarRecord(
-        UUID tripId,
-        UUID connectionId,
-        Map<String, Object> scopeConfig,
-        String status,
-        UUID createdBy,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID tripId,
+            UUID connectionId,
+            Map<String, Object> scopeConfig,
+            String status,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 }

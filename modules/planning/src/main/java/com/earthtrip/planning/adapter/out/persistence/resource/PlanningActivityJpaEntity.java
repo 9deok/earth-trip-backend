@@ -42,17 +42,16 @@ class PlanningActivityJpaEntity {
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
-    protected PlanningActivityJpaEntity() { }
+    protected PlanningActivityJpaEntity() {}
 
     PlanningActivityJpaEntity(
-        UUID tripId,
-        UUID actorId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        String payload,
-        Instant occurredAt
-    ) {
+            UUID tripId,
+            UUID actorId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            String payload,
+            Instant occurredAt) {
         eventId = UUID.randomUUID().toString();
         this.tripId = tripId.toString();
         this.actorId = actorId.toString();

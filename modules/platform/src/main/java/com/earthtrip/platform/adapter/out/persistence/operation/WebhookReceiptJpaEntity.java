@@ -12,20 +12,26 @@ import java.util.UUID;
 @Table(name = "webhook_receipts")
 class WebhookReceiptJpaEntity {
 
-    @Id @Column(name = "id", nullable = false, length = 36)
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
+
     @Column(name = "provider", nullable = false, length = 40)
     private String provider;
+
     @Column(name = "source_event_id", nullable = false, length = 160)
     private String sourceEventId;
+
     @Column(name = "payload_digest", nullable = false, length = 64)
     private String payloadDigest;
+
     @Column(name = "job_id", nullable = false, length = 36)
     private String jobId;
+
     @Column(name = "received_at", nullable = false)
     private Instant receivedAt;
 
-    protected WebhookReceiptJpaEntity() { }
+    protected WebhookReceiptJpaEntity() {}
 
     WebhookReceiptJpaEntity(OperationalStorePort.WebhookReceiptRecord record) {
         id = record.id().toString();
@@ -38,12 +44,11 @@ class WebhookReceiptJpaEntity {
 
     OperationalStorePort.WebhookReceiptRecord record() {
         return new OperationalStorePort.WebhookReceiptRecord(
-            UUID.fromString(id),
-            provider,
-            sourceEventId,
-            payloadDigest,
-            UUID.fromString(jobId),
-            receivedAt
-        );
+                UUID.fromString(id),
+                provider,
+                sourceEventId,
+                payloadDigest,
+                UUID.fromString(jobId),
+                receivedAt);
     }
 }

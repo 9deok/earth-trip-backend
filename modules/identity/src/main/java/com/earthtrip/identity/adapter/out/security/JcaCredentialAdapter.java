@@ -26,9 +26,12 @@ class JcaCredentialAdapter implements CredentialPort {
         byte[] salt = new byte[SALT_BYTES];
         secureRandom.nextBytes(salt);
         byte[] hash = pbkdf2(rawPassword, salt, ITERATIONS);
-        return "pbkdf2-sha256$" + ITERATIONS + "$"
-            + Base64.getUrlEncoder().withoutPadding().encodeToString(salt) + "$"
-            + Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
+        return "pbkdf2-sha256$"
+                + ITERATIONS
+                + "$"
+                + Base64.getUrlEncoder().withoutPadding().encodeToString(salt)
+                + "$"
+                + Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
     }
 
     @Override
@@ -58,7 +61,8 @@ class JcaCredentialAdapter implements CredentialPort {
     public String hashToken(String rawToken) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return HexFormat.of().formatHex(digest.digest(rawToken.getBytes(StandardCharsets.UTF_8)));
+            return HexFormat.of()
+                    .formatHex(digest.digest(rawToken.getBytes(StandardCharsets.UTF_8)));
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("SHA-256을 사용할 수 없습니다.", exception);
         }
@@ -68,8 +72,8 @@ class JcaCredentialAdapter implements CredentialPort {
         PBEKeySpec spec = new PBEKeySpec(rawPassword.toCharArray(), salt, iterations, HASH_BITS);
         try {
             return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-                .generateSecret(spec)
-                .getEncoded();
+                    .generateSecret(spec)
+                    .getEncoded();
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("비밀번호를 안전하게 처리할 수 없습니다.", exception);
         } finally {

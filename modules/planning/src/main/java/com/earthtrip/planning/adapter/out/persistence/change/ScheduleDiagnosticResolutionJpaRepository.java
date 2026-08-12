@@ -4,10 +4,8 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 interface ScheduleDiagnosticResolutionJpaRepository
-    extends JpaRepository<ScheduleDiagnosticResolutionJpaEntity, String> {
+        extends JpaRepository<ScheduleDiagnosticResolutionJpaEntity, String> {
 
     List<ScheduleDiagnosticResolutionJpaEntity> findAllByTripIdAndDayId(
-        String tripId,
-        String dayId
-    );
+            String tripId, String dayId);
 }

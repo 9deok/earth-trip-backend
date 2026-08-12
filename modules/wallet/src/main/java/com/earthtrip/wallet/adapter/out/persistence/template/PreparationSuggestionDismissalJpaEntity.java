@@ -30,11 +30,9 @@ class PreparationSuggestionDismissalJpaEntity {
     @Column(name = "dismissed_at", nullable = false)
     private Instant dismissedAt;
 
-    protected PreparationSuggestionDismissalJpaEntity() { }
+    protected PreparationSuggestionDismissalJpaEntity() {}
 
-    PreparationSuggestionDismissalJpaEntity(
-        PackingTemplateStorePort.DismissalRecord record
-    ) {
+    PreparationSuggestionDismissalJpaEntity(PackingTemplateStorePort.DismissalRecord record) {
         suggestionId = record.suggestionId().toString();
         userId = record.userId().toString();
         tripId = record.tripId().toString();

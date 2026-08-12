@@ -24,34 +24,24 @@ public interface TripShareStorePort {
     List<AccessRecord> accessEvents(UUID shareId);
 
     record ShareRecord(
-        UUID id,
-        UUID tripId,
-        String tokenHash,
-        String name,
-        List<String> scopes,
-        String passwordHash,
-        UUID projectionUserId,
-        Instant expiresAt,
-        String status,
-        UUID createdBy,
-        Instant createdAt,
-        Instant updatedAt,
-        Instant revokedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            String tokenHash,
+            String name,
+            List<String> scopes,
+            String passwordHash,
+            UUID projectionUserId,
+            Instant expiresAt,
+            String status,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant revokedAt,
+            long version) {}
 
     record PasswordSessionRecord(
-        String tokenHash,
-        UUID shareId,
-        Instant expiresAt,
-        Instant createdAt
-    ) { }
+            String tokenHash, UUID shareId, Instant expiresAt, Instant createdAt) {}
 
     record AccessRecord(
-        UUID eventId,
-        UUID shareId,
-        boolean success,
-        String reason,
-        Instant occurredAt
-    ) { }
+            UUID eventId, UUID shareId, boolean success, String reason, Instant occurredAt) {}
 }

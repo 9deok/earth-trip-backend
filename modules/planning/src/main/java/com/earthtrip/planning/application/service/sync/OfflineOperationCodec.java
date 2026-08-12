@@ -9,7 +9,7 @@ import java.util.UUID;
 
 final class OfflineOperationCodec {
 
-    private OfflineOperationCodec() { }
+    private OfflineOperationCodec() {}
 
     static Map<String, Object> command(OfflineOperationUseCase.OperationCommand command) {
         Map<String, Object> value = new LinkedHashMap<>();
@@ -31,14 +31,18 @@ final class OfflineOperationCodec {
     @SuppressWarnings("unchecked")
     static OfflineOperationUseCase.OperationCommand command(Map<String, Object> value) {
         return new OfflineOperationUseCase.OperationCommand(
-            uuid(value.get("operationId")), text(value.get("action")),
-            text(value.get("resourceType")), uuid(value.get("resourceId")),
-            uuid(value.get("parentId")), date(value.get("localDate")),
-            (Map<String, Object>) value.get("payload"), text(value.get("status")),
-            integer(value.get("sortOrder")), number(value.get("baseVersion")),
-            text(value.get("stateType")),
-            (Map<String, Object>) value.get("stateValue")
-        );
+                uuid(value.get("operationId")),
+                text(value.get("action")),
+                text(value.get("resourceType")),
+                uuid(value.get("resourceId")),
+                uuid(value.get("parentId")),
+                date(value.get("localDate")),
+                (Map<String, Object>) value.get("payload"),
+                text(value.get("status")),
+                integer(value.get("sortOrder")),
+                number(value.get("baseVersion")),
+                text(value.get("stateType")),
+                (Map<String, Object>) value.get("stateValue"));
     }
 
     static Map<String, Object> resource(PlanningResourceUseCase.ResourceResult resource) {

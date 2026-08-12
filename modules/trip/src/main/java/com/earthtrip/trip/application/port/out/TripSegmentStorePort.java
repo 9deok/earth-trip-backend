@@ -8,7 +8,10 @@ import java.util.UUID;
 
 public interface TripSegmentStorePort {
     List<TripSegment> findAll(TripId tripId);
+
     Optional<TripSegment> findById(UUID segmentId);
+
     TripSegment save(TripSegment segment);
+
     void delete(UUID segmentId);
 }

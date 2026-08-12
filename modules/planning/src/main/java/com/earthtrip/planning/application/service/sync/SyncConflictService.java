@@ -29,13 +29,12 @@ class SyncConflictService implements SyncConflictUseCase {
     private final Clock clock;
 
     SyncConflictService(
-        TripAccess access,
-        PlanningResourceUseCase resources,
-        OfflineOperationExecutor executor,
-        SyncStateStorePort conflicts,
-        ActivityOperationStorePort operations,
-        Clock clock
-    ) {
+            TripAccess access,
+            PlanningResourceUseCase resources,
+            OfflineOperationExecutor executor,
+            SyncStateStorePort conflicts,
+            ActivityOperationStorePort operations,
+            Clock clock) {
         this.access = access;
         this.resources = resources;
         this.executor = executor;
@@ -60,11 +59,7 @@ class SyncConflictService implements SyncConflictUseCase {
 
     @Override
     public ConflictResult resolve(
-        UUID tripId,
-        UUID conflictId,
-        UUID actorUserId,
-        ResolutionCommand command
-    ) {
+            UUID tripId, UUID conflictId, UUID actorUserId, ResolutionCommand command) {
         access.requireEditor(tripId, actorUserId);
         SyncStateStorePort.ConflictRecord conflict = load(tripId, conflictId);
         if (!conflict.status().equals("OPEN")) {
@@ -72,83 +67,98 @@ class SyncConflictService implements SyncConflictUseCase {
         }
         if (conflict.version() != command.baseVersion()) {
             throw new EarthTripException(
-                "VERSION_CONFLICT", 409, "다른 사용자가 충돌을 먼저 해결했습니다.",
-                Map.of("serverVersion", conflict.version())
-            );
+                    "VERSION_CONFLICT",
+                    409,
+                    "다른 사용자가 충돌을 먼저 해결했습니다.",
+                    Map.of("serverVersion", conflict.version()));
         }
         String strategy = strategy(command.strategy());
         Map<String, Object> applied = Map.of();
         if (!strategy.equals("SERVER")) {
-            OfflineOperationUseCase.OperationCommand operation = OfflineOperationCodec.command(
-                conflict.deviceCommand()
-            );
-            PlanningResourceUseCase.ResourceResult current = resources.get(
-                tripId, actorUserId, conflict.resourceType(), conflict.resourceId()
-            );
-            Map<String, Object> payload = strategy.equals("MERGED")
-                ? mergedPayload(current.payload(), conflict.mergeableFields(), command.mergedPayload())
-                : operation.payload();
-            OfflineOperationExecutor.ExecutionResult execution = executor.execute(
-                tripId, actorUserId, operation, current.version(), payload
-            );
+            OfflineOperationUseCase.OperationCommand operation =
+                    OfflineOperationCodec.command(conflict.deviceCommand());
+            PlanningResourceUseCase.ResourceResult current =
+                    resources.get(
+                            tripId, actorUserId, conflict.resourceType(), conflict.resourceId());
+            Map<String, Object> payload =
+                    strategy.equals("MERGED")
+                            ? mergedPayload(
+                                    current.payload(),
+                                    conflict.mergeableFields(),
+                                    command.mergedPayload())
+                            : operation.payload();
+            OfflineOperationExecutor.ExecutionResult execution =
+                    executor.execute(tripId, actorUserId, operation, current.version(), payload);
             applied = execution.result();
         }
         Instant now = clock.instant();
-        SyncStateStorePort.ConflictRecord saved = conflicts.saveConflict(
-            new SyncStateStorePort.ConflictRecord(
-                conflict.conflictId(), conflict.operationId(), tripId, conflict.actorId(),
-                conflict.action(), conflict.resourceType(), conflict.resourceId(),
-                conflict.deviceCommand(), conflict.serverSnapshot(), conflict.mergeableFields(),
-                "RESOLVED", strategy, conflict.createdAt(), now, conflict.version()
-            )
-        );
+        SyncStateStorePort.ConflictRecord saved =
+                conflicts.saveConflict(
+                        new SyncStateStorePort.ConflictRecord(
+                                conflict.conflictId(),
+                                conflict.operationId(),
+                                tripId,
+                                conflict.actorId(),
+                                conflict.action(),
+                                conflict.resourceType(),
+                                conflict.resourceId(),
+                                conflict.deviceCommand(),
+                                conflict.serverSnapshot(),
+                                conflict.mergeableFields(),
+                                "RESOLVED",
+                                strategy,
+                                conflict.createdAt(),
+                                now,
+                                conflict.version()));
         Map<String, Object> operationResult = new LinkedHashMap<>(applied);
         operationResult.put("resolvedConflictId", conflictId.toString());
         operationResult.put("resolution", strategy);
-        operations.saveOperation(new ActivityOperationStorePort.OperationRecord(
-            conflict.operationId(), tripId, conflict.actorId(), "ACCEPTED",
-            conflict.resourceType(), conflict.resourceId(), Map.copyOf(operationResult), now
-        ));
+        operations.saveOperation(
+                new ActivityOperationStorePort.OperationRecord(
+                        conflict.operationId(),
+                        tripId,
+                        conflict.actorId(),
+                        "ACCEPTED",
+                        conflict.resourceType(),
+                        conflict.resourceId(),
+                        Map.copyOf(operationResult),
+                        now));
         return result(saved);
     }
 
     private SyncStateStorePort.ConflictRecord load(UUID tripId, UUID conflictId) {
-        return conflicts.findConflict(conflictId)
-            .filter(item -> item.tripId().equals(tripId))
-            .orElseThrow(() -> EarthTripException.notFound(
-                "SYNC_CONFLICT_NOT_FOUND", "동기화 충돌을 찾을 수 없습니다."
-            ));
+        return conflicts
+                .findConflict(conflictId)
+                .filter(item -> item.tripId().equals(tripId))
+                .orElseThrow(
+                        () ->
+                                EarthTripException.notFound(
+                                        "SYNC_CONFLICT_NOT_FOUND", "동기화 충돌을 찾을 수 없습니다."));
     }
 
     private static String strategy(String value) {
         if (value == null) {
             throw EarthTripException.badRequest(
-                "CONFLICT_RESOLUTION_REQUIRED", "충돌 해결 방식을 선택해 주세요."
-            );
+                    "CONFLICT_RESOLUTION_REQUIRED", "충돌 해결 방식을 선택해 주세요.");
         }
         String normalized = value.strip().toUpperCase(Locale.ROOT);
         if (!List.of("SERVER", "DEVICE", "MERGED").contains(normalized)) {
             throw EarthTripException.badRequest(
-                "INVALID_CONFLICT_RESOLUTION", "SERVER, DEVICE, MERGED 중 하나를 선택해 주세요."
-            );
+                    "INVALID_CONFLICT_RESOLUTION", "SERVER, DEVICE, MERGED 중 하나를 선택해 주세요.");
         }
         return normalized;
     }
 
     private static Map<String, Object> mergedPayload(
-        Map<String, Object> serverPayload,
-        List<String> mergeableFields,
-        Map<String, Object> requested
-    ) {
+            Map<String, Object> serverPayload,
+            List<String> mergeableFields,
+            Map<String, Object> requested) {
         if (requested == null || requested.isEmpty()) {
-            throw EarthTripException.badRequest(
-                "MERGED_PAYLOAD_REQUIRED", "필드 병합에는 병합할 값이 필요합니다."
-            );
+            throw EarthTripException.badRequest("MERGED_PAYLOAD_REQUIRED", "필드 병합에는 병합할 값이 필요합니다.");
         }
         if (!mergeableFields.containsAll(requested.keySet())) {
             throw EarthTripException.badRequest(
-                "FIELD_NOT_MERGEABLE", "자동 병합할 수 없는 필드가 포함되어 있습니다."
-            );
+                    "FIELD_NOT_MERGEABLE", "자동 병합할 수 없는 필드가 포함되어 있습니다.");
         }
         Map<String, Object> merged = new LinkedHashMap<>(serverPayload);
         merged.putAll(requested);
@@ -157,10 +167,18 @@ class SyncConflictService implements SyncConflictUseCase {
 
     private ConflictResult result(SyncStateStorePort.ConflictRecord record) {
         return new ConflictResult(
-            record.conflictId(), record.operationId(), record.action(),
-            record.resourceType(), record.resourceId(), record.deviceCommand(),
-            record.serverSnapshot(), record.mergeableFields(), record.status(),
-            record.resolution(), record.createdAt(), record.resolvedAt(), record.version()
-        );
+                record.conflictId(),
+                record.operationId(),
+                record.action(),
+                record.resourceType(),
+                record.resourceId(),
+                record.deviceCommand(),
+                record.serverSnapshot(),
+                record.mergeableFields(),
+                record.status(),
+                record.resolution(),
+                record.createdAt(),
+                record.resolvedAt(),
+                record.version());
     }
 }

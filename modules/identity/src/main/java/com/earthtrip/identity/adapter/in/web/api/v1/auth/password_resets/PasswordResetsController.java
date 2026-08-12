@@ -29,6 +29,4 @@ class PasswordResetsController {
 }
 
 record PasswordResetRequest(
-    @NotBlank String token,
-    @NotBlank @Size(min = 10, max = 128) String newPassword
-) { }
+        @NotBlank String token, @NotBlank @Size(min = 10, max = 128) String newPassword) {}

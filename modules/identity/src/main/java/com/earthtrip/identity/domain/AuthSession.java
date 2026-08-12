@@ -18,17 +18,16 @@ public final class AuthSession {
     private final Instant createdAt;
 
     private AuthSession(
-        UUID id,
-        UserId userId,
-        String accessTokenHash,
-        String refreshTokenHash,
-        String deviceName,
-        Instant accessExpiresAt,
-        Instant refreshExpiresAt,
-        Instant lastUsedAt,
-        Instant revokedAt,
-        Instant createdAt
-    ) {
+            UUID id,
+            UserId userId,
+            String accessTokenHash,
+            String refreshTokenHash,
+            String deviceName,
+            Instant accessExpiresAt,
+            Instant refreshExpiresAt,
+            Instant lastUsedAt,
+            Instant revokedAt,
+            Instant createdAt) {
         this.id = Objects.requireNonNull(id);
         this.userId = Objects.requireNonNull(userId);
         this.accessTokenHash = Objects.requireNonNull(accessTokenHash);
@@ -42,53 +41,49 @@ public final class AuthSession {
     }
 
     public static AuthSession create(
-        UUID id,
-        UserId userId,
-        String accessTokenHash,
-        String refreshTokenHash,
-        String deviceName,
-        Instant accessExpiresAt,
-        Instant refreshExpiresAt,
-        Instant now
-    ) {
+            UUID id,
+            UserId userId,
+            String accessTokenHash,
+            String refreshTokenHash,
+            String deviceName,
+            Instant accessExpiresAt,
+            Instant refreshExpiresAt,
+            Instant now) {
         return new AuthSession(
-            id,
-            userId,
-            accessTokenHash,
-            refreshTokenHash,
-            deviceName,
-            accessExpiresAt,
-            refreshExpiresAt,
-            now,
-            null,
-            now
-        );
+                id,
+                userId,
+                accessTokenHash,
+                refreshTokenHash,
+                deviceName,
+                accessExpiresAt,
+                refreshExpiresAt,
+                now,
+                null,
+                now);
     }
 
     public static AuthSession restore(
-        UUID id,
-        UserId userId,
-        String accessTokenHash,
-        String refreshTokenHash,
-        String deviceName,
-        Instant accessExpiresAt,
-        Instant refreshExpiresAt,
-        Instant lastUsedAt,
-        Instant revokedAt,
-        Instant createdAt
-    ) {
+            UUID id,
+            UserId userId,
+            String accessTokenHash,
+            String refreshTokenHash,
+            String deviceName,
+            Instant accessExpiresAt,
+            Instant refreshExpiresAt,
+            Instant lastUsedAt,
+            Instant revokedAt,
+            Instant createdAt) {
         return new AuthSession(
-            id,
-            userId,
-            accessTokenHash,
-            refreshTokenHash,
-            deviceName,
-            accessExpiresAt,
-            refreshExpiresAt,
-            lastUsedAt,
-            revokedAt,
-            createdAt
-        );
+                id,
+                userId,
+                accessTokenHash,
+                refreshTokenHash,
+                deviceName,
+                accessExpiresAt,
+                refreshExpiresAt,
+                lastUsedAt,
+                revokedAt,
+                createdAt);
     }
 
     public boolean acceptsAccessAt(Instant now) {
@@ -100,12 +95,11 @@ public final class AuthSession {
     }
 
     public void rotate(
-        String newAccessTokenHash,
-        String newRefreshTokenHash,
-        Instant newAccessExpiry,
-        Instant newRefreshExpiry,
-        Instant now
-    ) {
+            String newAccessTokenHash,
+            String newRefreshTokenHash,
+            Instant newAccessExpiry,
+            Instant newRefreshExpiry,
+            Instant now) {
         if (!acceptsRefreshAt(now)) {
             throw new IllegalStateException("갱신할 수 없는 세션입니다.");
         }
@@ -120,25 +114,45 @@ public final class AuthSession {
         if (revokedAt == null) revokedAt = Objects.requireNonNull(now);
     }
 
-    public UUID id() { return id; }
+    public UUID id() {
+        return id;
+    }
 
-    public UserId userId() { return userId; }
+    public UserId userId() {
+        return userId;
+    }
 
-    public String accessTokenHash() { return accessTokenHash; }
+    public String accessTokenHash() {
+        return accessTokenHash;
+    }
 
-    public String refreshTokenHash() { return refreshTokenHash; }
+    public String refreshTokenHash() {
+        return refreshTokenHash;
+    }
 
-    public String deviceName() { return deviceName; }
+    public String deviceName() {
+        return deviceName;
+    }
 
-    public Instant accessExpiresAt() { return accessExpiresAt; }
+    public Instant accessExpiresAt() {
+        return accessExpiresAt;
+    }
 
-    public Instant refreshExpiresAt() { return refreshExpiresAt; }
+    public Instant refreshExpiresAt() {
+        return refreshExpiresAt;
+    }
 
-    public Instant lastUsedAt() { return lastUsedAt; }
+    public Instant lastUsedAt() {
+        return lastUsedAt;
+    }
 
-    public Instant revokedAt() { return revokedAt; }
+    public Instant revokedAt() {
+        return revokedAt;
+    }
 
-    public Instant createdAt() { return createdAt; }
+    public Instant createdAt() {
+        return createdAt;
+    }
 
     private static String normalizeDevice(String value) {
         if (value == null || value.isBlank()) return "Unknown device";

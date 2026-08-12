@@ -25,13 +25,9 @@ class ActivityReadCursorController {
 
     @PutMapping
     ActivityFeedUseCase.ReadCursorResult put(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ActivityReadCursorRequest request
-    ) {
-        return useCase.updateReadCursor(
-            tripId, actor.requireUserId(), request.sequenceId()
-        );
+            @PathVariable UUID tripId, @Valid @RequestBody ActivityReadCursorRequest request) {
+        return useCase.updateReadCursor(tripId, actor.requireUserId(), request.sequenceId());
     }
 }
 
-record ActivityReadCursorRequest(@PositiveOrZero long sequenceId) { }
+record ActivityReadCursorRequest(@PositiveOrZero long sequenceId) {}

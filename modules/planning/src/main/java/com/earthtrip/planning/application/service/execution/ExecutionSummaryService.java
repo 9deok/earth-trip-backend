@@ -26,29 +26,29 @@ class ExecutionSummaryService implements ExecutionSummaryUseCase {
     public SummaryResult get(UUID tripId, UUID actorUserId) {
         List<DaySummary> summaries = new ArrayList<>();
         for (TripDayUseCase.DayResult day : days.list(tripId, actorUserId)) {
-            List<PlanningResourceUseCase.ResourceResult> items = schedule.list(
-                tripId, day.dayId(), actorUserId
-            );
+            List<PlanningResourceUseCase.ResourceResult> items =
+                    schedule.list(tripId, day.dayId(), actorUserId);
             int completed = count(items, "COMPLETED");
             int skipped = count(items, "SKIPPED");
             int delayed = (int) items.stream().filter(ExecutionSummaryService::delayed).count();
-            summaries.add(new DaySummary(
-                day.dayId(), day.localDate(), items.size(), completed, skipped, delayed
-            ));
+            summaries.add(
+                    new DaySummary(
+                            day.dayId(),
+                            day.localDate(),
+                            items.size(),
+                            completed,
+                            skipped,
+                            delayed));
         }
         return new SummaryResult(
-            summaries.stream().mapToInt(DaySummary::totalCount).sum(),
-            summaries.stream().mapToInt(DaySummary::completedCount).sum(),
-            summaries.stream().mapToInt(DaySummary::skippedCount).sum(),
-            summaries.stream().mapToInt(DaySummary::delayedCount).sum(),
-            List.copyOf(summaries)
-        );
+                summaries.stream().mapToInt(DaySummary::totalCount).sum(),
+                summaries.stream().mapToInt(DaySummary::completedCount).sum(),
+                summaries.stream().mapToInt(DaySummary::skippedCount).sum(),
+                summaries.stream().mapToInt(DaySummary::delayedCount).sum(),
+                List.copyOf(summaries));
     }
 
-    private static int count(
-        List<PlanningResourceUseCase.ResourceResult> items,
-        String status
-    ) {
+    private static int count(List<PlanningResourceUseCase.ResourceResult> items, String status) {
         return (int) items.stream().filter(item -> item.status().equals(status)).count();
     }
 

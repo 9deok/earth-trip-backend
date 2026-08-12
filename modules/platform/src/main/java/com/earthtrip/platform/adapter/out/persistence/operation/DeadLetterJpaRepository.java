@@ -10,17 +10,13 @@ import org.springframework.data.repository.query.Param;
 interface DeadLetterJpaRepository extends JpaRepository<DeadLetterJpaEntity, String> {
 
     Optional<DeadLetterJpaEntity> findFirstByJobIdAndStatusOrderByCreatedAtDesc(
-        String jobId,
-        String status
-    );
+            String jobId, String status);
 
-    @Query("""
+    @Query(
+            """
         select event from DeadLetterJpaEntity event
         where (:status is null or event.status = :status)
         order by event.createdAt desc
         """)
-    List<DeadLetterJpaEntity> search(
-        @Param("status") String status,
-        Pageable pageable
-    );
+    List<DeadLetterJpaEntity> search(@Param("status") String status, Pageable pageable);
 }

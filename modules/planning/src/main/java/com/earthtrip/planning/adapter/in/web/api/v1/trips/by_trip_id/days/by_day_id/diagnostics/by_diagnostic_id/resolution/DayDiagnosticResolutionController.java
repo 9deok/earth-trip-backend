@@ -15,43 +15,32 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    "/api/v1/trips/{tripId}/days/{dayId}/diagnostics/{diagnosticId}/resolution"
-)
+@RequestMapping("/api/v1/trips/{tripId}/days/{dayId}/diagnostics/{diagnosticId}/resolution")
 class DayDiagnosticResolutionController {
 
     private final DayDiagnosticResolutionUseCase useCase;
     private final CurrentActor actor;
 
-    DayDiagnosticResolutionController(
-        DayDiagnosticResolutionUseCase useCase,
-        CurrentActor actor
-    ) {
+    DayDiagnosticResolutionController(DayDiagnosticResolutionUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PutMapping
     DayDiagnosticResolutionUseCase.ResolutionResult put(
-        @PathVariable UUID tripId,
-        @PathVariable UUID dayId,
-        @PathVariable UUID diagnosticId,
-        @Valid @RequestBody DayDiagnosticResolutionRequest request
-    ) {
-        return useCase.resolve(
-            tripId, dayId, diagnosticId, actor.requireUserId(), request.note()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID dayId,
+            @PathVariable UUID diagnosticId,
+            @Valid @RequestBody DayDiagnosticResolutionRequest request) {
+        return useCase.resolve(tripId, dayId, diagnosticId, actor.requireUserId(), request.note());
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId,
-        @PathVariable UUID dayId,
-        @PathVariable UUID diagnosticId
-    ) {
+            @PathVariable UUID tripId, @PathVariable UUID dayId, @PathVariable UUID diagnosticId) {
         useCase.reopen(tripId, dayId, diagnosticId, actor.requireUserId());
     }
 }
 
-record DayDiagnosticResolutionRequest(@Size(max = 1000) String note) { }
+record DayDiagnosticResolutionRequest(@Size(max = 1000) String note) {}

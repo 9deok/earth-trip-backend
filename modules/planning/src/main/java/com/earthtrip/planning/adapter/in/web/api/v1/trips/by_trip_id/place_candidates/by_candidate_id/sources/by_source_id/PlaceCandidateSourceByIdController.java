@@ -12,38 +12,31 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    "/api/v1/trips/{tripId}/place-candidates/{candidateId}/sources/{sourceId}"
-)
+@RequestMapping("/api/v1/trips/{tripId}/place-candidates/{candidateId}/sources/{sourceId}")
 class PlaceCandidateSourceByIdController {
 
     private final CandidateSourceLinkUseCase useCase;
     private final CurrentActor actor;
 
-    PlaceCandidateSourceByIdController(
-        CandidateSourceLinkUseCase useCase,
-        CurrentActor actor
-    ) {
+    PlaceCandidateSourceByIdController(CandidateSourceLinkUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PutMapping
     CandidateSourceLinkUseCase.LinkResult put(
-        @PathVariable UUID tripId,
-        @PathVariable UUID candidateId,
-        @PathVariable UUID sourceId
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID candidateId,
+            @PathVariable UUID sourceId) {
         return useCase.link(tripId, candidateId, sourceId, actor.requireUserId());
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId,
-        @PathVariable UUID candidateId,
-        @PathVariable UUID sourceId
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID candidateId,
+            @PathVariable UUID sourceId) {
         useCase.unlink(tripId, candidateId, sourceId, actor.requireUserId());
     }
 }

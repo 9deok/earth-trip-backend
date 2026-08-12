@@ -32,45 +32,50 @@ class FileLinksController {
     @GetMapping
     List<FileLinkResponse> get(@PathVariable UUID fileId) {
         return useCase.links(actor.requireUserId(), fileId).stream()
-            .map(FileLinkResponse::from)
-            .toList();
+                .map(FileLinkResponse::from)
+                .toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    FileLinkResponse post(
-        @PathVariable UUID fileId,
-        @Valid @RequestBody FileLinkRequest request
-    ) {
-        return FileLinkResponse.from(useCase.link(
-            actor.requireUserId(), fileId, request.requestId(), request.tripId(),
-            request.resourceType(), request.resourceId(), request.visibility()
-        ));
+    FileLinkResponse post(@PathVariable UUID fileId, @Valid @RequestBody FileLinkRequest request) {
+        return FileLinkResponse.from(
+                useCase.link(
+                        actor.requireUserId(),
+                        fileId,
+                        request.requestId(),
+                        request.tripId(),
+                        request.resourceType(),
+                        request.resourceId(),
+                        request.visibility()));
     }
 }
 
 record FileLinkRequest(
-    @NotNull UUID requestId,
-    @NotNull UUID tripId,
-    @NotBlank String resourceType,
-    @NotNull UUID resourceId,
-    String visibility
-) { }
+        @NotNull UUID requestId,
+        @NotNull UUID tripId,
+        @NotBlank String resourceType,
+        @NotNull UUID resourceId,
+        String visibility) {}
 
 record FileLinkResponse(
-    UUID linkId,
-    UUID fileId,
-    UUID tripId,
-    String resourceType,
-    UUID resourceId,
-    String visibility,
-    UUID linkedBy,
-    Instant linkedAt
-) {
+        UUID linkId,
+        UUID fileId,
+        UUID tripId,
+        String resourceType,
+        UUID resourceId,
+        String visibility,
+        UUID linkedBy,
+        Instant linkedAt) {
     static FileLinkResponse from(FileUseCase.LinkResult result) {
         return new FileLinkResponse(
-            result.linkId(), result.fileId(), result.tripId(), result.resourceType(),
-            result.resourceId(), result.visibility(), result.linkedBy(), result.linkedAt()
-        );
+                result.linkId(),
+                result.fileId(),
+                result.tripId(),
+                result.resourceType(),
+                result.resourceId(),
+                result.visibility(),
+                result.linkedBy(),
+                result.linkedAt());
     }
 }

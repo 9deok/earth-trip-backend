@@ -10,25 +10,14 @@ public interface ExpenseReviewUseCase {
     List<ReviewDayResult> list(UUID tripId, UUID actorUserId);
 
     ReviewDayResult complete(
-        UUID tripId,
-        LocalDate localDate,
-        UUID actorUserId,
-        String note,
-        long baseVersion
-    );
+            UUID tripId, LocalDate localDate, UUID actorUserId, String note, long baseVersion);
 
-    void reopen(
-        UUID tripId,
-        LocalDate localDate,
-        UUID actorUserId,
-        long baseVersion
-    );
+    void reopen(UUID tripId, LocalDate localDate, UUID actorUserId, long baseVersion);
 
     record ReviewDayResult(
-        LocalDate localDate,
-        UUID completedBy,
-        String note,
-        Instant completedAt,
-        long version
-    ) { }
+            LocalDate localDate,
+            UUID completedBy,
+            String note,
+            Instant completedAt,
+            long version) {}
 }

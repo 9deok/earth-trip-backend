@@ -29,39 +29,45 @@ class PreferencesController {
 
     @PatchMapping
     PreferenceResponse patch(@Valid @RequestBody PreferenceUpdateRequest request) {
-        return response(useCase.update(
-            currentUser.requireUserId(),
-            new PreferenceUseCase.UpdatePreferenceCommand(
-                request.locale(), request.defaultCurrency(), request.timeZone(),
-                request.shareTicketNames(), request.sharePersonalExpense(), request.optionalAnalytics()
-            )
-        ));
+        return response(
+                useCase.update(
+                        currentUser.requireUserId(),
+                        new PreferenceUseCase.UpdatePreferenceCommand(
+                                request.locale(),
+                                request.defaultCurrency(),
+                                request.timeZone(),
+                                request.shareTicketNames(),
+                                request.sharePersonalExpense(),
+                                request.optionalAnalytics())));
     }
 
     private static PreferenceResponse response(PreferenceUseCase.PreferenceResult result) {
         return new PreferenceResponse(
-            result.locale(), result.defaultCurrency(), result.timeZone(), result.shareTicketNames(),
-            result.sharePersonalExpense(), result.optionalAnalytics(), result.version(), result.updatedAt()
-        );
+                result.locale(),
+                result.defaultCurrency(),
+                result.timeZone(),
+                result.shareTicketNames(),
+                result.sharePersonalExpense(),
+                result.optionalAnalytics(),
+                result.version(),
+                result.updatedAt());
     }
 }
 
 record PreferenceUpdateRequest(
-    String locale,
-    String defaultCurrency,
-    String timeZone,
-    Boolean shareTicketNames,
-    Boolean sharePersonalExpense,
-    Boolean optionalAnalytics
-) { }
+        String locale,
+        String defaultCurrency,
+        String timeZone,
+        Boolean shareTicketNames,
+        Boolean sharePersonalExpense,
+        Boolean optionalAnalytics) {}
 
 record PreferenceResponse(
-    String locale,
-    String defaultCurrency,
-    String timeZone,
-    boolean shareTicketNames,
-    boolean sharePersonalExpense,
-    boolean optionalAnalytics,
-    long version,
-    Instant updatedAt
-) { }
+        String locale,
+        String defaultCurrency,
+        String timeZone,
+        boolean shareTicketNames,
+        boolean sharePersonalExpense,
+        boolean optionalAnalytics,
+        long version,
+        Instant updatedAt) {}

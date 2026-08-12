@@ -18,23 +18,33 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/trips/{tripId}/destination-candidates/{candidateId}/votes/me")
 class DestinationCandidatePreferenceController {
-    private final DestinationCandidateUseCase useCase; private final CurrentActor actor;
-    DestinationCandidatePreferenceController(DestinationCandidateUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+    private final DestinationCandidateUseCase useCase;
+    private final CurrentActor actor;
+
+    DestinationCandidatePreferenceController(
+            DestinationCandidateUseCase useCase, CurrentActor actor) {
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @PutMapping PreferenceResponse put(
-        @PathVariable UUID tripId, @PathVariable UUID candidateId,
-        @Valid @RequestBody PreferenceRequest request
-    ) {
-        DestinationCandidateUseCase.PreferenceResult p = useCase.putPreference(
-            tripId, candidateId, actor.requireUserId(), request.preference()
-        );
+
+    @PutMapping
+    PreferenceResponse put(
+            @PathVariable UUID tripId,
+            @PathVariable UUID candidateId,
+            @Valid @RequestBody PreferenceRequest request) {
+        DestinationCandidateUseCase.PreferenceResult p =
+                useCase.putPreference(
+                        tripId, candidateId, actor.requireUserId(), request.preference());
         return new PreferenceResponse(p.userId(), p.preference(), p.updatedAt());
     }
-    @DeleteMapping @ResponseStatus(HttpStatus.NO_CONTENT)
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(@PathVariable UUID tripId, @PathVariable UUID candidateId) {
         useCase.deletePreference(tripId, candidateId, actor.requireUserId());
     }
 }
-record PreferenceRequest(@NotBlank String preference) { }
-record PreferenceResponse(UUID userId, String preference, Instant updatedAt) { }
+
+record PreferenceRequest(@NotBlank String preference) {}
+
+record PreferenceResponse(UUID userId, String preference, Instant updatedAt) {}

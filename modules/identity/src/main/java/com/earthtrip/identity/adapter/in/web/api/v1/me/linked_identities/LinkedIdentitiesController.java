@@ -17,22 +17,35 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/me/linked-identities")
 class LinkedIdentitiesController {
-    private final AccountIdentityUseCase useCase; private final CurrentActor actor;
-    LinkedIdentitiesController(AccountIdentityUseCase useCase,CurrentActor actor){
-        this.useCase=useCase;this.actor=actor;
+    private final AccountIdentityUseCase useCase;
+    private final CurrentActor actor;
+
+    LinkedIdentitiesController(AccountIdentityUseCase useCase, CurrentActor actor) {
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @GetMapping List<AccountIdentityUseCase.IdentityResult> get(){
+
+    @GetMapping
+    List<AccountIdentityUseCase.IdentityResult> get() {
         return useCase.list(actor.requireUserId());
     }
-    @PostMapping @ResponseStatus(HttpStatus.CREATED)
-    AccountIdentityUseCase.IdentityResult post(@Valid @RequestBody LinkedIdentityRequest request){
-        return useCase.link(actor.requireUserId(),request.provider(),request.command());
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    AccountIdentityUseCase.IdentityResult post(@Valid @RequestBody LinkedIdentityRequest request) {
+        return useCase.link(actor.requireUserId(), request.provider(), request.command());
     }
 }
+
 record LinkedIdentityRequest(
-    @NotBlank String provider,String authorizationCode,String idToken,String redirectUri,
-    String codeVerifier,@Size(max=120)String deviceName
-){
- AccountIdentityUseCase.OAuthCommand command(){return new AccountIdentityUseCase.OAuthCommand(
-     authorizationCode,idToken,redirectUri,codeVerifier,deviceName);}
+        @NotBlank String provider,
+        String authorizationCode,
+        String idToken,
+        String redirectUri,
+        String codeVerifier,
+        @Size(max = 120) String deviceName) {
+    AccountIdentityUseCase.OAuthCommand command() {
+        return new AccountIdentityUseCase.OAuthCommand(
+                authorizationCode, idToken, redirectUri, codeVerifier, deviceName);
+    }
 }

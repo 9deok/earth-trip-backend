@@ -1,3 +1,66 @@
-package com.earthtrip.expense.adapter.in.web.api.v1.trips.by_trip_id.settlements.by_settlement_id.payments.by_payment_id;import com.earthtrip.expense.application.port.in.SettlementUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import jakarta.validation.Valid;import jakarta.validation.constraints.*;import java.time.Instant;import java.util.*;import org.springframework.http.HttpStatus;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/v1/trips/{tripId}/settlements/{settlementId}/payments/{paymentId}") class SettlementPaymentByIdController{private final SettlementUseCase useCase;private final CurrentActor actor;SettlementPaymentByIdController(SettlementUseCase u,CurrentActor a){useCase=u;actor=a;}@PatchMapping SettlementUseCase.PaymentResult patch(@PathVariable UUID tripId,@PathVariable UUID settlementId,@PathVariable UUID paymentId,@Valid @RequestBody PaymentMutation r){return useCase.updatePayment(tripId,settlementId,paymentId,actor.requireUserId(),new SettlementUseCase.PaymentCommand(paymentId,r.fromUserId(),r.toUserId(),r.amountMinor(),r.currency(),r.paidAt(),r.note(),r.baseVersion()));}@DeleteMapping @ResponseStatus(HttpStatus.NO_CONTENT)void delete(@PathVariable UUID tripId,@PathVariable UUID settlementId,@PathVariable UUID paymentId,@Valid @RequestBody PaymentDelete r){useCase.deletePayment(tripId,settlementId,paymentId,actor.requireUserId(),r.baseVersion());}}
-record PaymentMutation(@NotNull UUID fromUserId,@NotNull UUID toUserId,@Positive long amountMinor,@NotBlank String currency,Instant paidAt,String note,@Min(0)long baseVersion){}record PaymentDelete(@Min(0)long baseVersion){}
+package com.earthtrip.expense.adapter.in.web.api.v1.trips.by_trip_id.settlements.by_settlement_id.payments.by_payment_id;
+
+import com.earthtrip.expense.application.port.in.SettlementUseCase;
+import com.earthtrip.sharedkernel.security.CurrentActor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import java.time.Instant;
+import java.util.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/settlements/{settlementId}/payments/{paymentId}")
+class SettlementPaymentByIdController {
+    private final SettlementUseCase useCase;
+    private final CurrentActor actor;
+
+    SettlementPaymentByIdController(SettlementUseCase u, CurrentActor a) {
+        useCase = u;
+        actor = a;
+    }
+
+    @PatchMapping
+    SettlementUseCase.PaymentResult patch(
+            @PathVariable UUID tripId,
+            @PathVariable UUID settlementId,
+            @PathVariable UUID paymentId,
+            @Valid @RequestBody PaymentMutation r) {
+        return useCase.updatePayment(
+                tripId,
+                settlementId,
+                paymentId,
+                actor.requireUserId(),
+                new SettlementUseCase.PaymentCommand(
+                        paymentId,
+                        r.fromUserId(),
+                        r.toUserId(),
+                        r.amountMinor(),
+                        r.currency(),
+                        r.paidAt(),
+                        r.note(),
+                        r.baseVersion()));
+    }
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void delete(
+            @PathVariable UUID tripId,
+            @PathVariable UUID settlementId,
+            @PathVariable UUID paymentId,
+            @Valid @RequestBody PaymentDelete r) {
+        useCase.deletePayment(
+                tripId, settlementId, paymentId, actor.requireUserId(), r.baseVersion());
+    }
+}
+
+record PaymentMutation(
+        @NotNull UUID fromUserId,
+        @NotNull UUID toUserId,
+        @Positive long amountMinor,
+        @NotBlank String currency,
+        Instant paidAt,
+        String note,
+        @Min(0) long baseVersion) {}
+
+record PaymentDelete(@Min(0) long baseVersion) {}

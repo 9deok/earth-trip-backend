@@ -16,10 +16,7 @@ class PreparationSuggestionsController {
     private final PreparationSuggestionUseCase useCase;
     private final CurrentActor actor;
 
-    PreparationSuggestionsController(
-        PreparationSuggestionUseCase useCase,
-        CurrentActor actor
-    ) {
+    PreparationSuggestionsController(PreparationSuggestionUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }

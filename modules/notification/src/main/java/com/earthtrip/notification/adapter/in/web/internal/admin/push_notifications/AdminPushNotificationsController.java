@@ -26,26 +26,25 @@ class AdminPushNotificationsController {
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     NotificationPublisher.PublishResult post(@Valid @RequestBody PushNotificationRequest request) {
-        return publisher.publish(new NotificationPublisher.PublishCommand(
-            request.notificationId(),
-            request.userId(),
-            request.tripId(),
-            request.type(),
-            request.title(),
-            request.body(),
-            request.deepLink(),
-            request.metadata() == null ? Map.of() : request.metadata()
-        ));
+        return publisher.publish(
+                new NotificationPublisher.PublishCommand(
+                        request.notificationId(),
+                        request.userId(),
+                        request.tripId(),
+                        request.type(),
+                        request.title(),
+                        request.body(),
+                        request.deepLink(),
+                        request.metadata() == null ? Map.of() : request.metadata()));
     }
 }
 
 record PushNotificationRequest(
-    UUID notificationId,
-    @NotNull UUID userId,
-    UUID tripId,
-    @NotBlank String type,
-    @NotBlank String title,
-    @NotBlank String body,
-    String deepLink,
-    Map<String, Object> metadata
-) { }
+        UUID notificationId,
+        @NotNull UUID userId,
+        UUID tripId,
+        @NotBlank String type,
+        @NotBlank String title,
+        @NotBlank String body,
+        String deepLink,
+        Map<String, Object> metadata) {}

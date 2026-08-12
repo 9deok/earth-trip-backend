@@ -31,7 +31,7 @@ class ScheduleDiagnosticResolutionJpaEntity {
     @Column(name = "resolved_at", nullable = false)
     private Instant resolvedAt;
 
-    protected ScheduleDiagnosticResolutionJpaEntity() { }
+    protected ScheduleDiagnosticResolutionJpaEntity() {}
 
     ScheduleDiagnosticResolutionJpaEntity(ScheduleChangeStorePort.ResolutionRecord record) {
         diagnosticId = record.diagnosticId().toString();
@@ -48,8 +48,11 @@ class ScheduleDiagnosticResolutionJpaEntity {
 
     ScheduleChangeStorePort.ResolutionRecord toRecord() {
         return new ScheduleChangeStorePort.ResolutionRecord(
-            UUID.fromString(diagnosticId), UUID.fromString(tripId), UUID.fromString(dayId),
-            note, UUID.fromString(resolvedBy), resolvedAt
-        );
+                UUID.fromString(diagnosticId),
+                UUID.fromString(tripId),
+                UUID.fromString(dayId),
+                note,
+                UUID.fromString(resolvedBy),
+                resolvedAt);
     }
 }

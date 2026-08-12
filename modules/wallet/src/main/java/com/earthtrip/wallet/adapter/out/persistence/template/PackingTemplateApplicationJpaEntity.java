@@ -31,12 +31,10 @@ class PackingTemplateApplicationJpaEntity {
     @Column(name = "item_ids", nullable = false, columnDefinition = "JSON")
     private String itemIds;
 
-    protected PackingTemplateApplicationJpaEntity() { }
+    protected PackingTemplateApplicationJpaEntity() {}
 
     PackingTemplateApplicationJpaEntity(
-        PackingTemplateStorePort.ApplicationRecord record,
-        String itemIds
-    ) {
+            PackingTemplateStorePort.ApplicationRecord record, String itemIds) {
         id = record.id().toString();
         tripId = record.tripId().toString();
         templateId = record.templateId().toString();
@@ -45,15 +43,27 @@ class PackingTemplateApplicationJpaEntity {
         this.itemIds = itemIds;
     }
 
-    UUID id() { return UUID.fromString(id); }
+    UUID id() {
+        return UUID.fromString(id);
+    }
 
-    UUID tripId() { return UUID.fromString(tripId); }
+    UUID tripId() {
+        return UUID.fromString(tripId);
+    }
 
-    UUID templateId() { return UUID.fromString(templateId); }
+    UUID templateId() {
+        return UUID.fromString(templateId);
+    }
 
-    UUID appliedBy() { return UUID.fromString(appliedBy); }
+    UUID appliedBy() {
+        return UUID.fromString(appliedBy);
+    }
 
-    Instant appliedAt() { return appliedAt; }
+    Instant appliedAt() {
+        return appliedAt;
+    }
 
-    String itemIds() { return itemIds; }
+    String itemIds() {
+        return itemIds;
+    }
 }

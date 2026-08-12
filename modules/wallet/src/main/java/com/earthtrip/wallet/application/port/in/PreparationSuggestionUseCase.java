@@ -8,31 +8,17 @@ public interface PreparationSuggestionUseCase {
 
     List<SuggestionResult> list(UUID tripId, UUID actorUserId);
 
-    AcceptanceResult accept(
-        UUID tripId,
-        UUID suggestionId,
-        UUID actorUserId,
-        UUID requestId
-    );
+    AcceptanceResult accept(UUID tripId, UUID suggestionId, UUID actorUserId, UUID requestId);
 
-    void dismiss(
-        UUID tripId,
-        UUID suggestionId,
-        UUID actorUserId,
-        String reason
-    );
+    void dismiss(UUID tripId, UUID suggestionId, UUID actorUserId, String reason);
 
     record SuggestionResult(
-        UUID suggestionId,
-        String ruleCode,
-        String targetType,
-        String title,
-        String reason,
-        Map<String, Object> payload
-    ) { }
+            UUID suggestionId,
+            String ruleCode,
+            String targetType,
+            String title,
+            String reason,
+            Map<String, Object> payload) {}
 
-    record AcceptanceResult(
-        UUID suggestionId,
-        WalletRecordUseCase.RecordResult createdRecord
-    ) { }
+    record AcceptanceResult(UUID suggestionId, WalletRecordUseCase.RecordResult createdRecord) {}
 }

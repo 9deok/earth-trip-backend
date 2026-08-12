@@ -14,17 +14,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController @RequestMapping("/api/v1/trips/{tripId}/ownership-transfers")
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/ownership-transfers")
 class OwnershipTransfersController {
-    private final TripMemberUseCase useCase; private final CurrentUserProvider currentUser;
+    private final TripMemberUseCase useCase;
+    private final CurrentUserProvider currentUser;
+
     OwnershipTransfersController(TripMemberUseCase useCase, CurrentUserProvider currentUser) {
-        this.useCase = useCase; this.currentUser = currentUser;
+        this.useCase = useCase;
+        this.currentUser = currentUser;
     }
-    @PostMapping @ResponseStatus(HttpStatus.NO_CONTENT)
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void post(@PathVariable UUID tripId, @Valid @RequestBody OwnershipTransferRequest request) {
         useCase.transferOwnership(
-            tripId, currentUser.requireUserId(), request.toMemberId(), request.confirmed()
-        );
+                tripId, currentUser.requireUserId(), request.toMemberId(), request.confirmed());
     }
 }
-record OwnershipTransferRequest(@NotNull UUID toMemberId, @AssertTrue boolean confirmed) { }
+
+record OwnershipTransferRequest(@NotNull UUID toMemberId, @AssertTrue boolean confirmed) {}

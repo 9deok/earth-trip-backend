@@ -11,15 +11,14 @@ public interface PreferenceStorePort {
     PreferenceRecord save(PreferenceRecord preference);
 
     record PreferenceRecord(
-        UUID userId,
-        String locale,
-        String defaultCurrency,
-        String timeZone,
-        boolean shareTicketNames,
-        boolean sharePersonalExpense,
-        boolean optionalAnalytics,
-        long version,
-        Instant createdAt,
-        Instant updatedAt
-    ) { }
+            UUID userId,
+            String locale,
+            String defaultCurrency,
+            String timeZone,
+            boolean shareTicketNames,
+            boolean sharePersonalExpense,
+            boolean optionalAnalytics,
+            long version,
+            Instant createdAt,
+            Instant updatedAt) {}
 }

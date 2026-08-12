@@ -13,23 +13,21 @@ public interface PolicyUseCase {
     ConsentResult decide(UUID userId, String policyId, String decision, String source);
 
     record PolicyResult(
-        String policyId,
-        String type,
-        String version,
-        boolean required,
-        String title,
-        String summary,
-        String contentUrl,
-        Instant publishedAt
-    ) { }
+            String policyId,
+            String type,
+            String version,
+            boolean required,
+            String title,
+            String summary,
+            String contentUrl,
+            Instant publishedAt) {}
 
     record ConsentResult(
-        String policyId,
-        String policyType,
-        String policyVersion,
-        boolean required,
-        String decision,
-        Instant decidedAt,
-        String source
-    ) { }
+            String policyId,
+            String policyType,
+            String policyVersion,
+            boolean required,
+            String decision,
+            Instant decidedAt,
+            String source) {}
 }

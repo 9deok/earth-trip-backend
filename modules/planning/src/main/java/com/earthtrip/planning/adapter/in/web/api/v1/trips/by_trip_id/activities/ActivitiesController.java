@@ -23,10 +23,9 @@ class ActivitiesController {
 
     @GetMapping
     ActivityFeedUseCase.ActivityPage get(
-        @PathVariable UUID tripId,
-        @RequestParam(required = false) Long after,
-        @RequestParam(required = false) Integer limit
-    ) {
+            @PathVariable UUID tripId,
+            @RequestParam(required = false) Long after,
+            @RequestParam(required = false) Integer limit) {
         return useCase.activities(tripId, actor.requireUserId(), after, limit);
     }
 }

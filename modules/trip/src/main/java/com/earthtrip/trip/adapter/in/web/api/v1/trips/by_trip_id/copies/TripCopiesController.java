@@ -30,24 +30,27 @@ class TripCopiesController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     TripCopyResponse post(@PathVariable UUID tripId, @Valid @RequestBody TripCopyRequest request) {
-        TripManagementUseCase.TripResult result = useCase.copy(
-            tripId, currentActor.requireUserId(), request.requestId(), request.title()
-        );
+        TripManagementUseCase.TripResult result =
+                useCase.copy(
+                        tripId, currentActor.requireUserId(), request.requestId(), request.title());
         return new TripCopyResponse(
-            result.tripId(), result.title(), result.status(), result.startDate(), result.endDate(),
-            result.version(), result.createdAt()
-        );
+                result.tripId(),
+                result.title(),
+                result.status(),
+                result.startDate(),
+                result.endDate(),
+                result.version(),
+                result.createdAt());
     }
 }
 
-record TripCopyRequest(@NotNull UUID requestId, String title) { }
+record TripCopyRequest(@NotNull UUID requestId, String title) {}
 
 record TripCopyResponse(
-    UUID tripId,
-    String title,
-    String status,
-    LocalDate startDate,
-    LocalDate endDate,
-    long version,
-    Instant createdAt
-) { }
+        UUID tripId,
+        String title,
+        String status,
+        LocalDate startDate,
+        LocalDate endDate,
+        long version,
+        Instant createdAt) {}

@@ -16,17 +16,16 @@ public interface ExpenseCategoryStorePort {
     CategoryRecord save(CategoryRecord record);
 
     record CategoryRecord(
-        UUID id,
-        UUID tripId,
-        String code,
-        String name,
-        String color,
-        int sortOrder,
-        UUID createdBy,
-        UUID updatedBy,
-        Instant createdAt,
-        Instant updatedAt,
-        Instant deletedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            String code,
+            String name,
+            String color,
+            int sortOrder,
+            UUID createdBy,
+            UUID updatedBy,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt,
+            long version) {}
 }

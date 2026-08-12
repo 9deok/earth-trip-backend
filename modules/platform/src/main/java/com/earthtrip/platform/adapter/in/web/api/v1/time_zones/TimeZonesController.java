@@ -1,3 +1,25 @@
 package com.earthtrip.platform.adapter.in.web.api.v1.time_zones;
-import com.earthtrip.platform.application.port.in.ExternalTravelUseCase;import java.math.BigDecimal;import java.util.List;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/v1/time-zones")class TimeZonesController{private final ExternalTravelUseCase u;TimeZonesController(ExternalTravelUseCase u){this.u=u;}@GetMapping List<ExternalTravelUseCase.TimeZoneResult>get(@RequestParam(required=false)BigDecimal latitude,@RequestParam(required=false)BigDecimal longitude,@RequestParam(required=false)String q,@RequestParam(required=false)Integer limit){return u.timeZones(latitude,longitude,q,limit);}}
+
+import com.earthtrip.platform.application.port.in.ExternalTravelUseCase;
+import java.math.BigDecimal;
+import java.util.List;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/time-zones")
+class TimeZonesController {
+    private final ExternalTravelUseCase u;
+
+    TimeZonesController(ExternalTravelUseCase u) {
+        this.u = u;
+    }
+
+    @GetMapping
+    List<ExternalTravelUseCase.TimeZoneResult> get(
+            @RequestParam(required = false) BigDecimal latitude,
+            @RequestParam(required = false) BigDecimal longitude,
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) Integer limit) {
+        return u.timeZones(latitude, longitude, q, limit);
+    }
+}

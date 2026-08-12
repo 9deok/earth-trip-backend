@@ -45,7 +45,7 @@ class StructureChangeSetJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected StructureChangeSetJpaEntity() { }
+    protected StructureChangeSetJpaEntity() {}
 
     StructureChangeSetJpaEntity(TripStructureStorePort.ChangeSetRecord record) {
         id = record.id().toString();
@@ -65,8 +65,15 @@ class StructureChangeSetJpaEntity {
 
     TripStructureStorePort.ChangeSetRecord toRecord() {
         return new TripStructureStorePort.ChangeSetRecord(
-            UUID.fromString(id), UUID.fromString(tripId), UUID.fromString(requestedBy),
-            proposalHash, beforeSnapshot, afterSnapshot, status, appliedAt, revertedAt, version
-        );
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                UUID.fromString(requestedBy),
+                proposalHash,
+                beforeSnapshot,
+                afterSnapshot,
+                status,
+                appliedAt,
+                revertedAt,
+                version);
     }
 }

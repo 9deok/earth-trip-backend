@@ -18,10 +18,6 @@ class TripQuerydslSupportImpl implements TripQuerydslSupport {
         QTripJpaEntity trip = QTripJpaEntity.tripJpaEntity;
 
         return Optional.ofNullable(
-            queryFactory
-                .selectFrom(trip)
-                .where(trip.id.eq(tripId))
-                .fetchOne()
-        );
+                queryFactory.selectFrom(trip).where(trip.id.eq(tripId)).fetchOne());
     }
 }

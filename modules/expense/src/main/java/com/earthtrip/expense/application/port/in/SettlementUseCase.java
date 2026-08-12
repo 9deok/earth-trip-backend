@@ -1,5 +1,87 @@
-package com.earthtrip.expense.application.port.in;import java.math.BigDecimal;import java.time.Instant;import java.util.*;
-public interface SettlementUseCase{
- PreviewResult preview(UUID trip,UUID actor,String baseCurrency,Map<String,BigDecimal> minorUnitRates);List<SettlementResult> list(UUID trip,UUID actor);SettlementResult create(UUID trip,UUID actor,UUID requestId,String baseCurrency,Map<String,BigDecimal>minorUnitRates);SettlementResult get(UUID trip,UUID settlementId,UUID actor);SettlementResult update(UUID trip,UUID settlementId,UUID actor,String baseCurrency,Map<String,BigDecimal>minorUnitRates,long baseVersion);SettlementResult close(UUID trip,UUID id,UUID actor,long baseVersion,boolean paymentsConfirmed);SettlementResult reopen(UUID trip,UUID id,UUID actor,long baseVersion,String reason);List<PaymentResult> payments(UUID trip,UUID settlement,UUID actor);PaymentResult createPayment(UUID trip,UUID settlement,UUID actor,PaymentCommand c);PaymentResult updatePayment(UUID trip,UUID settlement,UUID payment,UUID actor,PaymentCommand c);void deletePayment(UUID trip,UUID settlement,UUID payment,UUID actor,long baseVersion);
- record Transfer(UUID fromUserId,UUID toUserId,long amountMinor){}record PreviewResult(String baseCurrency,Map<UUID,Long>netBalances,List<Transfer>transfers,List<UUID>expenseIds,Map<String,BigDecimal>minorUnitRates){}record SettlementResult(UUID settlementId,UUID tripId,String baseCurrency,String status,PreviewResult snapshot,long version,UUID createdBy,Instant createdAt,Instant updatedAt,Instant closedAt){}record PaymentCommand(UUID requestId,UUID fromUserId,UUID toUserId,long amountMinor,String currency,Instant paidAt,String note,long baseVersion){}record PaymentResult(UUID paymentId,UUID settlementId,UUID fromUserId,UUID toUserId,long amountMinor,String currency,Instant paidAt,String note,long version,Instant createdAt,Instant updatedAt){}
+package com.earthtrip.expense.application.port.in;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+
+public interface SettlementUseCase {
+    PreviewResult preview(
+            UUID trip, UUID actor, String baseCurrency, Map<String, BigDecimal> minorUnitRates);
+
+    List<SettlementResult> list(UUID trip, UUID actor);
+
+    SettlementResult create(
+            UUID trip,
+            UUID actor,
+            UUID requestId,
+            String baseCurrency,
+            Map<String, BigDecimal> minorUnitRates);
+
+    SettlementResult get(UUID trip, UUID settlementId, UUID actor);
+
+    SettlementResult update(
+            UUID trip,
+            UUID settlementId,
+            UUID actor,
+            String baseCurrency,
+            Map<String, BigDecimal> minorUnitRates,
+            long baseVersion);
+
+    SettlementResult close(
+            UUID trip, UUID id, UUID actor, long baseVersion, boolean paymentsConfirmed);
+
+    SettlementResult reopen(UUID trip, UUID id, UUID actor, long baseVersion, String reason);
+
+    List<PaymentResult> payments(UUID trip, UUID settlement, UUID actor);
+
+    PaymentResult createPayment(UUID trip, UUID settlement, UUID actor, PaymentCommand c);
+
+    PaymentResult updatePayment(
+            UUID trip, UUID settlement, UUID payment, UUID actor, PaymentCommand c);
+
+    void deletePayment(UUID trip, UUID settlement, UUID payment, UUID actor, long baseVersion);
+
+    record Transfer(UUID fromUserId, UUID toUserId, long amountMinor) {}
+
+    record PreviewResult(
+            String baseCurrency,
+            Map<UUID, Long> netBalances,
+            List<Transfer> transfers,
+            List<UUID> expenseIds,
+            Map<String, BigDecimal> minorUnitRates) {}
+
+    record SettlementResult(
+            UUID settlementId,
+            UUID tripId,
+            String baseCurrency,
+            String status,
+            PreviewResult snapshot,
+            long version,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant closedAt) {}
+
+    record PaymentCommand(
+            UUID requestId,
+            UUID fromUserId,
+            UUID toUserId,
+            long amountMinor,
+            String currency,
+            Instant paidAt,
+            String note,
+            long baseVersion) {}
+
+    record PaymentResult(
+            UUID paymentId,
+            UUID settlementId,
+            UUID fromUserId,
+            UUID toUserId,
+            long amountMinor,
+            String currency,
+            Instant paidAt,
+            String note,
+            long version,
+            Instant createdAt,
+            Instant updatedAt) {}
 }

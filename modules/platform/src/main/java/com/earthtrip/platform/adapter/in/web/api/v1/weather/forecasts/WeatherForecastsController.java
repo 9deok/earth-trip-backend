@@ -21,14 +21,13 @@ class WeatherForecastsController {
 
     @GetMapping
     List<ProviderProxyUseCase.WeatherDay> get(
-        @RequestParam BigDecimal latitude,
-        @RequestParam BigDecimal longitude,
-        @RequestParam LocalDate startDate,
-        @RequestParam LocalDate endDate,
-        @RequestParam String timeZone
-    ) {
-        return useCase.weather(new ProviderProxyUseCase.WeatherQuery(
-            latitude, longitude, startDate, endDate, timeZone
-        ));
+            @RequestParam BigDecimal latitude,
+            @RequestParam BigDecimal longitude,
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate,
+            @RequestParam String timeZone) {
+        return useCase.weather(
+                new ProviderProxyUseCase.WeatherQuery(
+                        latitude, longitude, startDate, endDate, timeZone));
     }
 }

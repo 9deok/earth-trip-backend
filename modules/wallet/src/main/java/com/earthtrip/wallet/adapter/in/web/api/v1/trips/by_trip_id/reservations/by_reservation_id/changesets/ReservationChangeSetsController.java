@@ -23,10 +23,7 @@ class ReservationChangeSetsController {
     private final ReservationChangeUseCase useCase;
     private final CurrentActor actor;
 
-    ReservationChangeSetsController(
-        ReservationChangeUseCase useCase,
-        CurrentActor actor
-    ) {
+    ReservationChangeSetsController(ReservationChangeUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
@@ -34,39 +31,35 @@ class ReservationChangeSetsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     ReservationChangeUseCase.ChangeSetResult apply(
-        @PathVariable UUID tripId,
-        @PathVariable UUID reservationId,
-        @Valid @RequestBody ReservationChangeSetRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID reservationId,
+            @Valid @RequestBody ReservationChangeSetRequest request) {
         return useCase.apply(
-            tripId,
-            reservationId,
-            actor.requireUserId(),
-            request.command(),
-            request.proposalHash()
-        );
+                tripId,
+                reservationId,
+                actor.requireUserId(),
+                request.command(),
+                request.proposalHash());
     }
 }
 
 record ReservationChangeSetRequest(
-    @NotNull UUID requestId,
-    @NotBlank String proposalHash,
-    Map<String, Object> reservationPayload,
-    String visibility,
-    @PositiveOrZero Integer sortOrder,
-    @PositiveOrZero long reservationBaseVersion,
-    Map<String, Object> walletEntryPayload,
-    @PositiveOrZero long walletEntryBaseVersion
-) {
+        @NotNull UUID requestId,
+        @NotBlank String proposalHash,
+        Map<String, Object> reservationPayload,
+        String visibility,
+        @PositiveOrZero Integer sortOrder,
+        @PositiveOrZero long reservationBaseVersion,
+        Map<String, Object> walletEntryPayload,
+        @PositiveOrZero long walletEntryBaseVersion) {
     ReservationChangeUseCase.ChangeCommand command() {
         return new ReservationChangeUseCase.ChangeCommand(
-            requestId,
-            reservationPayload,
-            visibility,
-            sortOrder,
-            reservationBaseVersion,
-            walletEntryPayload,
-            walletEntryBaseVersion
-        );
+                requestId,
+                reservationPayload,
+                visibility,
+                sortOrder,
+                reservationBaseVersion,
+                walletEntryPayload,
+                walletEntryBaseVersion);
     }
 }

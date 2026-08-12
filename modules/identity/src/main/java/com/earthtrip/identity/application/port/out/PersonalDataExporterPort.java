@@ -9,7 +9,7 @@ public interface PersonalDataExporterPort {
 
     DownloadArtifact download(UUID userId, UUID exportId, String format);
 
-    record ExportArtifact(UUID fileId, Instant expiresAt) { }
+    record ExportArtifact(UUID fileId, Instant expiresAt) {}
 
     record DownloadArtifact(byte[] content, String contentType, String fileName) {
         public DownloadArtifact {

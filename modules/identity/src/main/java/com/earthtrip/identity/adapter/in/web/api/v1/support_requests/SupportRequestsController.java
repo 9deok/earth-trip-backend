@@ -6,9 +6,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,32 +24,34 @@ class SupportRequestsController {
     private final SupportRequestUseCase useCase;
     private final CurrentUserProvider currentUser;
 
-    SupportRequestsController(
-        SupportRequestUseCase useCase,
-        CurrentUserProvider currentUser
-    ) {
+    SupportRequestsController(SupportRequestUseCase useCase, CurrentUserProvider currentUser) {
         this.useCase = useCase;
         this.currentUser = currentUser;
     }
 
+    @GetMapping
+    List<SupportRequestUseCase.SupportResult> get() {
+        return useCase.list(currentUser.requireUserId());
+    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    SupportRequestUseCase.SupportResult post(
-        @Valid @RequestBody SupportRequest request
-    ) {
+    SupportRequestUseCase.SupportResult post(@Valid @RequestBody SupportRequest request) {
         return useCase.create(
-            currentUser.requireUserId(), request.requestId(), request.category(),
-            request.description(), request.traceId(), request.diagnostics(),
-            request.diagnosticsConsent()
-        );
+                currentUser.requireUserId(),
+                request.requestId(),
+                request.category(),
+                request.description(),
+                request.traceId(),
+                request.diagnostics(),
+                request.diagnosticsConsent());
     }
 }
 
 record SupportRequest(
-    @NotNull UUID requestId,
-    @NotBlank String category,
-    @NotBlank @Size(max = 5000) String description,
-    @Size(max = 100) String traceId,
-    Map<String, Object> diagnostics,
-    boolean diagnosticsConsent
-) { }
+        @NotNull UUID requestId,
+        @NotBlank String category,
+        @NotBlank @Size(max = 5000) String description,
+        @Size(max = 100) String traceId,
+        Map<String, Object> diagnostics,
+        boolean diagnosticsConsent) {}

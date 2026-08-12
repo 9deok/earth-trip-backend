@@ -1,2 +1,93 @@
-package com.earthtrip.expense.adapter.out.persistence.ledger;import com.earthtrip.expense.application.port.out.FinanceLedgerStorePort;import jakarta.persistence.*;import java.time.Instant;import java.util.UUID;
-@Entity @Table(name="cash_movements") class CashMovementJpaEntity{@Id @Column(name="id",nullable=false,length=36)private String id;@Column(name="trip_id",nullable=false,length=36)private String tripId;@Column(name="movement_type",nullable=false,length=30)private String movementType;@Column(name="amount_minor",nullable=false)private long amountMinor;@Column(name="currency",nullable=false,length=3)private String currency;@Column(name="payload",nullable=false,columnDefinition="JSON")private String payload;@Column(name="status",nullable=false,length=30)private String status;@Column(name="occurred_at",nullable=false)private Instant occurredAt;@Column(name="created_by",nullable=false,length=36)private String createdBy;@Column(name="created_at",nullable=false)private Instant createdAt;@Column(name="updated_at",nullable=false)private Instant updatedAt;@Column(name="deleted_at")private Instant deletedAt;@Version @Column(name="version",nullable=false)private long version;protected CashMovementJpaEntity(){}CashMovementJpaEntity(FinanceLedgerStorePort.CashRecord r,String json){id=r.id().toString();apply(r,json);}void apply(FinanceLedgerStorePort.CashRecord r,String json){tripId=r.tripId().toString();movementType=r.movementType();amountMinor=r.amountMinor();currency=r.currency();payload=json;status=r.status();occurredAt=r.occurredAt();createdBy=r.createdBy().toString();createdAt=r.createdAt();updatedAt=r.updatedAt();deletedAt=r.deletedAt();}String payload(){return payload;}FinanceLedgerStorePort.CashRecord record(java.util.Map<String,Object>data){return new FinanceLedgerStorePort.CashRecord(UUID.fromString(id),UUID.fromString(tripId),movementType,amountMinor,currency,data,status,occurredAt,version,UUID.fromString(createdBy),createdAt,updatedAt,deletedAt);}}
+package com.earthtrip.expense.adapter.out.persistence.ledger;
+
+import com.earthtrip.expense.application.port.out.FinanceLedgerStorePort;
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "cash_movements")
+class CashMovementJpaEntity {
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
+
+    @Column(name = "trip_id", nullable = false, length = 36)
+    private String tripId;
+
+    @Column(name = "movement_type", nullable = false, length = 30)
+    private String movementType;
+
+    @Column(name = "amount_minor", nullable = false)
+    private long amountMinor;
+
+    @Column(name = "currency", nullable = false, length = 3)
+    private String currency;
+
+    @Column(name = "payload", nullable = false, columnDefinition = "JSON")
+    private String payload;
+
+    @Column(name = "status", nullable = false, length = 30)
+    private String status;
+
+    @Column(name = "occurred_at", nullable = false)
+    private Instant occurredAt;
+
+    @Column(name = "created_by", nullable = false, length = 36)
+    private String createdBy;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "deleted_at")
+    private Instant deletedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected CashMovementJpaEntity() {}
+
+    CashMovementJpaEntity(FinanceLedgerStorePort.CashRecord r, String json) {
+        id = r.id().toString();
+        apply(r, json);
+    }
+
+    void apply(FinanceLedgerStorePort.CashRecord r, String json) {
+        tripId = r.tripId().toString();
+        movementType = r.movementType();
+        amountMinor = r.amountMinor();
+        currency = r.currency();
+        payload = json;
+        status = r.status();
+        occurredAt = r.occurredAt();
+        createdBy = r.createdBy().toString();
+        createdAt = r.createdAt();
+        updatedAt = r.updatedAt();
+        deletedAt = r.deletedAt();
+    }
+
+    String payload() {
+        return payload;
+    }
+
+    FinanceLedgerStorePort.CashRecord record(java.util.Map<String, Object> data) {
+        return new FinanceLedgerStorePort.CashRecord(
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                movementType,
+                amountMinor,
+                currency,
+                data,
+                status,
+                occurredAt,
+                version,
+                UUID.fromString(createdBy),
+                createdAt,
+                updatedAt,
+                deletedAt);
+    }
+}

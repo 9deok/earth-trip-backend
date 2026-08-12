@@ -1,1 +1,5 @@
-package com.earthtrip.platform.adapter.out.persistence.integration;import org.springframework.data.jpa.repository.JpaRepository;interface IntegrationSyncJpaRepository extends JpaRepository<IntegrationSyncJpaEntity,String>{}
+package com.earthtrip.platform.adapter.out.persistence.integration;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+interface IntegrationSyncJpaRepository extends JpaRepository<IntegrationSyncJpaEntity, String> {}

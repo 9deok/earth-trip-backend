@@ -34,70 +34,83 @@ class StructureChangeSetsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     TripStructureUseCase.ChangeSetResult post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody StructureChangeSetRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody StructureChangeSetRequest request) {
         return useCase.apply(
-            tripId, actor.requireUserId(), request.toProposal(), request.expectedProposalHash()
-        );
+                tripId,
+                actor.requireUserId(),
+                request.toProposal(),
+                request.expectedProposalHash());
     }
 }
 
 record StructureChangeSetRequest(
-    @NotNull UUID requestId,
-    @PositiveOrZero long tripBaseVersion,
-    LocalDate startDate,
-    LocalDate endDate,
-    @Valid List<StructureSegmentRequest> segments,
-    @Valid List<StructureSegmentRemovalRequest> removedSegments,
-    @NotBlank String expectedProposalHash
-) {
+        @NotNull UUID requestId,
+        @PositiveOrZero long tripBaseVersion,
+        LocalDate startDate,
+        LocalDate endDate,
+        @Valid List<StructureSegmentRequest> segments,
+        @Valid List<StructureSegmentRemovalRequest> removedSegments,
+        @NotBlank String expectedProposalHash) {
     TripStructureUseCase.StructureProposal toProposal() {
         return new TripStructureUseCase.StructureProposal(
-            requestId, tripBaseVersion, startDate, endDate,
-            segments == null ? List.of() : segments.stream()
-                .map(StructureSegmentRequest::toProposal)
-                .toList(),
-            removedSegments == null ? List.of() : removedSegments.stream()
-                .map(StructureSegmentRemovalRequest::toRemoval)
-                .toList()
-        );
+                requestId,
+                tripBaseVersion,
+                startDate,
+                endDate,
+                segments == null
+                        ? List.of()
+                        : segments.stream().map(StructureSegmentRequest::toProposal).toList(),
+                removedSegments == null
+                        ? List.of()
+                        : removedSegments.stream()
+                                .map(StructureSegmentRemovalRequest::toRemoval)
+                                .toList());
     }
 }
 
 record StructureSegmentRequest(
-    @NotNull UUID segmentId,
-    @NotBlank String type,
-    String cityName,
-    String countryCode,
-    String placeId,
-    BigDecimal latitude,
-    BigDecimal longitude,
-    @NotNull LocalDate startDate,
-    @NotNull LocalDate endDate,
-    String accommodationName,
-    String accommodationPlaceId,
-    Instant checkInAt,
-    Instant checkOutAt,
-    String transportMode,
-    Instant departureAt,
-    Instant arrivalAt,
-    @PositiveOrZero int sortOrder,
-    @PositiveOrZero long baseVersion
-) {
+        @NotNull UUID segmentId,
+        @NotBlank String type,
+        String cityName,
+        String countryCode,
+        String placeId,
+        BigDecimal latitude,
+        BigDecimal longitude,
+        @NotNull LocalDate startDate,
+        @NotNull LocalDate endDate,
+        String accommodationName,
+        String accommodationPlaceId,
+        Instant checkInAt,
+        Instant checkOutAt,
+        String transportMode,
+        Instant departureAt,
+        Instant arrivalAt,
+        @PositiveOrZero int sortOrder,
+        @PositiveOrZero long baseVersion) {
     TripStructureUseCase.SegmentProposal toProposal() {
         return new TripStructureUseCase.SegmentProposal(
-            segmentId, type, cityName, countryCode, placeId, latitude, longitude,
-            startDate, endDate, accommodationName, accommodationPlaceId, checkInAt,
-            checkOutAt, transportMode, departureAt, arrivalAt, sortOrder, baseVersion
-        );
+                segmentId,
+                type,
+                cityName,
+                countryCode,
+                placeId,
+                latitude,
+                longitude,
+                startDate,
+                endDate,
+                accommodationName,
+                accommodationPlaceId,
+                checkInAt,
+                checkOutAt,
+                transportMode,
+                departureAt,
+                arrivalAt,
+                sortOrder,
+                baseVersion);
     }
 }
 
-record StructureSegmentRemovalRequest(
-    @NotNull UUID segmentId,
-    @PositiveOrZero long baseVersion
-) {
+record StructureSegmentRemovalRequest(@NotNull UUID segmentId, @PositiveOrZero long baseVersion) {
     TripStructureUseCase.SegmentRemoval toRemoval() {
         return new TripStructureUseCase.SegmentRemoval(segmentId, baseVersion);
     }

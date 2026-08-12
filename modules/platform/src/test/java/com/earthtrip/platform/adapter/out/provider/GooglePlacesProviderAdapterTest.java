@@ -25,20 +25,27 @@ class GooglePlacesProviderAdapterTest {
     @Test
     @SuppressWarnings("removal")
     void Google_검색_JSON을_도시명과_국가와_좌표로_변환한다() {
-        RestClient.Builder builder = RestClient.builder()
-            .configureMessageConverters(converters -> converters.withJsonConverter(
-                new MappingJackson2HttpMessageConverter(
-                    new ObjectMapper().findAndRegisterModules()
-                )
-            ));
+        RestClient.Builder builder =
+                RestClient.builder()
+                        .configureMessageConverters(
+                                converters ->
+                                        converters.withJsonConverter(
+                                                new MappingJackson2HttpMessageConverter(
+                                                        new ObjectMapper()
+                                                                .findAndRegisterModules())));
         MockRestServiceServer server = MockRestServiceServer.bindTo(builder).build();
         server.expect(requestTo("https://places.googleapis.com/v1/places:searchText"))
-            .andExpect(method(HttpMethod.POST))
-            .andExpect(header("X-Goog-Api-Key", "test-google-key"))
-            .andExpect(content().json("""
+                .andExpect(method(HttpMethod.POST))
+                .andExpect(header("X-Goog-Api-Key", "test-google-key"))
+                .andExpect(
+                        content()
+                                .json(
+                                        """
                 {"textQuery":"로마","languageCode":"ko","pageSize":12}
                 """))
-            .andRespond(withSuccess("""
+                .andRespond(
+                        withSuccess(
+                                """
                 {
                   "places": [
                     {
@@ -53,32 +60,28 @@ class GooglePlacesProviderAdapterTest {
                     }
                   ]
                 }
-                """, MediaType.APPLICATION_JSON));
-        GoogleMapsApiClient client = new GoogleMapsApiClient(
-            builder.build(),
-            "test-google-key"
-        );
-        GooglePlacesProviderAdapter adapter = new GooglePlacesProviderAdapter(
-            client,
-            Clock.fixed(Instant.parse("2026-08-05T14:19:25Z"), ZoneOffset.UTC)
-        );
+                """,
+                                MediaType.APPLICATION_JSON));
+        GoogleMapsApiClient client = new GoogleMapsApiClient(builder.build(), "test-google-key");
+        GooglePlacesProviderAdapter adapter =
+                new GooglePlacesProviderAdapter(
+                        client, Clock.fixed(Instant.parse("2026-08-05T14:19:25Z"), ZoneOffset.UTC));
 
-        List<ProviderProxyUseCase.PlaceSummary> results = adapter.search(
-            "로마",
-            "ko",
-            null,
-            null,
-            12
-        );
+        List<ProviderProxyUseCase.PlaceSummary> results =
+                adapter.search("로마", "ko", null, null, 12);
 
-        assertThat(results).singleElement().satisfies(result -> {
-            assertThat(result.providerPlaceId()).isEqualTo("rome-place-id");
-            assertThat(result.name()).isEqualTo("로마");
-            assertThat(result.countryCode()).isEqualTo("IT");
-            assertThat(result.latitude()).isEqualByComparingTo("41.9028");
-            assertThat(result.longitude()).isEqualByComparingTo("12.4964");
-            assertThat(result.categories()).containsExactly("locality", "political");
-        });
+        assertThat(results)
+                .singleElement()
+                .satisfies(
+                        result -> {
+                            assertThat(result.providerPlaceId()).isEqualTo("rome-place-id");
+                            assertThat(result.name()).isEqualTo("로마");
+                            assertThat(result.countryCode()).isEqualTo("IT");
+                            assertThat(result.latitude()).isEqualByComparingTo("41.9028");
+                            assertThat(result.longitude()).isEqualByComparingTo("12.4964");
+                            assertThat(result.categories())
+                                    .containsExactly("locality", "political");
+                        });
         server.verify();
     }
 }

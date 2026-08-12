@@ -29,26 +29,22 @@ class ReservationImportDismissalsController {
 
     @PostMapping
     ReservationImportUseCase.ImportResult dismiss(
-        @PathVariable UUID jobId,
-        @Valid @RequestBody ReservationImportDismissalRequest request
-    ) {
+            @PathVariable UUID jobId,
+            @Valid @RequestBody ReservationImportDismissalRequest request) {
         return useCase.dismiss(
-            jobId,
-            actor.requireUserId(),
-            request.items().stream().map(ReservationImportDismissalItem::command).toList()
-        );
+                jobId,
+                actor.requireUserId(),
+                request.items().stream().map(ReservationImportDismissalItem::command).toList());
     }
 }
 
 record ReservationImportDismissalRequest(
-    @NotEmpty List<@Valid ReservationImportDismissalItem> items
-) { }
+        @NotEmpty List<@Valid ReservationImportDismissalItem> items) {}
 
 record ReservationImportDismissalItem(
-    @NotNull UUID candidateId,
-    @Size(max = 500) String reason,
-    @PositiveOrZero long baseVersion
-) {
+        @NotNull UUID candidateId,
+        @Size(max = 500) String reason,
+        @PositiveOrZero long baseVersion) {
     ReservationImportUseCase.DismissalItem command() {
         return new ReservationImportUseCase.DismissalItem(candidateId, reason, baseVersion);
     }

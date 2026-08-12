@@ -9,17 +9,11 @@ public interface ExpenseDuplicateUseCase {
     List<DuplicateResult> query(UUID tripId, UUID actorUserId, DuplicateQuery query);
 
     record DuplicateQuery(
-        UUID sourceId,
-        String title,
-        long amountMinor,
-        String currency,
-        Instant occurredAt
-    ) { }
+            UUID sourceId, String title, long amountMinor, String currency, Instant occurredAt) {}
 
     record DuplicateResult(
-        UUID expenseId,
-        double score,
-        List<String> reasons,
-        ExpenseUseCase.ExpenseResult expense
-    ) { }
+            UUID expenseId,
+            double score,
+            List<String> reasons,
+            ExpenseUseCase.ExpenseResult expense) {}
 }

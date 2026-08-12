@@ -7,12 +7,11 @@ import java.util.List;
 public interface PlacesProviderPort {
 
     List<ProviderProxyUseCase.PlaceSummary> search(
-        String query,
-        String language,
-        BigDecimal nearLatitude,
-        BigDecimal nearLongitude,
-        int limit
-    );
+            String query,
+            String language,
+            BigDecimal nearLatitude,
+            BigDecimal nearLongitude,
+            int limit);
 
     ProviderProxyUseCase.PlaceDetail detail(String providerPlaceId, String language);
 }

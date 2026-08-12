@@ -1,6 +1,6 @@
 package com.earthtrip.platform.adapter.in.web.api.v1.trips.by_trip_id.share_links.by_share_id.access_events;
 
-import com.earthtrip.platform.application.port.in.TripShareUseCase;
+import com.earthtrip.platform.application.port.in.TripShareManagementUseCase;
 import com.earthtrip.sharedkernel.security.CurrentActor;
 import java.util.List;
 import java.util.UUID;
@@ -13,19 +13,17 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/trips/{tripId}/share-links/{shareId}/access-events")
 class ShareAccessEventsController {
 
-    private final TripShareUseCase useCase;
+    private final TripShareManagementUseCase useCase;
     private final CurrentActor actor;
 
-    ShareAccessEventsController(TripShareUseCase useCase, CurrentActor actor) {
+    ShareAccessEventsController(TripShareManagementUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @GetMapping
-    List<TripShareUseCase.AccessEventResult> get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID shareId
-    ) {
+    List<TripShareManagementUseCase.AccessEventResult> get(
+            @PathVariable UUID tripId, @PathVariable UUID shareId) {
         return useCase.accessEvents(tripId, shareId, actor.requireUserId());
     }
 }

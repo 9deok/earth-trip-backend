@@ -4,6 +4,9 @@ import com.earthtrip.identity.application.port.out.UserAccountStorePort;
 import com.earthtrip.identity.domain.EmailAddress;
 import com.earthtrip.identity.domain.UserAccount;
 import com.earthtrip.identity.domain.UserId;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 
@@ -27,13 +30,26 @@ class UserAccountPersistenceAdapter implements UserAccountStorePort {
     }
 
     @Override
+    public Map<UserId, UserAccount> findAllByIds(Collection<UserId> userIds) {
+        if (userIds.isEmpty()) return Map.of();
+        Map<UserId, UserAccount> result = new LinkedHashMap<>();
+        repository.findAllById(userIds.stream().map(UserId::toString).toList()).stream()
+                .map(UserJpaEntity::toDomain)
+                .forEach(user -> result.put(user.id(), user));
+        return result;
+    }
+
+    @Override
     public UserAccount save(UserAccount account) {
-        UserJpaEntity entity = repository.findById(account.id().toString())
-            .map(existing -> {
-                existing.apply(account);
-                return existing;
-            })
-            .orElseGet(() -> UserJpaEntity.from(account));
+        UserJpaEntity entity =
+                repository
+                        .findById(account.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(account);
+                                    return existing;
+                                })
+                        .orElseGet(() -> UserJpaEntity.from(account));
         return repository.saveAndFlush(entity).toDomain();
     }
 }

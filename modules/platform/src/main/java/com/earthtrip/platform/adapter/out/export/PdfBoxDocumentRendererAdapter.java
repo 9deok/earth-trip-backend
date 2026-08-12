@@ -1,5 +1,6 @@
-package com.earthtrip.platform.application.service.export;
+package com.earthtrip.platform.adapter.out.export;
 
+import com.earthtrip.platform.application.port.out.PdfDocumentRendererPort;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,14 +15,16 @@ import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.stereotype.Component;
 
 @Component
-class UnicodePdfRenderer {
+class PdfBoxDocumentRendererAdapter implements PdfDocumentRendererPort {
 
     private static final String FONT_RESOURCE = "/fonts/NotoSansKR-VF.ttf";
     private static final float PAGE_MARGIN = 48f;
     private static final float FOOTER_Y = 28f;
 
-    byte[] render(String documentTitle, List<TextLine> lines) {
-        try (PDDocument document = new PDDocument(); InputStream fontStream = fontStream()) {
+    @Override
+    public byte[] render(String documentTitle, List<TextLine> lines) {
+        try (PDDocument document = new PDDocument();
+                InputStream fontStream = fontStream()) {
             PDDocumentInformation information = document.getDocumentInformation();
             information.setTitle(documentTitle);
             information.setCreator("Earth Trip");
@@ -42,61 +45,11 @@ class UnicodePdfRenderer {
     }
 
     private static InputStream fontStream() {
-        InputStream stream = UnicodePdfRenderer.class.getResourceAsStream(FONT_RESOURCE);
+        InputStream stream = PdfBoxDocumentRendererAdapter.class.getResourceAsStream(FONT_RESOURCE);
         if (stream == null) {
             throw new IllegalStateException("PDF 한글 폰트 리소스를 찾을 수 없습니다.");
         }
         return stream;
-    }
-
-    enum TextStyle {
-        TITLE(22f, 31f, 0f),
-        SUBTITLE(13f, 21f, 0f),
-        SECTION(15f, 24f, 13f),
-        BODY(10.5f, 17f, 0f),
-        CAPTION(9f, 15f, 0f),
-        SPACER(1f, 10f, 0f);
-
-        private final float fontSize;
-        private final float lineHeight;
-        private final float topSpace;
-
-        TextStyle(float fontSize, float lineHeight, float topSpace) {
-            this.fontSize = fontSize;
-            this.lineHeight = lineHeight;
-            this.topSpace = topSpace;
-        }
-    }
-
-    record TextLine(String text, TextStyle style) {
-
-        TextLine {
-            text = text == null ? "" : text;
-        }
-
-        static TextLine title(String text) {
-            return new TextLine(text, TextStyle.TITLE);
-        }
-
-        static TextLine subtitle(String text) {
-            return new TextLine(text, TextStyle.SUBTITLE);
-        }
-
-        static TextLine section(String text) {
-            return new TextLine(text, TextStyle.SECTION);
-        }
-
-        static TextLine body(String text) {
-            return new TextLine(text, TextStyle.BODY);
-        }
-
-        static TextLine caption(String text) {
-            return new TextLine(text, TextStyle.CAPTION);
-        }
-
-        static TextLine spacer() {
-            return new TextLine("", TextStyle.SPACER);
-        }
     }
 
     private static final class PageWriter implements AutoCloseable {
@@ -118,21 +71,21 @@ class UnicodePdfRenderer {
         private void write(TextLine line) throws IOException {
             TextStyle style = line.style();
             if (style == TextStyle.SPACER) {
-                ensureSpace(style.lineHeight);
-                y -= style.lineHeight;
+                ensureSpace(style.lineHeight());
+                y -= style.lineHeight();
                 return;
             }
-            List<String> wrapped = wrap(supportedText(line.text()), style.fontSize);
-            ensureSpace(style.topSpace + style.lineHeight);
-            y -= style.topSpace;
+            List<String> wrapped = wrap(supportedText(line.text()), style.fontSize());
+            ensureSpace(style.topSpace() + style.lineHeight());
+            y -= style.topSpace();
             for (String value : wrapped) {
-                ensureSpace(style.lineHeight);
+                ensureSpace(style.lineHeight());
                 stream.beginText();
-                stream.setFont(font, style.fontSize);
+                stream.setFont(font, style.fontSize());
                 stream.newLineAtOffset(PAGE_MARGIN, y);
                 stream.showText(value);
                 stream.endText();
-                y -= style.lineHeight;
+                y -= style.lineHeight();
             }
         }
 
@@ -142,7 +95,7 @@ class UnicodePdfRenderer {
             }
             List<String> lines = new ArrayList<>();
             StringBuilder current = new StringBuilder();
-            for (int offset = 0; offset < value.length();) {
+            for (int offset = 0; offset < value.length(); ) {
                 int codePoint = value.codePointAt(offset);
                 String character = new String(Character.toChars(codePoint));
                 String candidate = current + character;
@@ -165,7 +118,7 @@ class UnicodePdfRenderer {
 
         private String supportedText(String value) throws IOException {
             StringBuilder supported = new StringBuilder();
-            for (int offset = 0; offset < value.length();) {
+            for (int offset = 0; offset < value.length(); ) {
                 int codePoint = value.codePointAt(offset);
                 String character = new String(Character.toChars(codePoint));
                 try {

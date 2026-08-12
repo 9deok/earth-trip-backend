@@ -102,7 +102,7 @@ class TripJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected TripJpaEntity() { }
+    protected TripJpaEntity() {}
 
     private TripJpaEntity(Trip trip, String companionNamesJson) {
         this.id = trip.id().toString();
@@ -144,36 +144,37 @@ class TripJpaEntity {
 
     Trip toDomain(java.util.List<String> companionNames) {
         return Trip.restore(
-            TripId.from(id),
-            ownerUserId == null ? null : UUID.fromString(ownerUserId),
-            new TripTitle(title),
-            Trip.Status.valueOf(status),
-            startDate,
-            endDate,
-            timeZone,
-            defaultCurrency,
-            Trip.PlanningMode.valueOf(planningMode),
-            Trip.Pace.valueOf(pace),
-            companionCount,
-            companionNames,
-            Trip.DateMode.valueOf(dateMode),
-            Trip.TravelMode.valueOf(travelMode),
-            departurePoint,
-            returnPoint,
-            firstDayStartMinutes,
-            lastDayEndMinutes,
-            overnightTravelNights,
-            reduceStairs,
-            frequentBreaks,
-            walkingLimitMinutes,
-            dietaryNotes,
-            deletedAt,
-            scheduledDeletionAt,
-            createdAt,
-            updatedAt,
-            version
-        );
+                TripId.from(id),
+                ownerUserId == null ? null : UUID.fromString(ownerUserId),
+                new TripTitle(title),
+                Trip.Status.valueOf(status),
+                startDate,
+                endDate,
+                timeZone,
+                defaultCurrency,
+                Trip.PlanningMode.valueOf(planningMode),
+                Trip.Pace.valueOf(pace),
+                companionCount,
+                companionNames,
+                Trip.DateMode.valueOf(dateMode),
+                Trip.TravelMode.valueOf(travelMode),
+                departurePoint,
+                returnPoint,
+                firstDayStartMinutes,
+                lastDayEndMinutes,
+                overnightTravelNights,
+                reduceStairs,
+                frequentBreaks,
+                walkingLimitMinutes,
+                dietaryNotes,
+                deletedAt,
+                scheduledDeletionAt,
+                createdAt,
+                updatedAt,
+                version);
     }
 
-    String companionNamesJson() { return companionNamesJson; }
+    String companionNamesJson() {
+        return companionNamesJson;
+    }
 }

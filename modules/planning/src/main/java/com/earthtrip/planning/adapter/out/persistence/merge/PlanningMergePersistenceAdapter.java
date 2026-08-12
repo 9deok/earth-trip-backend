@@ -13,9 +13,9 @@ import org.springframework.stereotype.Component;
 @Component
 class PlanningMergePersistenceAdapter implements PlanningMergeStorePort {
 
-    private static final TypeReference<List<UUID>> UUIDS = new TypeReference<>() { };
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
-    private static final TypeReference<List<Map<String, Object>>> LINKS = new TypeReference<>() { };
+    private static final TypeReference<List<UUID>> UUIDS = new TypeReference<>() {};
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
+    private static final TypeReference<List<Map<String, Object>>> LINKS = new TypeReference<>() {};
 
     private final PlanningMergeJpaRepository repository;
     private final ObjectMapper json;
@@ -33,29 +33,30 @@ class PlanningMergePersistenceAdapter implements PlanningMergeStorePort {
     @Override
     public MergeRecord save(MergeRecord merge) {
         PlanningMergeJpaEntity.SerializedMerge serialized = serialize(merge);
-        PlanningMergeJpaEntity entity = repository.findById(merge.id().toString())
-            .map(existing -> {
-                existing.apply(merge, serialized);
-                return existing;
-            })
-            .orElseGet(() -> new PlanningMergeJpaEntity(merge, serialized));
+        PlanningMergeJpaEntity entity =
+                repository
+                        .findById(merge.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(merge, serialized);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new PlanningMergeJpaEntity(merge, serialized));
         return record(repository.saveAndFlush(entity));
     }
 
     private MergeRecord record(PlanningMergeJpaEntity entity) {
         return entity.toRecord(
-            read(entity.duplicateIds(), UUIDS),
-            read(entity.beforeSnapshot(), MAP),
-            read(entity.afterSnapshot(), MAP),
-            read(entity.addedLinks(), LINKS)
-        );
+                read(entity.duplicateIds(), UUIDS),
+                read(entity.beforeSnapshot(), MAP),
+                read(entity.afterSnapshot(), MAP),
+                read(entity.addedLinks(), LINKS));
     }
 
     private PlanningMergeJpaEntity.SerializedMerge serialize(MergeRecord merge) {
         return new PlanningMergeJpaEntity.SerializedMerge(
-            write(merge.duplicateIds()), write(merge.beforeSnapshot()),
-            write(merge.afterSnapshot()), write(merge.addedLinks())
-        );
+                write(merge.duplicateIds()), write(merge.beforeSnapshot()),
+                write(merge.afterSnapshot()), write(merge.addedLinks()));
     }
 
     private String write(Object value) {

@@ -23,22 +23,41 @@ class TripStructureViewService implements TripStructureView {
     public StructureSnapshot snapshot(UUID tripId, UUID actorUserId) {
         TripManagementUseCase.TripResult trip = trips.get(tripId, actorUserId);
         return new StructureSnapshot(
-            new Trip(
-                trip.tripId(), trip.ownerUserId(), trip.title(), trip.status(),
-                trip.startDate(), trip.endDate(), trip.timeZone(), trip.defaultCurrency(),
-                trip.planningMode(), trip.pace(), trip.version(), trip.updatedAt()
-            ),
-            segments.list(tripId, actorUserId).stream()
-                .map(segment -> new Segment(
-                    segment.segmentId(), segment.type(), segment.cityName(),
-                    segment.countryCode(), segment.placeId(), segment.latitude(),
-                    segment.longitude(), segment.startDate(), segment.endDate(),
-                    segment.accommodationName(), segment.accommodationPlaceId(),
-                    segment.checkInAt(), segment.checkOutAt(), segment.transportMode(),
-                    segment.departureAt(), segment.arrivalAt(), segment.sortOrder(),
-                    segment.version()
-                ))
-                .toList()
-        );
+                new Trip(
+                        trip.tripId(),
+                        trip.ownerUserId(),
+                        trip.title(),
+                        trip.status(),
+                        trip.startDate(),
+                        trip.endDate(),
+                        trip.timeZone(),
+                        trip.defaultCurrency(),
+                        trip.planningMode(),
+                        trip.pace(),
+                        trip.version(),
+                        trip.updatedAt()),
+                segments.list(tripId, actorUserId).stream()
+                        .map(
+                                segment ->
+                                        new Segment(
+                                                segment.segmentId(),
+                                                segment.type(),
+                                                segment.cityName(),
+                                                segment.countryCode(),
+                                                segment.placeId(),
+                                                segment.latitude(),
+                                                segment.longitude(),
+                                                segment.startDate(),
+                                                segment.endDate(),
+                                                segment.accommodationName(),
+                                                segment.accommodationPlaceId(),
+                                                segment.checkInAt(),
+                                                segment.checkOutAt(),
+                                                segment.transportMode(),
+                                                segment.departureAt(),
+                                                segment.arrivalAt(),
+                                                segment.sortOrder(),
+                                                segment.version()))
+                        .toList());
     }
 }

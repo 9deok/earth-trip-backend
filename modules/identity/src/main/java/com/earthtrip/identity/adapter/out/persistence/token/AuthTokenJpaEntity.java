@@ -34,7 +34,7 @@ class AuthTokenJpaEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected AuthTokenJpaEntity() { }
+    protected AuthTokenJpaEntity() {}
 
     private AuthTokenJpaEntity(AuthToken token) {
         id = token.id().toString();
@@ -56,13 +56,12 @@ class AuthTokenJpaEntity {
 
     AuthToken toDomain() {
         return AuthToken.restore(
-            java.util.UUID.fromString(id),
-            UserId.from(userId),
-            AuthToken.Purpose.valueOf(purpose),
-            tokenHash,
-            expiresAt,
-            consumedAt,
-            createdAt
-        );
+                java.util.UUID.fromString(id),
+                UserId.from(userId),
+                AuthToken.Purpose.valueOf(purpose),
+                tokenHash,
+                expiresAt,
+                consumedAt,
+                createdAt);
     }
 }

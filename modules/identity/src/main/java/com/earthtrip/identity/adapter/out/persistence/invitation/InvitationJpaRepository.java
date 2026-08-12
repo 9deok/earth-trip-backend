@@ -6,6 +6,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface InvitationJpaRepository extends JpaRepository<InvitationJpaEntity, String> {
     List<InvitationJpaEntity> findAllByTripIdOrderByCreatedAtDesc(String tripId);
+
     Optional<InvitationJpaEntity> findByTokenHash(String tokenHash);
-    List<InvitationJpaEntity> findAllByTripIdAndEmailOrderByCreatedAtDesc(String tripId, String email);
+
+    List<InvitationJpaEntity> findAllByTripIdAndEmailOrderByCreatedAtDesc(
+            String tripId, String email);
 }

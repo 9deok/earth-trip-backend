@@ -28,33 +28,27 @@ class RegistrationController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     RegistrationResponse register(@Valid @RequestBody RegistrationRequest request) {
-        RegisterAccountUseCase.Result result = useCase.register(new RegisterAccountUseCase.Command(
-            request.requestId(),
-            request.email(),
-            request.password(),
-            request.displayName()
-        ));
+        RegisterAccountUseCase.Result result =
+                useCase.register(
+                        new RegisterAccountUseCase.Command(
+                                request.requestId(),
+                                request.email(),
+                                request.password(),
+                                request.displayName()));
         return new RegistrationResponse(
-            result.userId(),
-            result.email(),
-            result.displayName(),
-            result.status(),
-            result.createdAt()
-        );
+                result.userId(),
+                result.email(),
+                result.displayName(),
+                result.status(),
+                result.createdAt());
     }
 }
 
 record RegistrationRequest(
-    @NotNull UUID requestId,
-    @NotBlank @Email @Size(max = 320) String email,
-    @NotBlank @Size(min = 10, max = 128) String password,
-    @NotBlank @Size(max = 80) String displayName
-) { }
+        @NotNull UUID requestId,
+        @NotBlank @Email @Size(max = 320) String email,
+        @NotBlank @Size(min = 10, max = 128) String password,
+        @NotBlank @Size(max = 80) String displayName) {}
 
 record RegistrationResponse(
-    UUID userId,
-    String email,
-    String displayName,
-    String status,
-    Instant createdAt
-) { }
+        UUID userId, String email, String displayName, String status, Instant createdAt) {}

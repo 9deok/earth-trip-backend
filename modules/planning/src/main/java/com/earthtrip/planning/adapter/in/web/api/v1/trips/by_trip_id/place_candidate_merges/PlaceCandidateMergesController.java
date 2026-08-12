@@ -32,27 +32,25 @@ class PlaceCandidateMergesController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     PlanningMergeUseCase.MergeResult merge(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody PlaceCandidateMergeRequest request
-    ) {
-        return useCase.mergePlaceCandidates(
-            tripId, actor.requireUserId(), request.command()
-        );
+            @PathVariable UUID tripId, @Valid @RequestBody PlaceCandidateMergeRequest request) {
+        return useCase.mergePlaceCandidates(tripId, actor.requireUserId(), request.command());
     }
 }
 
 record PlaceCandidateMergeRequest(
-    @NotNull UUID requestId,
-    @NotNull UUID primaryId,
-    @NotEmpty List<@NotNull UUID> duplicateIds,
-    Map<String, Object> mergedPayload,
-    @PositiveOrZero long primaryBaseVersion,
-    @NotNull Map<UUID, @PositiveOrZero Long> duplicateBaseVersions
-) {
+        @NotNull UUID requestId,
+        @NotNull UUID primaryId,
+        @NotEmpty List<@NotNull UUID> duplicateIds,
+        Map<String, Object> mergedPayload,
+        @PositiveOrZero long primaryBaseVersion,
+        @NotNull Map<UUID, @PositiveOrZero Long> duplicateBaseVersions) {
     PlanningMergeUseCase.MergeCommand command() {
         return new PlanningMergeUseCase.MergeCommand(
-            requestId, primaryId, duplicateIds, mergedPayload,
-            primaryBaseVersion, duplicateBaseVersions
-        );
+                requestId,
+                primaryId,
+                duplicateIds,
+                mergedPayload,
+                primaryBaseVersion,
+                duplicateBaseVersions);
     }
 }

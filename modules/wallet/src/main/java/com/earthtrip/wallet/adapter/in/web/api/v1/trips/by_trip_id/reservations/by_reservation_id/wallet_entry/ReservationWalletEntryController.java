@@ -24,48 +24,43 @@ class ReservationWalletEntryController {
     private final ReservationWalletEntryUseCase useCase;
     private final CurrentActor actor;
 
-    ReservationWalletEntryController(
-        ReservationWalletEntryUseCase useCase,
-        CurrentActor actor
-    ) {
+    ReservationWalletEntryController(ReservationWalletEntryUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PutMapping
     WalletRecordUseCase.RecordResult put(
-        @PathVariable UUID tripId,
-        @PathVariable UUID reservationId,
-        @Valid @RequestBody ReservationWalletEntryRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID reservationId,
+            @Valid @RequestBody ReservationWalletEntryRequest request) {
         return useCase.put(
-            tripId, reservationId, actor.requireUserId(),
-            new ReservationWalletEntryUseCase.Command(
-                request.requestId(), request.payload(), request.visibility(),
-                request.sortOrder(), request.baseVersion()
-            )
-        );
+                tripId,
+                reservationId,
+                actor.requireUserId(),
+                new ReservationWalletEntryUseCase.Command(
+                        request.requestId(),
+                        request.payload(),
+                        request.visibility(),
+                        request.sortOrder(),
+                        request.baseVersion()));
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId,
-        @PathVariable UUID reservationId,
-        @Valid @RequestBody ReservationWalletEntryDeleteRequest request
-    ) {
-        useCase.delete(
-            tripId, reservationId, actor.requireUserId(), request.baseVersion()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID reservationId,
+            @Valid @RequestBody ReservationWalletEntryDeleteRequest request) {
+        useCase.delete(tripId, reservationId, actor.requireUserId(), request.baseVersion());
     }
 }
 
 record ReservationWalletEntryRequest(
-    UUID requestId,
-    @NotNull Map<String, Object> payload,
-    String visibility,
-    @PositiveOrZero Integer sortOrder,
-    @PositiveOrZero long baseVersion
-) { }
+        UUID requestId,
+        @NotNull Map<String, Object> payload,
+        String visibility,
+        @PositiveOrZero Integer sortOrder,
+        @PositiveOrZero long baseVersion) {}
 
-record ReservationWalletEntryDeleteRequest(@PositiveOrZero long baseVersion) { }
+record ReservationWalletEntryDeleteRequest(@PositiveOrZero long baseVersion) {}

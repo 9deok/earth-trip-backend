@@ -18,10 +18,5 @@ public interface CandidateSourceLinkStorePort {
     void delete(UUID candidateId, UUID sourceId);
 
     record LinkRecord(
-        UUID tripId,
-        UUID candidateId,
-        UUID sourceId,
-        UUID linkedBy,
-        Instant linkedAt
-    ) { }
+            UUID tripId, UUID candidateId, UUID sourceId, UUID linkedBy, Instant linkedAt) {}
 }

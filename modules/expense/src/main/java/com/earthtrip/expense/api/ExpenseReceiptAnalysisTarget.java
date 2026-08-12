@@ -8,12 +8,11 @@ public interface ExpenseReceiptAnalysisTarget {
     TargetResult get(UUID tripId, UUID expenseId, UUID actorUserId);
 
     TargetResult confirm(
-        UUID tripId,
-        UUID expenseId,
-        UUID actorUserId,
-        Map<String, Object> confirmedFields,
-        long baseVersion
-    );
+            UUID tripId,
+            UUID expenseId,
+            UUID actorUserId,
+            Map<String, Object> confirmedFields,
+            long baseVersion);
 
-    record TargetResult(UUID targetId, Map<String, Object> fields, long version) { }
+    record TargetResult(UUID targetId, Map<String, Object> fields, long version) {}
 }

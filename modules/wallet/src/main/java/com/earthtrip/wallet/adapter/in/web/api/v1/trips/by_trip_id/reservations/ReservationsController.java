@@ -1,3 +1,51 @@
-package com.earthtrip.wallet.adapter.in.web.api.v1.trips.by_trip_id.reservations;import com.earthtrip.sharedkernel.security.CurrentActor;import com.earthtrip.wallet.application.port.in.WalletRecordUseCase;import jakarta.validation.Valid;import jakarta.validation.constraints.NotNull;import java.util.*;import org.springframework.http.HttpStatus;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/v1/trips/{tripId}/reservations") class ReservationsController{private final WalletRecordUseCase useCase;private final CurrentActor actor;ReservationsController(WalletRecordUseCase u,CurrentActor a){useCase=u;actor=a;}@GetMapping List<WalletRecordUseCase.RecordResult> get(@PathVariable UUID tripId){return useCase.list(tripId,actor.requireUserId(),"RESERVATION",null);}@PostMapping @ResponseStatus(HttpStatus.CREATED) WalletRecordUseCase.RecordResult post(@PathVariable UUID tripId,@Valid @RequestBody ReservationMutation r){return useCase.create(tripId,actor.requireUserId(),"RESERVATION",false,new WalletRecordUseCase.Command(r.requestId(),null,r.payload(),"CONFIRMED",r.visibility(),r.sortOrder(),0));}}
-record ReservationMutation(@NotNull UUID requestId,@NotNull Map<String,Object> payload,String visibility,Integer sortOrder){}
+package com.earthtrip.wallet.adapter.in.web.api.v1.trips.by_trip_id.reservations;
+
+import com.earthtrip.sharedkernel.security.CurrentActor;
+import com.earthtrip.wallet.application.port.in.WalletRecordUseCase;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import java.util.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/reservations")
+class ReservationsController {
+    private final WalletRecordUseCase useCase;
+    private final CurrentActor actor;
+
+    ReservationsController(WalletRecordUseCase u, CurrentActor a) {
+        useCase = u;
+        actor = a;
+    }
+
+    @GetMapping
+    List<WalletRecordUseCase.RecordResult> get(@PathVariable UUID tripId) {
+        return useCase.list(tripId, actor.requireUserId(), "RESERVATION", null);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    WalletRecordUseCase.RecordResult post(
+            @PathVariable UUID tripId, @Valid @RequestBody ReservationMutation r) {
+        return useCase.create(
+                tripId,
+                actor.requireUserId(),
+                "RESERVATION",
+                false,
+                new WalletRecordUseCase.Command(
+                        r.requestId(),
+                        null,
+                        r.payload(),
+                        "CONFIRMED",
+                        r.visibility(),
+                        r.sortOrder(),
+                        0));
+    }
+}
+
+record ReservationMutation(
+        @NotNull UUID requestId,
+        @NotNull Map<String, Object> payload,
+        String visibility,
+        Integer sortOrder) {}

@@ -12,27 +12,23 @@ public interface SyncConflictUseCase {
     ConflictResult get(UUID tripId, UUID conflictId, UUID actorUserId);
 
     ConflictResult resolve(
-        UUID tripId,
-        UUID conflictId,
-        UUID actorUserId,
-        ResolutionCommand command
-    );
+            UUID tripId, UUID conflictId, UUID actorUserId, ResolutionCommand command);
 
-    record ResolutionCommand(String strategy, Map<String, Object> mergedPayload, long baseVersion) { }
+    record ResolutionCommand(
+            String strategy, Map<String, Object> mergedPayload, long baseVersion) {}
 
     record ConflictResult(
-        UUID conflictId,
-        UUID operationId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> deviceCommand,
-        Map<String, Object> serverSnapshot,
-        List<String> mergeableFields,
-        String status,
-        String resolution,
-        Instant createdAt,
-        Instant resolvedAt,
-        long version
-    ) { }
+            UUID conflictId,
+            UUID operationId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> deviceCommand,
+            Map<String, Object> serverSnapshot,
+            List<String> mergeableFields,
+            String status,
+            String resolution,
+            Instant createdAt,
+            Instant resolvedAt,
+            long version) {}
 }

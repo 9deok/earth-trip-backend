@@ -19,9 +19,8 @@ class AdminDeadLettersController {
 
     @GetMapping
     List<InternalOperationsUseCase.DeadLetterResult> get(
-        @RequestParam(required = false) String status,
-        @RequestParam(defaultValue = "50") int limit
-    ) {
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "50") int limit) {
         return useCase.deadLetters(status, limit);
     }
 }

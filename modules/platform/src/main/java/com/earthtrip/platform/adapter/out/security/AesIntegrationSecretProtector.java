@@ -25,9 +25,8 @@ class AesIntegrationSecretProtector implements IntegrationSecretProtectorPort {
     private final SecureRandom random = new SecureRandom();
 
     AesIntegrationSecretProtector(
-        @Value("${earthtrip.integrations.encryption-keys:}") String encodedKeys,
-        @Value("${earthtrip.integrations.primary-key-id:primary}") String primaryKeyId
-    ) {
+            @Value("${earthtrip.integrations.encryption-keys:}") String encodedKeys,
+            @Value("${earthtrip.integrations.primary-key-id:primary}") String primaryKeyId) {
         this.keys = parseKeys(encodedKeys);
         this.primaryKeyId = primaryKeyId == null ? "" : primaryKeyId.strip();
     }
@@ -42,9 +41,7 @@ class AesIntegrationSecretProtector implements IntegrationSecretProtectorPort {
         byte[] key = keys.get(primaryKeyId);
         if (key == null) {
             throw EarthTripException.unavailable(
-                "INTEGRATION_ENCRYPTION_NOT_CONFIGURED",
-                "외부 계정 토큰 암호화 키가 설정되지 않았습니다."
-            );
+                    "INTEGRATION_ENCRYPTION_NOT_CONFIGURED", "외부 계정 토큰 암호화 키가 설정되지 않았습니다.");
         }
         try {
             byte[] iv = new byte[IV_BYTES];
@@ -52,12 +49,11 @@ class AesIntegrationSecretProtector implements IntegrationSecretProtectorPort {
             Cipher cipher = cipher(Cipher.ENCRYPT_MODE, key, iv, purpose);
             byte[] encrypted = cipher.doFinal(value.getBytes(StandardCharsets.UTF_8));
             return String.join(
-                ".",
-                "v1",
-                primaryKeyId,
-                Base64.getUrlEncoder().withoutPadding().encodeToString(iv),
-                Base64.getUrlEncoder().withoutPadding().encodeToString(encrypted)
-            );
+                    ".",
+                    "v1",
+                    primaryKeyId,
+                    Base64.getUrlEncoder().withoutPadding().encodeToString(iv),
+                    Base64.getUrlEncoder().withoutPadding().encodeToString(encrypted));
         } catch (GeneralSecurityException exception) {
             throw new IllegalStateException("외부 계정 토큰을 암호화할 수 없습니다.", exception);
         }
@@ -73,9 +69,7 @@ class AesIntegrationSecretProtector implements IntegrationSecretProtectorPort {
             byte[] key = keys.get(values[1]);
             if (key == null) {
                 throw EarthTripException.unavailable(
-                    "INTEGRATION_DECRYPTION_KEY_NOT_AVAILABLE",
-                    "저장된 외부 계정 토큰을 복호화할 키가 없습니다."
-                );
+                        "INTEGRATION_DECRYPTION_KEY_NOT_AVAILABLE", "저장된 외부 계정 토큰을 복호화할 키가 없습니다.");
             }
             byte[] iv = Base64.getUrlDecoder().decode(values[2]);
             byte[] encrypted = Base64.getUrlDecoder().decode(values[3]);
@@ -83,9 +77,8 @@ class AesIntegrationSecretProtector implements IntegrationSecretProtectorPort {
                 throw corrupted();
             }
             return new String(
-                cipher(Cipher.DECRYPT_MODE, key, iv, purpose).doFinal(encrypted),
-                StandardCharsets.UTF_8
-            );
+                    cipher(Cipher.DECRYPT_MODE, key, iv, purpose).doFinal(encrypted),
+                    StandardCharsets.UTF_8);
         } catch (AEADBadTagException exception) {
             throw corrupted();
         } catch (GeneralSecurityException | IllegalArgumentException exception) {
@@ -94,7 +87,7 @@ class AesIntegrationSecretProtector implements IntegrationSecretProtectorPort {
     }
 
     private static Cipher cipher(int mode, byte[] key, byte[] iv, String purpose)
-        throws GeneralSecurityException {
+            throws GeneralSecurityException {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
         cipher.init(mode, new SecretKeySpec(key, "AES"), new GCMParameterSpec(128, iv));
         cipher.updateAAD(purpose.getBytes(StandardCharsets.UTF_8));
@@ -125,9 +118,6 @@ class AesIntegrationSecretProtector implements IntegrationSecretProtectorPort {
 
     private static EarthTripException corrupted() {
         return new EarthTripException(
-            "INTEGRATION_SECRET_CORRUPTED",
-            500,
-            "저장된 외부 계정 토큰의 무결성을 확인할 수 없습니다."
-        );
+                "INTEGRATION_SECRET_CORRUPTED", 500, "저장된 외부 계정 토큰의 무결성을 확인할 수 없습니다.");
     }
 }

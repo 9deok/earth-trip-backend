@@ -29,49 +29,54 @@ class ReservationFilesController {
     }
 
     @GetMapping
-    List<ReservationFileResponse> get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID reservationId
-    ) {
-        return useCase.linkedFiles(
-                actor.requireUserId(), tripId, "RESERVATION", reservationId
-            ).stream()
-            .map(ReservationFileResponse::from)
-            .toList();
+    List<ReservationFileResponse> get(@PathVariable UUID tripId, @PathVariable UUID reservationId) {
+        return useCase
+                .linkedFiles(actor.requireUserId(), tripId, "RESERVATION", reservationId)
+                .stream()
+                .map(ReservationFileResponse::from)
+                .toList();
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     FileUseCase.LinkResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID reservationId,
-        @Valid @RequestBody ReservationFileLinkRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID reservationId,
+            @Valid @RequestBody ReservationFileLinkRequest request) {
         return useCase.link(
-            actor.requireUserId(), request.fileId(), request.requestId(), tripId,
-            "RESERVATION", reservationId, request.visibility()
-        );
+                actor.requireUserId(),
+                request.fileId(),
+                request.requestId(),
+                tripId,
+                "RESERVATION",
+                reservationId,
+                request.visibility());
     }
 }
 
-record ReservationFileLinkRequest(@NotNull UUID requestId, @NotNull UUID fileId, String visibility) { }
+record ReservationFileLinkRequest(
+        @NotNull UUID requestId, @NotNull UUID fileId, String visibility) {}
 
 record ReservationFileResponse(
-    UUID fileId,
-    String fileName,
-    String mimeType,
-    long sizeBytes,
-    String checksumSha256,
-    String status,
-    long version,
-    Instant createdAt,
-    Instant completedAt
-) {
+        UUID fileId,
+        String fileName,
+        String mimeType,
+        long sizeBytes,
+        String checksumSha256,
+        String status,
+        long version,
+        Instant createdAt,
+        Instant completedAt) {
     static ReservationFileResponse from(FileUseCase.FileResult result) {
         return new ReservationFileResponse(
-            result.fileId(), result.fileName(), result.mimeType(), result.sizeBytes(),
-            result.checksumSha256(), result.status(), result.version(), result.createdAt(),
-            result.completedAt()
-        );
+                result.fileId(),
+                result.fileName(),
+                result.mimeType(),
+                result.sizeBytes(),
+                result.checksumSha256(),
+                result.status(),
+                result.version(),
+                result.createdAt(),
+                result.completedAt());
     }
 }

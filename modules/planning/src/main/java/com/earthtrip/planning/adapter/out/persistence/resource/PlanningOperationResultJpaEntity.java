@@ -37,12 +37,10 @@ class PlanningOperationResultJpaEntity {
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected PlanningOperationResultJpaEntity() { }
+    protected PlanningOperationResultJpaEntity() {}
 
     PlanningOperationResultJpaEntity(
-        ActivityOperationStorePort.OperationRecord record,
-        String resultJson
-    ) {
+            ActivityOperationStorePort.OperationRecord record, String resultJson) {
         operationId = record.operationId().toString();
         tripId = record.tripId().toString();
         actorId = record.actorId().toString();
@@ -53,19 +51,35 @@ class PlanningOperationResultJpaEntity {
         createdAt = record.createdAt();
     }
 
-    UUID operationId() { return UUID.fromString(operationId); }
+    UUID operationId() {
+        return UUID.fromString(operationId);
+    }
 
-    UUID tripId() { return UUID.fromString(tripId); }
+    UUID tripId() {
+        return UUID.fromString(tripId);
+    }
 
-    UUID actorId() { return UUID.fromString(actorId); }
+    UUID actorId() {
+        return UUID.fromString(actorId);
+    }
 
-    String status() { return status; }
+    String status() {
+        return status;
+    }
 
-    String resourceType() { return resourceType; }
+    String resourceType() {
+        return resourceType;
+    }
 
-    UUID resourceId() { return resourceId == null ? null : UUID.fromString(resourceId); }
+    UUID resourceId() {
+        return resourceId == null ? null : UUID.fromString(resourceId);
+    }
 
-    String resultJson() { return resultJson; }
+    String resultJson() {
+        return resultJson;
+    }
 
-    Instant createdAt() { return createdAt; }
+    Instant createdAt() {
+        return createdAt;
+    }
 }

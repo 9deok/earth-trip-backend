@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 interface ExpenseReviewDayJpaRepository
-    extends JpaRepository<ExpenseReviewDayJpaEntity, ExpenseReviewDayId> {
+        extends JpaRepository<ExpenseReviewDayJpaEntity, ExpenseReviewDayId> {
 
     List<ExpenseReviewDayJpaEntity> findAllByTripIdOrderByLocalDateAsc(String tripId);
 

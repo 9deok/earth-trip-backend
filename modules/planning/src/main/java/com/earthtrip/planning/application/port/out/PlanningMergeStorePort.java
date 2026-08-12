@@ -13,19 +13,18 @@ public interface PlanningMergeStorePort {
     MergeRecord save(MergeRecord merge);
 
     record MergeRecord(
-        UUID id,
-        UUID tripId,
-        String resourceType,
-        UUID primaryId,
-        List<UUID> duplicateIds,
-        Map<String, Object> beforeSnapshot,
-        Map<String, Object> afterSnapshot,
-        List<Map<String, Object>> addedLinks,
-        String status,
-        UUID mergedBy,
-        Instant mergedAt,
-        UUID revertedBy,
-        Instant revertedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            String resourceType,
+            UUID primaryId,
+            List<UUID> duplicateIds,
+            Map<String, Object> beforeSnapshot,
+            Map<String, Object> afterSnapshot,
+            List<Map<String, Object>> addedLinks,
+            String status,
+            UUID mergedBy,
+            Instant mergedAt,
+            UUID revertedBy,
+            Instant revertedAt,
+            long version) {}
 }

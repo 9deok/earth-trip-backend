@@ -16,19 +16,14 @@ public interface CurrentAccountUseCase {
     void cancelDeletion(UUID userId);
 
     record AccountResult(
-        UUID userId,
-        String email,
-        String displayName,
-        String status,
-        Instant emailVerifiedAt,
-        Instant createdAt,
-        Instant updatedAt
-    ) { }
+            UUID userId,
+            String email,
+            String displayName,
+            String status,
+            Instant emailVerifiedAt,
+            Instant createdAt,
+            Instant updatedAt) {}
 
     record DeletionResult(
-        UUID requestId,
-        Instant requestedAt,
-        Instant scheduledDeletionAt,
-        String status
-    ) { }
+            UUID requestId, Instant requestedAt, Instant scheduledDeletionAt, String status) {}
 }

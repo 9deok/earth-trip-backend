@@ -5,5 +5,10 @@ import java.time.Instant;
 
 public interface InvitationDeliveryPort {
     DeliveryStatus send(EmailAddress email, String invitationUrl, Instant expiresAt);
-    enum DeliveryStatus { SENT, PROVIDER_NOT_CONFIGURED, FAILED }
+
+    enum DeliveryStatus {
+        SENT,
+        PROVIDER_NOT_CONFIGURED,
+        FAILED
+    }
 }

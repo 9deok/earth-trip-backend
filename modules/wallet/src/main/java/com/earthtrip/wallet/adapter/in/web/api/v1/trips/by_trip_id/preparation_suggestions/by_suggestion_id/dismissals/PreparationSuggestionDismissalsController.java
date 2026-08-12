@@ -14,18 +14,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    "/api/v1/trips/{tripId}/preparation-suggestions/{suggestionId}/dismissals"
-)
+@RequestMapping("/api/v1/trips/{tripId}/preparation-suggestions/{suggestionId}/dismissals")
 class PreparationSuggestionDismissalsController {
 
     private final PreparationSuggestionUseCase useCase;
     private final CurrentActor actor;
 
     PreparationSuggestionDismissalsController(
-        PreparationSuggestionUseCase useCase,
-        CurrentActor actor
-    ) {
+            PreparationSuggestionUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
@@ -33,14 +29,11 @@ class PreparationSuggestionDismissalsController {
     @PostMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID suggestionId,
-        @Valid @RequestBody PreparationSuggestionDismissalRequest request
-    ) {
-        useCase.dismiss(
-            tripId, suggestionId, actor.requireUserId(), request.reason()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID suggestionId,
+            @Valid @RequestBody PreparationSuggestionDismissalRequest request) {
+        useCase.dismiss(tripId, suggestionId, actor.requireUserId(), request.reason());
     }
 }
 
-record PreparationSuggestionDismissalRequest(@Size(max = 500) String reason) { }
+record PreparationSuggestionDismissalRequest(@Size(max = 500) String reason) {}

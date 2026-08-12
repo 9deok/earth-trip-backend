@@ -22,10 +22,7 @@ class RegisterAccountService implements RegisterAccountUseCase {
     private final Clock clock;
 
     RegisterAccountService(
-        UserAccountStorePort accountStore,
-        CredentialPort credentialPort,
-        Clock clock
-    ) {
+            UserAccountStorePort accountStore, CredentialPort credentialPort, Clock clock) {
         this.accountStore = accountStore;
         this.credentialPort = credentialPort;
         this.clock = clock;
@@ -37,59 +34,47 @@ class RegisterAccountService implements RegisterAccountUseCase {
         validatePassword(command.password());
         EmailAddress email = new EmailAddress(command.email());
 
-        UserAccount sameRequest = accountStore.findById(new UserId(command.requestId()))
-            .orElse(null);
+        UserAccount sameRequest =
+                accountStore.findById(new UserId(command.requestId())).orElse(null);
         if (sameRequest != null) {
             if (!sameRequest.email().equals(email)) {
                 throw EarthTripException.conflict(
-                    "IDEMPOTENCY_KEY_REUSED",
-                    "같은 요청 ID가 다른 계정 생성 요청에 사용됐습니다."
-                );
+                        "IDEMPOTENCY_KEY_REUSED", "같은 요청 ID가 다른 계정 생성 요청에 사용됐습니다.");
             }
             return result(sameRequest);
         }
         if (accountStore.findByEmail(email).isPresent()) {
-            throw EarthTripException.conflict(
-                "EMAIL_ALREADY_REGISTERED",
-                "이미 가입된 이메일입니다."
-            );
+            throw EarthTripException.conflict("EMAIL_ALREADY_REGISTERED", "이미 가입된 이메일입니다.");
         }
 
         Instant now = clock.instant();
-        UserAccount account = UserAccount.register(
-            new UserId(command.requestId()),
-            email,
-            credentialPort.hashPassword(command.password()),
-            command.displayName(),
-            now
-        );
+        UserAccount account =
+                UserAccount.register(
+                        new UserId(command.requestId()),
+                        email,
+                        credentialPort.hashPassword(command.password()),
+                        command.displayName(),
+                        now);
         return result(accountStore.save(account));
     }
 
     private static Result result(UserAccount account) {
         return new Result(
-            account.id().value(),
-            account.email().value(),
-            account.displayName(),
-            account.status().name(),
-            account.createdAt()
-        );
+                account.id().value(),
+                account.email().value(),
+                account.displayName(),
+                account.status().name(),
+                account.createdAt());
     }
 
     private static void validatePassword(String password) {
         if (password == null || password.length() < 10 || password.length() > 128) {
-            throw EarthTripException.badRequest(
-                "WEAK_PASSWORD",
-                "비밀번호는 10자 이상 128자 이하로 입력해 주세요."
-            );
+            throw EarthTripException.badRequest("WEAK_PASSWORD", "비밀번호는 10자 이상 128자 이하로 입력해 주세요.");
         }
         boolean hasLetter = password.chars().anyMatch(Character::isLetter);
         boolean hasDigit = password.chars().anyMatch(Character::isDigit);
         if (!hasLetter || !hasDigit) {
-            throw EarthTripException.badRequest(
-                "WEAK_PASSWORD",
-                "비밀번호에는 문자와 숫자가 모두 필요합니다."
-            );
+            throw EarthTripException.badRequest("WEAK_PASSWORD", "비밀번호에는 문자와 숫자가 모두 필요합니다.");
         }
     }
 }

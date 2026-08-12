@@ -43,7 +43,7 @@ class UserJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected UserJpaEntity() { }
+    protected UserJpaEntity() {}
 
     private UserJpaEntity(UserAccount account) {
         id = account.id().toString();
@@ -66,14 +66,13 @@ class UserJpaEntity {
 
     UserAccount toDomain() {
         return UserAccount.restore(
-            UserId.from(id),
-            new EmailAddress(email),
-            passwordHash,
-            displayName,
-            UserAccount.Status.valueOf(status),
-            emailVerifiedAt,
-            createdAt,
-            updatedAt
-        );
+                UserId.from(id),
+                new EmailAddress(email),
+                passwordHash,
+                displayName,
+                UserAccount.Status.valueOf(status),
+                emailVerifiedAt,
+                createdAt,
+                updatedAt);
     }
 }

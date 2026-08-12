@@ -3,7 +3,6 @@ package com.earthtrip.platform.adapter.out.provider;
 import com.earthtrip.platform.application.port.in.ExternalTravelUseCase;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.fasterxml.jackson.databind.JsonNode;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -33,10 +32,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 @Component
 class AmadeusTravelClient {
 
-    private static final Pattern FLIGHT_REFERENCE = Pattern.compile(
-        "^([A-Z0-9]{2,3})[ -]?(\\d{1,4})(?:[@:](\\d{4}-\\d{2}-\\d{2}))?$",
-        Pattern.CASE_INSENSITIVE
-    );
+    private static final Pattern FLIGHT_REFERENCE =
+            Pattern.compile(
+                    "^([A-Z0-9]{2,3})[ -]?(\\d{1,4})(?:[@:](\\d{4}-\\d{2}-\\d{2}))?$",
+                    Pattern.CASE_INSENSITIVE);
 
     private final RestClient restClient;
     private final Clock clock;
@@ -47,22 +46,21 @@ class AmadeusTravelClient {
 
     @Autowired
     AmadeusTravelClient(
-        RestClient.Builder builder,
-        Clock clock,
-        @Value("${earthtrip.providers.amadeus.base-url:https://test.api.amadeus.com}") String apiBaseUrl,
-        @Value("${earthtrip.providers.amadeus.api-key:}") String apiKey,
-        @Value("${earthtrip.providers.amadeus.api-secret:}") String apiSecret
-    ) {
+            RestClient.Builder builder,
+            Clock clock,
+            @Value("${earthtrip.providers.amadeus.base-url:https://test.api.amadeus.com}")
+                    String apiBaseUrl,
+            @Value("${earthtrip.providers.amadeus.api-key:}") String apiKey,
+            @Value("${earthtrip.providers.amadeus.api-secret:}") String apiSecret) {
         this(builder.build(), clock, apiBaseUrl, apiKey, apiSecret);
     }
 
     AmadeusTravelClient(
-        RestClient restClient,
-        Clock clock,
-        String apiBaseUrl,
-        String apiKey,
-        String apiSecret
-    ) {
+            RestClient restClient,
+            Clock clock,
+            String apiBaseUrl,
+            String apiKey,
+            String apiSecret) {
         this.restClient = restClient;
         this.clock = clock;
         this.apiBaseUrl = stripSlash(apiBaseUrl);
@@ -75,54 +73,51 @@ class AmadeusTravelClient {
     }
 
     List<ExternalTravelUseCase.TransportStatusResult> statuses(
-        List<String> references,
-        Instant observedAt
-    ) {
+            List<String> references, Instant observedAt) {
         requireConfigured();
-        LocalDate fallbackDate = LocalDate.ofInstant(
-            observedAt == null ? clock.instant() : observedAt,
-            ZoneOffset.UTC
-        );
+        LocalDate fallbackDate =
+                LocalDate.ofInstant(
+                        observedAt == null ? clock.instant() : observedAt, ZoneOffset.UTC);
         List<ExternalTravelUseCase.TransportStatusResult> results = new ArrayList<>();
         for (String reference : references) {
             Matcher matcher = FLIGHT_REFERENCE.matcher(reference.strip());
             if (!matcher.matches()) {
                 throw EarthTripException.badRequest(
-                    "INVALID_FLIGHT_REFERENCE",
-                    "항공편은 KE123@2026-08-03 형식으로 입력해 주세요."
-                );
+                        "INVALID_FLIGHT_REFERENCE", "항공편은 KE123@2026-08-03 형식으로 입력해 주세요.");
             }
-            LocalDate date = matcher.group(3) == null
-                ? fallbackDate
-                : LocalDate.parse(matcher.group(3));
-            results.add(status(reference, matcher.group(1).toUpperCase(Locale.ROOT), matcher.group(2), date));
+            LocalDate date =
+                    matcher.group(3) == null ? fallbackDate : LocalDate.parse(matcher.group(3));
+            results.add(
+                    status(
+                            reference,
+                            matcher.group(1).toUpperCase(Locale.ROOT),
+                            matcher.group(2),
+                            date));
         }
         return List.copyOf(results);
     }
 
     Map<String, Object> refreshComparison(Map<String, Object> current) {
         requireConfigured();
-        String type = string(current, "type", string(current, "optionType", ""))
-            .toUpperCase(Locale.ROOT);
+        String type =
+                string(current, "type", string(current, "optionType", "")).toUpperCase(Locale.ROOT);
         if (!"FLIGHT".equals(type)) {
             throw EarthTripException.unavailable(
-                "COMPARISON_PROVIDER_NOT_SUPPORTED",
-                "현재 자동 가격 갱신은 항공 비교안만 지원합니다."
-            );
+                    "COMPARISON_PROVIDER_NOT_SUPPORTED", "현재 자동 가격 갱신은 항공 비교안만 지원합니다.");
         }
         String origin = required(current, "originIata");
         String destination = required(current, "destinationIata");
         String departureDate = required(current, "departureDate");
         String currency = string(current, "currency", "KRW");
         int adults = integer(current, "adults", 1);
-        UriComponentsBuilder uri = UriComponentsBuilder
-            .fromUriString(apiBaseUrl + "/v2/shopping/flight-offers")
-            .queryParam("originLocationCode", origin)
-            .queryParam("destinationLocationCode", destination)
-            .queryParam("departureDate", departureDate)
-            .queryParam("adults", adults)
-            .queryParam("currencyCode", currency)
-            .queryParam("max", 5);
+        UriComponentsBuilder uri =
+                UriComponentsBuilder.fromUriString(apiBaseUrl + "/v2/shopping/flight-offers")
+                        .queryParam("originLocationCode", origin)
+                        .queryParam("destinationLocationCode", destination)
+                        .queryParam("departureDate", departureDate)
+                        .queryParam("adults", adults)
+                        .queryParam("currencyCode", currency)
+                        .queryParam("max", 5);
         String returnDate = string(current, "returnDate", null);
         if (returnDate != null) {
             uri.queryParam("returnDate", returnDate);
@@ -131,9 +126,7 @@ class AmadeusTravelClient {
         JsonNode offer = response.path("data").path(0);
         if (offer.isMissingNode()) {
             throw EarthTripException.notFound(
-                "FLIGHT_OFFER_NOT_FOUND",
-                "현재 조건에 맞는 항공편 가격을 찾지 못했습니다."
-            );
+                    "FLIGHT_OFFER_NOT_FOUND", "현재 조건에 맞는 항공편 가격을 찾지 못했습니다.");
         }
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("provider", "AMADEUS");
@@ -148,61 +141,68 @@ class AmadeusTravelClient {
     }
 
     private ExternalTravelUseCase.TransportStatusResult status(
-        String reference,
-        String carrier,
-        String flightNumber,
-        LocalDate date
-    ) {
-        URI uri = UriComponentsBuilder
-            .fromUriString(apiBaseUrl + "/v2/schedule/flights")
-            .queryParam("carrierCode", carrier)
-            .queryParam("flightNumber", flightNumber)
-            .queryParam("scheduledDepartureDate", date)
-            .build()
-            .encode()
-            .toUri();
+            String reference, String carrier, String flightNumber, LocalDate date) {
+        URI uri =
+                UriComponentsBuilder.fromUriString(apiBaseUrl + "/v2/schedule/flights")
+                        .queryParam("carrierCode", carrier)
+                        .queryParam("flightNumber", flightNumber)
+                        .queryParam("scheduledDepartureDate", date)
+                        .build()
+                        .encode()
+                        .toUri();
         JsonNode response = get(uri);
         JsonNode flight = response.path("data").path(0);
         if (flight.isMissingNode()) {
             return new ExternalTravelUseCase.TransportStatusResult(
-                reference, "FLIGHT", "NOT_FOUND", null, null,
-                "해당 날짜의 항공편 정보를 찾지 못했습니다.",
-                "AMADEUS", clock.instant()
-            );
+                    reference,
+                    "FLIGHT",
+                    "NOT_FOUND",
+                    null,
+                    null,
+                    "해당 날짜의 항공편 정보를 찾지 못했습니다.",
+                    "AMADEUS",
+                    clock.instant());
         }
         JsonNode flightPoints = flight.path("flightPoints");
         Timing departure = timing(flightPoints.path(0).path("departure").path("timings"));
-        Timing arrival = timing(flightPoints.path(Math.max(0, flightPoints.size() - 1))
-            .path("arrival").path("timings"));
-        Instant scheduled = departure.scheduled() == null ? arrival.scheduled() : departure.scheduled();
-        Instant estimated = arrival.estimated() == null ? departure.estimated() : arrival.estimated();
+        Timing arrival =
+                timing(
+                        flightPoints
+                                .path(Math.max(0, flightPoints.size() - 1))
+                                .path("arrival")
+                                .path("timings"));
+        Instant scheduled =
+                departure.scheduled() == null ? arrival.scheduled() : departure.scheduled();
+        Instant estimated =
+                arrival.estimated() == null ? departure.estimated() : arrival.estimated();
         String status = deriveStatus(departure, arrival);
         return new ExternalTravelUseCase.TransportStatusResult(
-            reference,
-            "FLIGHT",
-            status,
-            scheduled,
-            estimated,
-            "Amadeus 실시간 운항정보",
-            "AMADEUS",
-            clock.instant()
-        );
+                reference,
+                "FLIGHT",
+                status,
+                scheduled,
+                estimated,
+                "Amadeus 실시간 운항정보",
+                "AMADEUS",
+                clock.instant());
     }
 
     private JsonNode get(URI uri) {
         try {
-            JsonNode response = restClient.get()
-                .uri(uri)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .body(JsonNode.class);
-            return response == null ? com.fasterxml.jackson.databind.node.NullNode.instance : response;
+            JsonNode response =
+                    restClient
+                            .get()
+                            .uri(uri)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token())
+                            .accept(MediaType.APPLICATION_JSON)
+                            .retrieve()
+                            .body(JsonNode.class);
+            return response == null
+                    ? com.fasterxml.jackson.databind.node.NullNode.instance
+                    : response;
         } catch (RestClientException exception) {
             throw EarthTripException.unavailable(
-                "AMADEUS_PROVIDER_UNAVAILABLE",
-                "Amadeus 여행정보 제공자에 연결할 수 없습니다."
-            );
+                    "AMADEUS_PROVIDER_UNAVAILABLE", "Amadeus 여행정보 제공자에 연결할 수 없습니다.");
         }
     }
 
@@ -216,30 +216,34 @@ class AmadeusTravelClient {
             if (current != null && current.expiresAt().isAfter(clock.instant().plusSeconds(30))) {
                 return current.value();
             }
-            String body = "grant_type=client_credentials&client_id=" + encode(apiKey)
-                + "&client_secret=" + encode(apiSecret);
+            String body =
+                    "grant_type=client_credentials&client_id="
+                            + encode(apiKey)
+                            + "&client_secret="
+                            + encode(apiSecret);
             try {
-                JsonNode response = restClient.post()
-                    .uri(URI.create(apiBaseUrl + "/v1/security/oauth2/token"))
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .body(JsonNode.class);
+                JsonNode response =
+                        restClient
+                                .post()
+                                .uri(URI.create(apiBaseUrl + "/v1/security/oauth2/token"))
+                                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                                .accept(MediaType.APPLICATION_JSON)
+                                .body(body)
+                                .retrieve()
+                                .body(JsonNode.class);
                 if (response == null || response.path("access_token").asText("").isBlank()) {
                     throw invalidTokenResponse();
                 }
-                current = new AccessToken(
-                    response.path("access_token").asText(),
-                    clock.instant().plusSeconds(response.path("expires_in").asLong(1_800))
-                );
+                current =
+                        new AccessToken(
+                                response.path("access_token").asText(),
+                                clock.instant()
+                                        .plusSeconds(response.path("expires_in").asLong(1_800)));
                 accessToken = current;
                 return current.value();
             } catch (RestClientException exception) {
                 throw EarthTripException.unavailable(
-                    "AMADEUS_AUTHENTICATION_FAILED",
-                    "Amadeus API 인증에 실패했습니다."
-                );
+                        "AMADEUS_AUTHENTICATION_FAILED", "Amadeus API 인증에 실패했습니다.");
             }
         }
     }
@@ -255,7 +259,7 @@ class AmadeusTravelClient {
                 case "STD", "STA" -> scheduled = time;
                 case "ETD", "ETA" -> estimated = time;
                 case "ATD", "ATA" -> actual = time;
-                default -> { }
+                default -> {}
             }
         }
         return new Timing(scheduled, estimated, actual);
@@ -270,8 +274,9 @@ class AmadeusTravelClient {
         }
         Instant scheduled = departure.scheduled();
         Instant estimated = departure.estimated();
-        if (scheduled != null && estimated != null
-            && estimated.isAfter(scheduled.plus(Duration.ofMinutes(15)))) {
+        if (scheduled != null
+                && estimated != null
+                && estimated.isAfter(scheduled.plus(Duration.ofMinutes(15)))) {
             return "DELAYED";
         }
         return "SCHEDULED";
@@ -280,9 +285,7 @@ class AmadeusTravelClient {
     private void requireConfigured() {
         if (!configured()) {
             throw EarthTripException.unavailable(
-                "AMADEUS_PROVIDER_NOT_CONFIGURED",
-                "Amadeus API 자격증명이 설정되지 않았습니다."
-            );
+                    "AMADEUS_PROVIDER_NOT_CONFIGURED", "Amadeus API 자격증명이 설정되지 않았습니다.");
         }
     }
 
@@ -290,9 +293,7 @@ class AmadeusTravelClient {
         String value = string(values, key, null);
         if (value == null) {
             throw EarthTripException.badRequest(
-                "COMPARISON_FIELD_REQUIRED",
-                "항공 가격 갱신에 " + key + " 값이 필요합니다."
-            );
+                    "COMPARISON_FIELD_REQUIRED", "항공 가격 갱신에 " + key + " 값이 필요합니다.");
         }
         return value;
     }
@@ -334,9 +335,8 @@ class AmadeusTravelClient {
     }
 
     private static String stripSlash(String value) {
-        String result = value == null || value.isBlank()
-            ? "https://test.api.amadeus.com"
-            : value.strip();
+        String result =
+                value == null || value.isBlank() ? "https://test.api.amadeus.com" : value.strip();
         return result.replaceAll("/+$", "");
     }
 
@@ -346,13 +346,10 @@ class AmadeusTravelClient {
 
     private static EarthTripException invalidTokenResponse() {
         return new EarthTripException(
-            "INVALID_AMADEUS_TOKEN_RESPONSE",
-            502,
-            "Amadeus 인증 응답을 해석할 수 없습니다."
-        );
+                "INVALID_AMADEUS_TOKEN_RESPONSE", 502, "Amadeus 인증 응답을 해석할 수 없습니다.");
     }
 
-    private record AccessToken(String value, Instant expiresAt) { }
+    private record AccessToken(String value, Instant expiresAt) {}
 
-    private record Timing(Instant scheduled, Instant estimated, Instant actual) { }
+    private record Timing(Instant scheduled, Instant estimated, Instant actual) {}
 }

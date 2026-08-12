@@ -19,9 +19,7 @@ class PlaceByProviderIdController {
 
     @GetMapping
     ProviderProxyUseCase.PlaceDetail get(
-        @PathVariable String providerPlaceId,
-        @RequestParam(required = false) String language
-    ) {
+            @PathVariable String providerPlaceId, @RequestParam(required = false) String language) {
         return useCase.place(providerPlaceId, language);
     }
 }

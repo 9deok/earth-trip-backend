@@ -9,20 +9,18 @@ public interface FavoriteCompanionUseCase {
     List<FavoriteResult> list(UUID actorUserId);
 
     FavoriteResult add(
-        UUID actorUserId,
-        UUID requestId,
-        UUID companionUserId,
-        String displayName,
-        String email
-    );
+            UUID actorUserId,
+            UUID requestId,
+            UUID companionUserId,
+            String displayName,
+            String email);
 
     void remove(UUID actorUserId, UUID favoriteId);
 
     record FavoriteResult(
-        UUID favoriteId,
-        UUID companionUserId,
-        String displayName,
-        String email,
-        Instant createdAt
-    ) { }
+            UUID favoriteId,
+            UUID companionUserId,
+            String displayName,
+            String email,
+            Instant createdAt) {}
 }

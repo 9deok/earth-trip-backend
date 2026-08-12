@@ -22,29 +22,25 @@ class RouteMatrixQueriesController {
     }
 
     @PostMapping
-    ProviderProxyUseCase.MatrixResult post(
-        @Valid @RequestBody RouteMatrixQueryRequest request
-    ) {
-        return useCase.routeMatrix(new ProviderProxyUseCase.MatrixQuery(
-            request.origins().stream().map(RouteMatrixPointRequest::toPoint).toList(),
-            request.destinations().stream().map(RouteMatrixPointRequest::toPoint).toList(),
-            request.mode(), request.departureAt()
-        ));
+    ProviderProxyUseCase.MatrixResult post(@Valid @RequestBody RouteMatrixQueryRequest request) {
+        return useCase.routeMatrix(
+                new ProviderProxyUseCase.MatrixQuery(
+                        request.origins().stream().map(RouteMatrixPointRequest::toPoint).toList(),
+                        request.destinations().stream()
+                                .map(RouteMatrixPointRequest::toPoint)
+                                .toList(),
+                        request.mode(),
+                        request.departureAt()));
     }
 }
 
 record RouteMatrixQueryRequest(
-    @NotEmpty @Valid List<RouteMatrixPointRequest> origins,
-    @NotEmpty @Valid List<RouteMatrixPointRequest> destinations,
-    String mode,
-    Instant departureAt
-) { }
+        @NotEmpty @Valid List<RouteMatrixPointRequest> origins,
+        @NotEmpty @Valid List<RouteMatrixPointRequest> destinations,
+        String mode,
+        Instant departureAt) {}
 
-record RouteMatrixPointRequest(
-    BigDecimal latitude,
-    BigDecimal longitude,
-    String providerPlaceId
-) {
+record RouteMatrixPointRequest(BigDecimal latitude, BigDecimal longitude, String providerPlaceId) {
     ProviderProxyUseCase.RoutePoint toPoint() {
         return new ProviderProxyUseCase.RoutePoint(latitude, longitude, providerPlaceId);
     }

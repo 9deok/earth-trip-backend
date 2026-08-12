@@ -27,8 +27,7 @@ class FileUploadSessionByIdController {
     @GetMapping
     FileUploadSessionStatusResponse get(@PathVariable UUID uploadSessionId) {
         return FileUploadSessionStatusResponse.from(
-            useCase.uploadStatus(actor.requireUserId(), uploadSessionId)
-        );
+                useCase.uploadStatus(actor.requireUserId(), uploadSessionId));
     }
 
     @DeleteMapping
@@ -39,14 +38,9 @@ class FileUploadSessionByIdController {
 }
 
 record FileUploadSessionStatusResponse(
-    UUID uploadSessionId,
-    UUID fileId,
-    String status,
-    Instant expiresAt
-) {
+        UUID uploadSessionId, UUID fileId, String status, Instant expiresAt) {
     static FileUploadSessionStatusResponse from(FileUseCase.UploadResult result) {
         return new FileUploadSessionStatusResponse(
-            result.uploadSessionId(), result.fileId(), result.status(), result.expiresAt()
-        );
+                result.uploadSessionId(), result.fileId(), result.status(), result.expiresAt());
     }
 }

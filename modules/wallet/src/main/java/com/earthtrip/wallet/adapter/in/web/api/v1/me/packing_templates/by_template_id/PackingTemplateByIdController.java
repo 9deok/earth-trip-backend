@@ -39,45 +39,40 @@ class PackingTemplateByIdController {
 
     @PatchMapping
     PackingTemplateUseCase.TemplateResult patch(
-        @PathVariable UUID templateId,
-        @Valid @RequestBody PackingTemplatePatchRequest request
-    ) {
+            @PathVariable UUID templateId,
+            @Valid @RequestBody PackingTemplatePatchRequest request) {
         return useCase.update(templateId, actor.requireUserId(), request.toCommand());
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void delete(
-        @PathVariable UUID templateId,
-        @RequestParam @PositiveOrZero long baseVersion
-    ) {
+    void delete(@PathVariable UUID templateId, @RequestParam @PositiveOrZero long baseVersion) {
         useCase.delete(templateId, actor.requireUserId(), baseVersion);
     }
 }
 
 record PackingTemplatePatchRequest(
-    @Size(min = 1, max = 120) String name,
-    String visibility,
-    @Size(min = 1, max = 200) @Valid List<PackingTemplateItemPatchRequest> items,
-    @PositiveOrZero long baseVersion
-) {
+        @Size(min = 1, max = 120) String name,
+        String visibility,
+        @Size(max = 200) @Valid List<PackingTemplateItemPatchRequest> items,
+        @PositiveOrZero long baseVersion) {
     PackingTemplateUseCase.TemplateCommand toCommand() {
         return new PackingTemplateUseCase.TemplateCommand(
-            null, name, visibility,
-            items == null
-                ? null
-                : items.stream().map(PackingTemplateItemPatchRequest::toItem).toList(),
-            baseVersion
-        );
+                null,
+                name,
+                visibility,
+                items == null
+                        ? null
+                        : items.stream().map(PackingTemplateItemPatchRequest::toItem).toList(),
+                baseVersion);
     }
 }
 
 record PackingTemplateItemPatchRequest(
-    @Size(min = 1, max = 120) String name,
-    @Size(max = 60) String category,
-    @Min(1) @Max(999) int quantity,
-    @Size(max = 500) String note
-) {
+        @Size(min = 1, max = 120) String name,
+        @Size(max = 60) String category,
+        @Min(1) @Max(999) int quantity,
+        @Size(max = 500) String note) {
     PackingTemplateUseCase.TemplateItem toItem() {
         return new PackingTemplateUseCase.TemplateItem(name, category, quantity, note);
     }

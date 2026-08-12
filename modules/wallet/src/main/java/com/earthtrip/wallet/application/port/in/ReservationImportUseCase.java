@@ -14,82 +14,66 @@ public interface ReservationImportUseCase {
 
     List<CandidateResult> candidates(UUID jobId, UUID actorUserId);
 
-    ConfirmationResult confirm(
-        UUID jobId,
-        UUID actorUserId,
-        List<ConfirmationItem> items
-    );
+    ConfirmationResult confirm(UUID jobId, UUID actorUserId, List<ConfirmationItem> items);
 
-    ImportResult dismiss(
-        UUID jobId,
-        UUID actorUserId,
-        List<DismissalItem> items
-    );
+    ImportResult dismiss(UUID jobId, UUID actorUserId, List<DismissalItem> items);
 
     ImportResult retry(UUID jobId, UUID actorUserId, long baseVersion);
 
     ImportResult cancel(UUID jobId, UUID actorUserId, long baseVersion);
 
     record ImportCommand(
-        UUID requestId,
-        String sourceType,
-        Map<String, Object> sourcePayload,
-        List<CandidateCommand> candidates
-    ) { }
+            UUID requestId,
+            String sourceType,
+            Map<String, Object> sourcePayload,
+            List<CandidateCommand> candidates) {}
 
     record CandidateCommand(
-        UUID candidateId,
-        String title,
-        String candidateType,
-        Map<String, Object> payload,
-        BigDecimal confidence
-    ) { }
+            UUID candidateId,
+            String title,
+            String candidateType,
+            Map<String, Object> payload,
+            BigDecimal confidence) {}
 
     record ConfirmationItem(
-        UUID candidateId,
-        UUID reservationRequestId,
-        Map<String, Object> payloadOverride,
-        String visibility,
-        Integer sortOrder,
-        long baseVersion
-    ) { }
+            UUID candidateId,
+            UUID reservationRequestId,
+            Map<String, Object> payloadOverride,
+            String visibility,
+            Integer sortOrder,
+            long baseVersion) {}
 
-    record DismissalItem(UUID candidateId, String reason, long baseVersion) { }
+    record DismissalItem(UUID candidateId, String reason, long baseVersion) {}
 
     record ImportResult(
-        UUID jobId,
-        UUID tripId,
-        String sourceType,
-        Map<String, Object> sourcePayload,
-        String status,
-        String failureCode,
-        String failureMessage,
-        int attemptCount,
-        int candidateCount,
-        UUID createdBy,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID jobId,
+            UUID tripId,
+            String sourceType,
+            Map<String, Object> sourcePayload,
+            String status,
+            String failureCode,
+            String failureMessage,
+            int attemptCount,
+            int candidateCount,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 
     record CandidateResult(
-        UUID candidateId,
-        UUID jobId,
-        String title,
-        String candidateType,
-        Map<String, Object> payload,
-        BigDecimal confidence,
-        String status,
-        UUID reservationId,
-        String dismissalReason,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID candidateId,
+            UUID jobId,
+            String title,
+            String candidateType,
+            Map<String, Object> payload,
+            BigDecimal confidence,
+            String status,
+            UUID reservationId,
+            String dismissalReason,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 
     record ConfirmationResult(
-        UUID jobId,
-        List<WalletRecordUseCase.RecordResult> reservations,
-        String jobStatus
-    ) { }
+            UUID jobId, List<WalletRecordUseCase.RecordResult> reservations, String jobStatus) {}
 }

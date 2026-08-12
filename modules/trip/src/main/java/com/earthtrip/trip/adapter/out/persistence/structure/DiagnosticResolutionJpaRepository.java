@@ -4,7 +4,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 interface DiagnosticResolutionJpaRepository
-    extends JpaRepository<DiagnosticResolutionJpaEntity, String> {
+        extends JpaRepository<DiagnosticResolutionJpaEntity, String> {
 
     List<DiagnosticResolutionJpaEntity> findAllByTripId(String tripId);
 }

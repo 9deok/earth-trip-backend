@@ -8,12 +8,11 @@ public interface PlanningAnalysisTarget {
     TargetResult getResearchSource(UUID tripId, UUID sourceId, UUID actorUserId);
 
     TargetResult confirmResearchSource(
-        UUID tripId,
-        UUID sourceId,
-        UUID actorUserId,
-        Map<String, Object> confirmedFields,
-        long baseVersion
-    );
+            UUID tripId,
+            UUID sourceId,
+            UUID actorUserId,
+            Map<String, Object> confirmedFields,
+            long baseVersion);
 
-    record TargetResult(UUID targetId, Map<String, Object> payload, long version) { }
+    record TargetResult(UUID targetId, Map<String, Object> payload, long version) {}
 }

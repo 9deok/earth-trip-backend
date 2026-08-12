@@ -1,1 +1,14 @@
-package com.earthtrip.wallet.adapter.out.persistence.record;import java.util.List;import org.springframework.data.jpa.repository.JpaRepository;interface WalletRecordJpaRepository extends JpaRepository<WalletRecordJpaEntity,String>{List<WalletRecordJpaEntity> findAllByTripIdAndTypeAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(String trip,String type);List<WalletRecordJpaEntity> findAllByTripIdAndTypeAndParentIdAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(String trip,String type,String parent);}
+package com.earthtrip.wallet.adapter.out.persistence.record;
+
+import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+interface WalletRecordJpaRepository extends JpaRepository<WalletRecordJpaEntity, String> {
+    List<WalletRecordJpaEntity>
+            findAllByTripIdAndTypeAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(
+                    String trip, String type);
+
+    List<WalletRecordJpaEntity>
+            findAllByTripIdAndTypeAndParentIdAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(
+                    String trip, String type, String parent);
+}

@@ -25,9 +25,8 @@ class FileDownloadSessionsController {
     FileDownloadSessionResponse post(@PathVariable UUID fileId) {
         FileUseCase.DownloadResult result = useCase.download(actor.requireUserId(), fileId);
         return new FileDownloadSessionResponse(
-            result.fileId(), result.downloadUrl(), result.expiresAt()
-        );
+                result.fileId(), result.downloadUrl(), result.expiresAt());
     }
 }
 
-record FileDownloadSessionResponse(UUID fileId, String downloadUrl, Instant expiresAt) { }
+record FileDownloadSessionResponse(UUID fileId, String downloadUrl, Instant expiresAt) {}

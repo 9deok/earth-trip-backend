@@ -31,7 +31,7 @@ class UploadSessionJpaEntity {
     @Column(name = "aborted_at")
     private Instant abortedAt;
 
-    protected UploadSessionJpaEntity() { }
+    protected UploadSessionJpaEntity() {}
 
     UploadSessionJpaEntity(FileStorePort.UploadRecord record) {
         id = record.id().toString();
@@ -48,7 +48,11 @@ class UploadSessionJpaEntity {
 
     FileStorePort.UploadRecord toRecord() {
         return new FileStorePort.UploadRecord(
-            UUID.fromString(id), UUID.fromString(fileId), status, expiresAt, createdAt, abortedAt
-        );
+                UUID.fromString(id),
+                UUID.fromString(fileId),
+                status,
+                expiresAt,
+                createdAt,
+                abortedAt);
     }
 }

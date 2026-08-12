@@ -4,7 +4,11 @@ import com.earthtrip.trip.application.port.out.DestinationCandidateStorePort;
 import com.earthtrip.trip.domain.DestinationCandidate;
 import com.earthtrip.trip.domain.TripId;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -13,37 +17,84 @@ import org.springframework.stereotype.Component;
 class DestinationCandidatePersistenceAdapter implements DestinationCandidateStorePort {
     private final DestinationCandidateJpaRepository candidates;
     private final DestinationPreferenceJpaRepository preferences;
+
     DestinationCandidatePersistenceAdapter(
-        DestinationCandidateJpaRepository candidates, DestinationPreferenceJpaRepository preferences
-    ) { this.candidates = candidates; this.preferences = preferences; }
-    @Override public List<DestinationCandidate> findAll(TripId tripId) {
-        return candidates.findAllByTripIdOrderByCreatedAtAsc(tripId.toString()).stream()
-            .map(DestinationCandidateJpaEntity::toDomain).toList();
+            DestinationCandidateJpaRepository candidates,
+            DestinationPreferenceJpaRepository preferences) {
+        this.candidates = candidates;
+        this.preferences = preferences;
     }
-    @Override public Optional<DestinationCandidate> findById(UUID id) {
+
+    @Override
+    public List<DestinationCandidate> findAll(TripId tripId) {
+        return candidates.findAllByTripIdOrderByCreatedAtAsc(tripId.toString()).stream()
+                .map(DestinationCandidateJpaEntity::toDomain)
+                .toList();
+    }
+
+    @Override
+    public Optional<DestinationCandidate> findById(UUID id) {
         return candidates.findById(id.toString()).map(DestinationCandidateJpaEntity::toDomain);
     }
-    @Override public DestinationCandidate save(DestinationCandidate candidate) {
-        DestinationCandidateJpaEntity entity = candidates.findById(candidate.id().toString())
-            .map(existing -> { existing.apply(candidate); return existing; })
-            .orElseGet(() -> new DestinationCandidateJpaEntity(candidate));
+
+    @Override
+    public DestinationCandidate save(DestinationCandidate candidate) {
+        DestinationCandidateJpaEntity entity =
+                candidates
+                        .findById(candidate.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(candidate);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new DestinationCandidateJpaEntity(candidate));
         return candidates.saveAndFlush(entity).toDomain();
     }
-    @Override public void delete(UUID id) { candidates.deleteById(id.toString()); }
-    @Override public List<PreferenceRecord> preferences(UUID id) {
-        return preferences.findAllByCandidateId(id.toString()).stream()
-            .map(DestinationPreferenceJpaEntity::toRecord).toList();
+
+    @Override
+    public void delete(UUID id) {
+        candidates.deleteById(id.toString());
     }
-    @Override public PreferenceRecord savePreference(UUID id, UUID userId, String value, Instant now) {
+
+    @Override
+    public List<PreferenceRecord> preferences(UUID id) {
+        return preferences.findAllByCandidateId(id.toString()).stream()
+                .map(DestinationPreferenceJpaEntity::toRecord)
+                .toList();
+    }
+
+    @Override
+    public Map<UUID, List<PreferenceRecord>> preferences(Collection<UUID> ids) {
+        if (ids.isEmpty()) return Map.of();
+        Map<UUID, List<PreferenceRecord>> result = new LinkedHashMap<>();
+        for (UUID id : ids) result.put(id, new ArrayList<>());
+        for (DestinationPreferenceJpaEntity row :
+                preferences.findAllByCandidateIdIn(ids.stream().map(UUID::toString).toList()))
+            result.computeIfAbsent(row.candidateId(), ignored -> new ArrayList<>())
+                    .add(row.toRecord());
+        return result;
+    }
+
+    @Override
+    public PreferenceRecord savePreference(UUID id, UUID userId, String value, Instant now) {
         DestinationPreferenceId key = new DestinationPreferenceId(id.toString(), userId.toString());
-        DestinationPreferenceJpaEntity entity = preferences.findById(key)
-            .map(existing -> { existing.apply(value, now); return existing; })
-            .orElseGet(() -> new DestinationPreferenceJpaEntity(
-                id.toString(), userId.toString(), value, now
-            ));
+        DestinationPreferenceJpaEntity entity =
+                preferences
+                        .findById(key)
+                        .map(
+                                existing -> {
+                                    existing.apply(value, now);
+                                    return existing;
+                                })
+                        .orElseGet(
+                                () ->
+                                        new DestinationPreferenceJpaEntity(
+                                                id.toString(), userId.toString(), value, now));
         return preferences.saveAndFlush(entity).toRecord();
     }
-    @Override public void deletePreference(UUID id, UUID userId) {
+
+    @Override
+    public void deletePreference(UUID id, UUID userId) {
         preferences.deleteById(new DestinationPreferenceId(id.toString(), userId.toString()));
     }
 }

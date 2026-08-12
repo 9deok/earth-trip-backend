@@ -1,2 +1,45 @@
-package com.earthtrip.expense.application.port.out;import java.math.BigDecimal;import java.time.Instant;import java.util.*;
-public interface FinanceLedgerStorePort{List<CashRecord> cash(UUID trip);Optional<CashRecord> cashById(UUID id);CashRecord saveCash(CashRecord r);List<RateRecord> rates(UUID trip);Optional<RateRecord> rateById(UUID id);RateRecord saveRate(RateRecord r);record CashRecord(UUID id,UUID tripId,String movementType,long amountMinor,String currency,Map<String,Object>payload,String status,Instant occurredAt,long version,UUID createdBy,Instant createdAt,Instant updatedAt,Instant deletedAt){}record RateRecord(UUID id,UUID tripId,String baseCurrency,String quoteCurrency,BigDecimal rate,String source,Instant observedAt,UUID createdBy,Instant createdAt){}}
+package com.earthtrip.expense.application.port.out;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+
+public interface FinanceLedgerStorePort {
+    List<CashRecord> cash(UUID trip);
+
+    Optional<CashRecord> cashById(UUID id);
+
+    CashRecord saveCash(CashRecord r);
+
+    List<RateRecord> rates(UUID trip);
+
+    Optional<RateRecord> rateById(UUID id);
+
+    RateRecord saveRate(RateRecord r);
+
+    record CashRecord(
+            UUID id,
+            UUID tripId,
+            String movementType,
+            long amountMinor,
+            String currency,
+            Map<String, Object> payload,
+            String status,
+            Instant occurredAt,
+            long version,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant deletedAt) {}
+
+    record RateRecord(
+            UUID id,
+            UUID tripId,
+            String baseCurrency,
+            String quoteCurrency,
+            BigDecimal rate,
+            String source,
+            Instant observedAt,
+            UUID createdBy,
+            Instant createdAt) {}
+}

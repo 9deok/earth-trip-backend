@@ -14,15 +14,17 @@ import java.nio.charset.StandardCharsets;
 final class CapturingHttpServletResponseWrapper extends HttpServletResponseWrapper {
 
     private final int captureLimit;
-    private final ByteArrayOutputStream capturedContent;
+    private final boolean captureSuccessfulPayloads;
+    private ByteArrayOutputStream capturedContent;
     private CapturingServletOutputStream outputStream;
     private PrintWriter writer;
     private long totalBytes;
 
-    CapturingHttpServletResponseWrapper(HttpServletResponse response, int captureLimit) {
+    CapturingHttpServletResponseWrapper(
+            HttpServletResponse response, int captureLimit, boolean captureSuccessfulPayloads) {
         super(response);
         this.captureLimit = captureLimit;
-        this.capturedContent = new ByteArrayOutputStream(Math.min(captureLimit, 8192));
+        this.captureSuccessfulPayloads = captureSuccessfulPayloads;
     }
 
     @Override
@@ -40,10 +42,9 @@ final class CapturingHttpServletResponseWrapper extends HttpServletResponseWrapp
                 throw new IllegalStateException("getOutputStream() has already been called");
             }
             Charset charset = responseCharset();
-            writer = new PrintWriter(
-                new OutputStreamWriter(capturingOutputStream(), charset),
-                false
-            );
+            writer =
+                    new PrintWriter(
+                            new OutputStreamWriter(capturingOutputStream(), charset), false);
         }
         return writer;
     }
@@ -64,7 +65,7 @@ final class CapturingHttpServletResponseWrapper extends HttpServletResponseWrapp
     }
 
     byte[] getCapturedContent() {
-        return capturedContent.toByteArray();
+        return capturedContent == null ? new byte[0] : capturedContent.toByteArray();
     }
 
     long getTotalBytes() {
@@ -77,9 +78,9 @@ final class CapturingHttpServletResponseWrapper extends HttpServletResponseWrapp
 
     private CapturingServletOutputStream capturingOutputStream() throws IOException {
         if (outputStream == null) {
-            outputStream = new CapturingServletOutputStream(
-                ((HttpServletResponse) getResponse()).getOutputStream()
-            );
+            outputStream =
+                    new CapturingServletOutputStream(
+                            ((HttpServletResponse) getResponse()).getOutputStream());
         }
         return outputStream;
     }
@@ -107,8 +108,8 @@ final class CapturingHttpServletResponseWrapper extends HttpServletResponseWrapp
         @Override
         public void write(int value) throws IOException {
             delegate.write(value);
-            if (totalBytes < captureLimit) {
-                capturedContent.write(value);
+            if (shouldCapture() && totalBytes < captureLimit) {
+                capturedContent().write(value);
             }
             totalBytes++;
         }
@@ -117,11 +118,23 @@ final class CapturingHttpServletResponseWrapper extends HttpServletResponseWrapp
         public void write(byte[] bytes, int offset, int length) throws IOException {
             delegate.write(bytes, offset, length);
             int remaining = (int) Math.max(0, captureLimit - totalBytes);
-            int capturedLength = Math.min(remaining, length);
+            int capturedLength = shouldCapture() ? Math.min(remaining, length) : 0;
             if (capturedLength > 0) {
-                capturedContent.write(bytes, offset, capturedLength);
+                capturedContent().write(bytes, offset, capturedLength);
             }
             totalBytes += length;
+        }
+
+        private boolean shouldCapture() {
+            return captureSuccessfulPayloads
+                    || CapturingHttpServletResponseWrapper.this.getStatus() >= 400;
+        }
+
+        private ByteArrayOutputStream capturedContent() {
+            if (capturedContent == null) {
+                capturedContent = new ByteArrayOutputStream(Math.min(captureLimit, 1024));
+            }
+            return capturedContent;
         }
 
         @Override

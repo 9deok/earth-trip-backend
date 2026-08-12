@@ -1,6 +1,6 @@
 package com.earthtrip.platform.adapter.in.web.api.v1.shared_trips.by_token.password_verifications;
 
-import com.earthtrip.platform.application.port.in.TripShareUseCase;
+import com.earthtrip.platform.application.port.in.SharedTripAccessUseCase;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -16,20 +16,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/shared-trips/{token}/password-verifications")
 class SharedTripPasswordVerificationsController {
 
-    private final TripShareUseCase useCase;
+    private final SharedTripAccessUseCase useCase;
 
-    SharedTripPasswordVerificationsController(TripShareUseCase useCase) {
+    SharedTripPasswordVerificationsController(SharedTripAccessUseCase useCase) {
         this.useCase = useCase;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    TripShareUseCase.PasswordSessionResult post(
-        @PathVariable String token,
-        @Valid @RequestBody SharePasswordRequest request
-    ) {
+    SharedTripAccessUseCase.PasswordSessionResult post(
+            @PathVariable String token, @Valid @RequestBody SharePasswordRequest request) {
         return useCase.verifyPassword(token, request.password());
     }
 }
 
-record SharePasswordRequest(@NotBlank @Size(max = 128) String password) { }
+record SharePasswordRequest(@NotBlank @Size(max = 128) String password) {}

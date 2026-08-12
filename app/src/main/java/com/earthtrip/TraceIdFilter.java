@@ -17,10 +17,8 @@ class TraceIdFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-        HttpServletRequest request,
-        HttpServletResponse response,
-        FilterChain filterChain
-    ) throws ServletException, IOException {
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String traceId = normalize(request.getHeader("X-Trace-Id"));
         request.setAttribute("earthTripTraceId", traceId);
         response.setHeader("X-Trace-Id", traceId);

@@ -18,25 +18,25 @@ import org.springframework.stereotype.Component;
 @Component
 class GoogleRoutesProviderAdapter implements RoutesProviderPort {
 
-    private static final URI ROUTES_URI = URI.create(
-        "https://routes.googleapis.com/directions/v2:computeRoutes"
-    );
-    private static final URI MATRIX_URI = URI.create(
-        "https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix"
-    );
-    private static final String ROUTE_FIELDS = String.join(",",
-        "routes.distanceMeters",
-        "routes.duration",
-        "routes.polyline.encodedPolyline"
-    );
-    private static final String MATRIX_FIELDS = String.join(",",
-        "originIndex",
-        "destinationIndex",
-        "condition",
-        "status",
-        "distanceMeters",
-        "duration"
-    );
+    private static final URI ROUTES_URI =
+            URI.create("https://routes.googleapis.com/directions/v2:computeRoutes");
+    private static final URI MATRIX_URI =
+            URI.create("https://routes.googleapis.com/distanceMatrix/v2:computeRouteMatrix");
+    private static final String ROUTE_FIELDS =
+            String.join(
+                    ",",
+                    "routes.distanceMeters",
+                    "routes.duration",
+                    "routes.polyline.encodedPolyline");
+    private static final String MATRIX_FIELDS =
+            String.join(
+                    ",",
+                    "originIndex",
+                    "destinationIndex",
+                    "condition",
+                    "status",
+                    "distanceMeters",
+                    "duration");
 
     private final GoogleMapsApiClient client;
     private final Clock clock;
@@ -52,9 +52,9 @@ class GoogleRoutesProviderAdapter implements RoutesProviderPort {
         body.put("origin", waypoint(query.origin()));
         body.put("destination", waypoint(query.destination()));
         if (query.waypoints() != null && !query.waypoints().isEmpty()) {
-            body.put("intermediates", query.waypoints().stream()
-                .map(GoogleRoutesProviderAdapter::waypoint)
-                .toList());
+            body.put(
+                    "intermediates",
+                    query.waypoints().stream().map(GoogleRoutesProviderAdapter::waypoint).toList());
         }
         body.put("travelMode", googleMode(query.mode()));
         if ("DRIVING".equalsIgnoreCase(query.mode())) {
@@ -72,24 +72,27 @@ class GoogleRoutesProviderAdapter implements RoutesProviderPort {
             throw EarthTripException.notFound("ROUTE_NOT_FOUND", "계산 가능한 경로를 찾지 못했습니다.");
         }
         return new ProviderProxyUseCase.RouteResult(
-            route.path("distanceMeters").asLong(),
-            durationSeconds(route.path("duration").asText()),
-            nullableText(route.path("polyline").path("encodedPolyline")),
-            query.mode(),
-            "GOOGLE_ROUTES",
-            clock.instant()
-        );
+                route.path("distanceMeters").asLong(),
+                durationSeconds(route.path("duration").asText()),
+                nullableText(route.path("polyline").path("encodedPolyline")),
+                query.mode(),
+                "GOOGLE_ROUTES",
+                clock.instant());
     }
 
     @Override
     public ProviderProxyUseCase.MatrixResult matrix(ProviderProxyUseCase.MatrixQuery query) {
         Map<String, Object> body = new LinkedHashMap<>();
-        body.put("origins", query.origins().stream()
-            .map(point -> Map.of("waypoint", waypoint(point)))
-            .toList());
-        body.put("destinations", query.destinations().stream()
-            .map(point -> Map.of("waypoint", waypoint(point)))
-            .toList());
+        body.put(
+                "origins",
+                query.origins().stream()
+                        .map(point -> Map.of("waypoint", waypoint(point)))
+                        .toList());
+        body.put(
+                "destinations",
+                query.destinations().stream()
+                        .map(point -> Map.of("waypoint", waypoint(point)))
+                        .toList());
         body.put("travelMode", googleMode(query.mode()));
         if ("DRIVING".equalsIgnoreCase(query.mode())) {
             body.put("routingPreference", "TRAFFIC_AWARE");
@@ -105,11 +108,7 @@ class GoogleRoutesProviderAdapter implements RoutesProviderPort {
             }
         }
         return new ProviderProxyUseCase.MatrixResult(
-            List.copyOf(cells),
-            query.mode(),
-            "GOOGLE_ROUTES",
-            clock.instant()
-        );
+                List.copyOf(cells), query.mode(), "GOOGLE_ROUTES", clock.instant());
     }
 
     private static ProviderProxyUseCase.MatrixCell cell(JsonNode value) {
@@ -120,34 +119,36 @@ class GoogleRoutesProviderAdapter implements RoutesProviderPort {
         }
         boolean routeExists = "ROUTE_EXISTS".equals(condition);
         return new ProviderProxyUseCase.MatrixCell(
-            value.path("originIndex").asInt(),
-            value.path("destinationIndex").asInt(),
-            routeExists && value.has("distanceMeters") ? value.get("distanceMeters").asLong() : null,
-            routeExists && value.has("duration")
-                ? durationSeconds(value.get("duration").asText())
-                : null,
-            routeExists ? "OK" : condition
-        );
+                value.path("originIndex").asInt(),
+                value.path("destinationIndex").asInt(),
+                routeExists && value.has("distanceMeters")
+                        ? value.get("distanceMeters").asLong()
+                        : null,
+                routeExists && value.has("duration")
+                        ? durationSeconds(value.get("duration").asText())
+                        : null,
+                routeExists ? "OK" : condition);
     }
 
     private static Map<String, Object> waypoint(ProviderProxyUseCase.RoutePoint point) {
         if (point.providerPlaceId() != null && !point.providerPlaceId().isBlank()) {
             return Map.of("placeId", point.providerPlaceId());
         }
-        return Map.of("location", Map.of("latLng", Map.of(
-            "latitude", point.latitude(),
-            "longitude", point.longitude()
-        )));
+        return Map.of(
+                "location",
+                Map.of(
+                        "latLng",
+                        Map.of(
+                                "latitude", point.latitude(),
+                                "longitude", point.longitude())));
     }
 
     private static String googleMode(String mode) {
         return switch (mode.toUpperCase(Locale.ROOT)) {
             case "BICYCLING" -> "BICYCLE";
             case "WALKING", "DRIVING", "TRANSIT" -> mode.toUpperCase(Locale.ROOT);
-            default -> throw EarthTripException.badRequest(
-                "INVALID_ROUTE_MODE",
-                "지원하지 않는 이동수단입니다."
-            );
+            default ->
+                    throw EarthTripException.badRequest("INVALID_ROUTE_MODE", "지원하지 않는 이동수단입니다.");
         };
     }
 
@@ -157,14 +158,13 @@ class GoogleRoutesProviderAdapter implements RoutesProviderPort {
         }
         try {
             return new BigDecimal(value.substring(0, value.length() - 1))
-                .setScale(0, RoundingMode.CEILING)
-                .intValueExact();
+                    .setScale(0, RoundingMode.CEILING)
+                    .intValueExact();
         } catch (ArithmeticException | NumberFormatException exception) {
             throw new EarthTripException(
-                "INVALID_ROUTES_PROVIDER_RESPONSE",
-                502,
-                "Google Routes 응답의 소요시간 형식이 올바르지 않습니다."
-            );
+                    "INVALID_ROUTES_PROVIDER_RESPONSE",
+                    502,
+                    "Google Routes 응답의 소요시간 형식이 올바르지 않습니다.");
         }
     }
 

@@ -2,7 +2,6 @@ package com.earthtrip.identity.adapter.in.web.api.v1.me.data_exports.by_export_i
 
 import com.earthtrip.identity.application.port.in.CurrentUserProvider;
 import com.earthtrip.identity.application.port.in.DataExportDownloadUseCase;
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -21,26 +20,22 @@ class DataExportDownloadController {
     private final CurrentUserProvider currentUser;
 
     DataExportDownloadController(
-        DataExportDownloadUseCase useCase,
-        CurrentUserProvider currentUser
-    ) {
+            DataExportDownloadUseCase useCase, CurrentUserProvider currentUser) {
         this.useCase = useCase;
         this.currentUser = currentUser;
     }
 
     @GetMapping
     ResponseEntity<byte[]> get(@PathVariable UUID exportId) {
-        DataExportDownloadUseCase.DownloadResult result = useCase.download(
-            currentUser.requireUserId(),
-            exportId
-        );
+        DataExportDownloadUseCase.DownloadResult result =
+                useCase.download(currentUser.requireUserId(), exportId);
         String disposition = "attachment; filename=\"" + result.fileName() + "\"";
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(result.contentType()))
-            .contentLength(result.content().length)
-            .cacheControl(CacheControl.noStore())
-            .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
-            .header("X-Content-Type-Options", "nosniff")
-            .body(result.content());
+                .contentType(MediaType.parseMediaType(result.contentType()))
+                .contentLength(result.content().length)
+                .cacheControl(CacheControl.noStore())
+                .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                .header("X-Content-Type-Options", "nosniff")
+                .body(result.content());
     }
 }

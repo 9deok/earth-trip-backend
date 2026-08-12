@@ -30,33 +30,33 @@ class FileUploadSessionsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     FileUploadSessionResponse post(@Valid @RequestBody FileUploadSessionRequest request) {
-        FileUseCase.UploadResult result = useCase.createUpload(
-            actor.requireUserId(), request.requestId(), request.fileName(), request.mimeType(),
-            request.sizeBytes(), request.checksumSha256()
-        );
+        FileUseCase.UploadResult result =
+                useCase.createUpload(
+                        actor.requireUserId(),
+                        request.requestId(),
+                        request.fileName(),
+                        request.mimeType(),
+                        request.sizeBytes(),
+                        request.checksumSha256());
         return FileUploadSessionResponse.from(result);
     }
 }
 
 record FileUploadSessionRequest(
-    @NotNull UUID requestId,
-    @NotBlank String fileName,
-    @NotBlank String mimeType,
-    @Positive long sizeBytes,
-    @NotBlank String checksumSha256
-) { }
+        @NotNull UUID requestId,
+        @NotBlank String fileName,
+        @NotBlank String mimeType,
+        @Positive long sizeBytes,
+        @NotBlank String checksumSha256) {}
 
 record FileUploadSessionResponse(
-    UUID uploadSessionId,
-    UUID fileId,
-    String status,
-    String uploadUrl,
-    Instant expiresAt
-) {
+        UUID uploadSessionId, UUID fileId, String status, String uploadUrl, Instant expiresAt) {
     static FileUploadSessionResponse from(FileUseCase.UploadResult result) {
         return new FileUploadSessionResponse(
-            result.uploadSessionId(), result.fileId(), result.status(),
-            result.uploadUrl(), result.expiresAt()
-        );
+                result.uploadSessionId(),
+                result.fileId(),
+                result.status(),
+                result.uploadUrl(),
+                result.expiresAt());
     }
 }

@@ -34,94 +34,125 @@ class TripByIdController {
 
     @PatchMapping
     TripResponse patch(@PathVariable UUID tripId, @Valid @RequestBody TripUpdateRequest request) {
-        return response(useCase.update(
-            tripId,
-            currentActor.requireUserId(),
-            new TripManagementUseCase.UpdateTripCommand(
-                request.title(), request.status(), request.startDate(), request.endDate(),
-                request.timeZone(), request.defaultCurrency(), request.planningMode(),
-                request.pace(), request.companionCount(), request.companionNames(),
-                request.dateMode(), request.travelMode(), request.departurePoint(),
-                request.returnPoint(), request.firstDayStartMinutes(), request.lastDayEndMinutes(),
-                request.overnightTravelNights(), request.reduceStairs(), request.frequentBreaks(),
-                request.walkingLimitMinutes(), request.dietaryNotes(), request.baseVersion()
-            )
-        ));
+        return response(
+                useCase.update(
+                        tripId,
+                        currentActor.requireUserId(),
+                        new TripManagementUseCase.UpdateTripCommand(
+                                request.title(),
+                                request.status(),
+                                request.startDate(),
+                                request.endDate(),
+                                request.timeZone(),
+                                request.defaultCurrency(),
+                                request.planningMode(),
+                                request.pace(),
+                                request.companionCount(),
+                                request.companionNames(),
+                                request.dateMode(),
+                                request.travelMode(),
+                                request.departurePoint(),
+                                request.returnPoint(),
+                                request.firstDayStartMinutes(),
+                                request.lastDayEndMinutes(),
+                                request.overnightTravelNights(),
+                                request.reduceStairs(),
+                                request.frequentBreaks(),
+                                request.walkingLimitMinutes(),
+                                request.dietaryNotes(),
+                                request.baseVersion())));
     }
 
     @DeleteMapping
     TripResponse delete(@PathVariable UUID tripId, @Valid @RequestBody TripDeleteRequest request) {
-        return response(useCase.requestDeletion(
-            tripId, currentActor.requireUserId(), request.baseVersion()
-        ));
+        return response(
+                useCase.requestDeletion(
+                        tripId, currentActor.requireUserId(), request.baseVersion()));
     }
 
     private static TripResponse response(TripManagementUseCase.TripResult trip) {
         return new TripResponse(
-            trip.tripId(), trip.ownerUserId(), trip.title(), trip.status(), trip.startDate(),
-            trip.endDate(), trip.timeZone(), trip.defaultCurrency(), trip.planningMode(), trip.pace(),
-            trip.companionCount(), trip.companionNames(), trip.dateMode(), trip.travelMode(),
-            trip.departurePoint(), trip.returnPoint(), trip.firstDayStartMinutes(),
-            trip.lastDayEndMinutes(), trip.overnightTravelNights(), trip.reduceStairs(),
-            trip.frequentBreaks(), trip.walkingLimitMinutes(), trip.dietaryNotes(),
-            trip.version(), trip.createdAt(), trip.updatedAt(), trip.scheduledDeletionAt()
-        );
+                trip.tripId(),
+                trip.ownerUserId(),
+                trip.title(),
+                trip.status(),
+                trip.startDate(),
+                trip.endDate(),
+                trip.timeZone(),
+                trip.defaultCurrency(),
+                trip.planningMode(),
+                trip.pace(),
+                trip.companionCount(),
+                trip.companionNames(),
+                trip.dateMode(),
+                trip.travelMode(),
+                trip.departurePoint(),
+                trip.returnPoint(),
+                trip.firstDayStartMinutes(),
+                trip.lastDayEndMinutes(),
+                trip.overnightTravelNights(),
+                trip.reduceStairs(),
+                trip.frequentBreaks(),
+                trip.walkingLimitMinutes(),
+                trip.dietaryNotes(),
+                trip.version(),
+                trip.createdAt(),
+                trip.updatedAt(),
+                trip.scheduledDeletionAt());
     }
 }
 
 record TripUpdateRequest(
-    String title,
-    String status,
-    LocalDate startDate,
-    LocalDate endDate,
-    String timeZone,
-    String defaultCurrency,
-    String planningMode,
-    String pace,
-    Integer companionCount,
-    java.util.List<String> companionNames,
-    String dateMode,
-    String travelMode,
-    String departurePoint,
-    String returnPoint,
-    Integer firstDayStartMinutes,
-    Integer lastDayEndMinutes,
-    Integer overnightTravelNights,
-    Boolean reduceStairs,
-    Boolean frequentBreaks,
-    Integer walkingLimitMinutes,
-    String dietaryNotes,
-    @Min(0) long baseVersion
-) { }
+        String title,
+        String status,
+        LocalDate startDate,
+        LocalDate endDate,
+        String timeZone,
+        String defaultCurrency,
+        String planningMode,
+        String pace,
+        Integer companionCount,
+        java.util.List<String> companionNames,
+        String dateMode,
+        String travelMode,
+        String departurePoint,
+        String returnPoint,
+        Integer firstDayStartMinutes,
+        Integer lastDayEndMinutes,
+        Integer overnightTravelNights,
+        Boolean reduceStairs,
+        Boolean frequentBreaks,
+        Integer walkingLimitMinutes,
+        String dietaryNotes,
+        @Min(0) long baseVersion) {}
 
-record TripDeleteRequest(@Min(0) long baseVersion) { }
+record TripDeleteRequest(@Min(0) long baseVersion) {}
 
 record TripResponse(
-    UUID tripId,
-    UUID ownerUserId,
-    String title,
-    String status,
-    LocalDate startDate,
-    LocalDate endDate,
-    String timeZone,
-    String defaultCurrency,
-    String planningMode,
-    String pace,
-    int companionCount,
-    java.util.List<String> companionNames,
-    String dateMode,
-    String travelMode,
-    String departurePoint,
-    String returnPoint,
-    int firstDayStartMinutes,
-    int lastDayEndMinutes,
-    int overnightTravelNights,
-    boolean reduceStairs,
-    boolean frequentBreaks,
-    int walkingLimitMinutes,
-    String dietaryNotes,
-    long version,
-    Instant createdAt,
-    Instant updatedAt,
-    Instant scheduledDeletionAt
-) { }
+        UUID tripId,
+        UUID ownerUserId,
+        String title,
+        String status,
+        LocalDate startDate,
+        LocalDate endDate,
+        String timeZone,
+        String defaultCurrency,
+        String planningMode,
+        String pace,
+        int companionCount,
+        java.util.List<String> companionNames,
+        String dateMode,
+        String travelMode,
+        String departurePoint,
+        String returnPoint,
+        int firstDayStartMinutes,
+        int lastDayEndMinutes,
+        int overnightTravelNights,
+        boolean reduceStairs,
+        boolean frequentBreaks,
+        int walkingLimitMinutes,
+        String dietaryNotes,
+        long version,
+        Instant createdAt,
+        Instant updatedAt,
+        Instant scheduledDeletionAt) {}

@@ -24,33 +24,45 @@ class TripExpenseViewService implements TripExpenseView {
     @Override
     public ExpenseSummary summary(UUID tripId, UUID actorUserId) {
         List<ExpenseUseCase.ExpenseResult> visible = expenses.list(tripId, actorUserId);
-        Map<String, Long> totals = visible.stream()
-            .filter(expense -> !expense.status().equals("DELETED"))
-            .collect(Collectors.groupingBy(
-                ExpenseUseCase.ExpenseResult::currency,
-                TreeMap::new,
-                Collectors.summingLong(ExpenseUseCase.ExpenseResult::amountMinor)
-            ));
-        int provisional = (int) visible.stream()
-            .filter(expense -> Set.of("DRAFT", "PROVISIONAL").contains(expense.status()))
-            .count();
+        Map<String, Long> totals =
+                visible.stream()
+                        .filter(expense -> !expense.status().equals("DELETED"))
+                        .collect(
+                                Collectors.groupingBy(
+                                        ExpenseUseCase.ExpenseResult::currency,
+                                        TreeMap::new,
+                                        Collectors.summingLong(
+                                                ExpenseUseCase.ExpenseResult::amountMinor)));
+        int provisional =
+                (int)
+                        visible.stream()
+                                .filter(
+                                        expense ->
+                                                Set.of("DRAFT", "PROVISIONAL")
+                                                        .contains(expense.status()))
+                                .count();
         return new ExpenseSummary(
-            visible.size(),
-            provisional,
-            totals.entrySet().stream()
-                .map(entry -> new Total(entry.getKey(), entry.getValue()))
-                .toList()
-        );
+                visible.size(),
+                provisional,
+                totals.entrySet().stream()
+                        .map(entry -> new Total(entry.getKey(), entry.getValue()))
+                        .toList());
     }
 
     @Override
     public List<Entry> searchEntries(UUID tripId, UUID actorUserId) {
         return expenses.list(tripId, actorUserId).stream()
-            .map(expense -> new Entry(
-                expense.expenseId(), expense.title(), expense.categoryCode(),
-                expense.amountMinor(), expense.currency(), expense.occurredAt(),
-                expense.note(), expense.status()
-            ))
-            .toList();
+                .map(
+                        expense ->
+                                new Entry(
+                                        expense.expenseId(),
+                                        expense.title(),
+                                        expense.categoryCode(),
+                                        expense.amountMinor(),
+                                        expense.currency(),
+                                        expense.occurredAt(),
+                                        expense.note(),
+                                        expense.status()))
+                .toList();
     }
 }

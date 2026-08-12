@@ -45,7 +45,7 @@ class ScheduleChangeSetJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected ScheduleChangeSetJpaEntity() { }
+    protected ScheduleChangeSetJpaEntity() {}
 
     ScheduleChangeSetJpaEntity(ScheduleChangeStorePort.ChangeSetRecord record) {
         id = record.id().toString();
@@ -65,9 +65,15 @@ class ScheduleChangeSetJpaEntity {
 
     ScheduleChangeStorePort.ChangeSetRecord toRecord() {
         return new ScheduleChangeStorePort.ChangeSetRecord(
-            UUID.fromString(id), UUID.fromString(tripId), UUID.fromString(dayId),
-            UUID.fromString(requestedBy), beforeSnapshot, afterSnapshot, status,
-            appliedAt, revertedAt, version
-        );
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                UUID.fromString(dayId),
+                UUID.fromString(requestedBy),
+                beforeSnapshot,
+                afterSnapshot,
+                status,
+                appliedAt,
+                revertedAt,
+                version);
     }
 }

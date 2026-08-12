@@ -1,17 +1,19 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-server_protocol_version="2"
+server_protocol_version="4"
+server_service_dir="/home/rocky/services/earth-trip/earth-trip-backend"
+server_upload_dir="$server_service_dir/tmp-jar"
 
 activate_on_server() {
   local artifact="${1:-}"
   local release_id="${2:-}"
   local expected_sha256="${3:-}"
-  local service_dir="/home/rocky/services/earth-trip/earth-trip-backend"
+  local service_dir="$server_service_dir"
   local target_jar="$service_dir/earth-trip-backend.jar"
   local staged_jar="$service_dir/.earth-trip-backend.jar.next"
   local rollback_jar="$service_dir/.earth-trip-backend.jar.rollback"
-  local readiness_url="http://127.0.0.1:8080/actuator/health/readiness"
+  local readiness_url="http://127.0.0.1:8050/actuator/health/readiness"
   local actual_sha256
   local staged_sha256
   local target_uid
@@ -78,7 +80,7 @@ activate_on_server() {
   fi
 
   for _ in {1..30}; do
-    if curl --fail --silent --show-error "$readiness_url" >/dev/null; then
+    if curl --fail --silent "$readiness_url" >/dev/null 2>&1; then
       ready=true
       break
     fi
@@ -87,6 +89,7 @@ activate_on_server() {
 
   if [[ "$ready" != true ]]; then
     echo "새 release가 readiness를 통과하지 못했습니다." >&2
+    systemctl status earth-trip.service --no-pager --lines=20 >&2 || true
     if [[ -f "$rollback_jar" ]]; then
       mv -Tf "$rollback_jar" "$target_jar"
       if systemctl restart earth-trip.service; then
@@ -116,11 +119,13 @@ fi
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 repo_root="$(cd "$script_dir/../.." && pwd)"
 
-deploy_target="${EARTH_TRIP_DEPLOY_TARGET:-}"
+default_deploy_target="rocky@k8s-worker-02"
+deploy_target="${EARTH_TRIP_DEPLOY_TARGET:-$default_deploy_target}"
+positional_target_seen=false
 identity_file="${EARTH_TRIP_DEPLOY_IDENTITY_FILE:-}"
 ssh_port="${EARTH_TRIP_DEPLOY_PORT:-}"
 public_readiness_url="${EARTH_TRIP_PUBLIC_READINESS_URL:-https://api.earth-trips.com/actuator/health/readiness}"
-remote_upload_dir="/home/rocky/services/earth-trip/earth-trip-backend/tmp-jar"
+remote_upload_dir="$server_upload_dir"
 release_id=""
 allow_dirty=false
 check_public_readiness=true
@@ -130,8 +135,8 @@ usage() {
 사용법:
   deploy/scripts/deploy-earth-trip [SSH_TARGET] [옵션]
 
-SSH_TARGET은 ~/.ssh/config의 Host 별칭 또는 user@host 형식이다.
-인자를 생략하면 EARTH_TRIP_DEPLOY_TARGET 환경변수를 사용한다.
+SSH_TARGET을 생략하면 rocky@k8s-worker-02에 배포한다.
+다른 서버는 ~/.ssh/config의 Host 별칭 또는 user@host 형식으로 지정할 수 있다.
 
 옵션:
   --identity FILE       사용할 SSH private key의 절대 경로
@@ -148,7 +153,7 @@ SSH_TARGET은 ~/.ssh/config의 Host 별칭 또는 user@host 형식이다.
   EARTH_TRIP_PUBLIC_READINESS_URL
 
 예시:
-  deploy/scripts/deploy-earth-trip earth-trip-oci
+  deploy/scripts/deploy-earth-trip
   deploy/scripts/deploy-earth-trip deploy@203.0.113.10 --identity /absolute/path/to/key
 EOF
 }
@@ -199,19 +204,16 @@ while [[ "$#" -gt 0 ]]; do
       fail "알 수 없는 옵션입니다: $1"
       ;;
     *)
-      if [[ -n "$deploy_target" ]]; then
+      if [[ "$positional_target_seen" == true ]]; then
         fail "SSH_TARGET은 하나만 지정할 수 있습니다."
       fi
       deploy_target="$1"
+      positional_target_seen=true
       shift
       ;;
   esac
 done
 
-if [[ -z "$deploy_target" ]]; then
-  usage >&2
-  fail "SSH_TARGET 또는 EARTH_TRIP_DEPLOY_TARGET이 필요합니다."
-fi
 if [[ "$deploy_target" == -* || "$deploy_target" =~ [[:space:]] ]]; then
   fail "SSH_TARGET 형식을 확인하세요: $deploy_target"
 fi
@@ -312,13 +314,26 @@ else
 fi
 
 remote_artifact="$remote_upload_dir/earth-trip-backend-${release_id}.jar"
+remote_artifact_uploaded=false
+
+cleanup_remote_artifact() {
+  if [[ "${remote_artifact_uploaded:-false}" != true ]]; then
+    return
+  fi
+  if ssh "${ssh_options[@]}" "$deploy_target" "rm -f -- '$remote_artifact'"; then
+    remote_artifact_uploaded=false
+  else
+    echo "경고: 서버 임시 JAR을 정리하지 못했습니다: $remote_artifact" >&2
+  fi
+}
+
+trap cleanup_remote_artifact EXIT
 
 echo "[4/6] 검증된 JAR 업로드"
 echo "  artifact: $artifact"
 echo "  sha256:   $sha256"
+remote_artifact_uploaded=true
 if ! scp "${scp_options[@]}" "$artifact" "${deploy_target}:${remote_artifact}"; then
-  ssh "${ssh_options[@]}" "$deploy_target" "rm -f -- '$remote_artifact'" \
-    >/dev/null 2>&1 || true
   fail "JAR 업로드에 실패했습니다."
 fi
 
@@ -328,12 +343,10 @@ ssh "${ssh_options[@]}" "$deploy_target" \
   "sudo /usr/local/sbin/deploy-earth-trip --activate '$remote_artifact' '$release_id' '$sha256'" \
   || deploy_status=$?
 
-if ! ssh "${ssh_options[@]}" "$deploy_target" "rm -f -- '$remote_artifact'"; then
-  echo "경고: 서버 임시 JAR을 정리하지 못했습니다: $remote_artifact" >&2
-fi
+cleanup_remote_artifact
 if [[ "$deploy_status" -ne 0 ]]; then
-  echo "배포 실패: 서버 배포 command가 종료 코드 $deploy_status를 반환했습니다." >&2
-  exit "$deploy_status"
+  echo "배포 실패: 서버 배포 command가 종료 코드 ${deploy_status}를 반환했습니다." >&2
+  exit "${deploy_status}"
 fi
 
 if [[ "$check_public_readiness" == true ]]; then

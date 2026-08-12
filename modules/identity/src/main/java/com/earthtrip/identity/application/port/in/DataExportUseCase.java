@@ -13,13 +13,12 @@ public interface DataExportUseCase {
     ExportResult create(UUID actorUserId, UUID requestId, String format);
 
     record ExportResult(
-        UUID exportId,
-        String status,
-        String format,
-        UUID fileId,
-        String errorCode,
-        Instant createdAt,
-        Instant completedAt,
-        Instant expiresAt
-    ) { }
+            UUID exportId,
+            String status,
+            String format,
+            UUID fileId,
+            String errorCode,
+            Instant createdAt,
+            Instant completedAt,
+            Instant expiresAt) {}
 }

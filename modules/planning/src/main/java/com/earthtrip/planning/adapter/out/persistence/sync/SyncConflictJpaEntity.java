@@ -60,25 +60,23 @@ class SyncConflictJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected SyncConflictJpaEntity() { }
+    protected SyncConflictJpaEntity() {}
 
     SyncConflictJpaEntity(
-        SyncStateStorePort.ConflictRecord record,
-        String deviceCommand,
-        String serverSnapshot,
-        String mergeableFields
-    ) {
+            SyncStateStorePort.ConflictRecord record,
+            String deviceCommand,
+            String serverSnapshot,
+            String mergeableFields) {
         id = record.conflictId().toString();
         operationId = record.operationId().toString();
         apply(record, deviceCommand, serverSnapshot, mergeableFields);
     }
 
     void apply(
-        SyncStateStorePort.ConflictRecord record,
-        String deviceCommand,
-        String serverSnapshot,
-        String mergeableFields
-    ) {
+            SyncStateStorePort.ConflictRecord record,
+            String deviceCommand,
+            String serverSnapshot,
+            String mergeableFields) {
         tripId = record.tripId().toString();
         actorId = record.actorId().toString();
         action = record.action();
@@ -93,33 +91,63 @@ class SyncConflictJpaEntity {
         resolvedAt = record.resolvedAt();
     }
 
-    UUID id() { return UUID.fromString(id); }
+    UUID id() {
+        return UUID.fromString(id);
+    }
 
-    UUID operationId() { return UUID.fromString(operationId); }
+    UUID operationId() {
+        return UUID.fromString(operationId);
+    }
 
-    UUID tripId() { return UUID.fromString(tripId); }
+    UUID tripId() {
+        return UUID.fromString(tripId);
+    }
 
-    UUID actorId() { return UUID.fromString(actorId); }
+    UUID actorId() {
+        return UUID.fromString(actorId);
+    }
 
-    String action() { return action; }
+    String action() {
+        return action;
+    }
 
-    String resourceType() { return resourceType; }
+    String resourceType() {
+        return resourceType;
+    }
 
-    UUID resourceId() { return UUID.fromString(resourceId); }
+    UUID resourceId() {
+        return UUID.fromString(resourceId);
+    }
 
-    String deviceCommand() { return deviceCommand; }
+    String deviceCommand() {
+        return deviceCommand;
+    }
 
-    String serverSnapshot() { return serverSnapshot; }
+    String serverSnapshot() {
+        return serverSnapshot;
+    }
 
-    String mergeableFields() { return mergeableFields; }
+    String mergeableFields() {
+        return mergeableFields;
+    }
 
-    String status() { return status; }
+    String status() {
+        return status;
+    }
 
-    String resolution() { return resolution; }
+    String resolution() {
+        return resolution;
+    }
 
-    Instant createdAt() { return createdAt; }
+    Instant createdAt() {
+        return createdAt;
+    }
 
-    Instant resolvedAt() { return resolvedAt; }
+    Instant resolvedAt() {
+        return resolvedAt;
+    }
 
-    long version() { return version; }
+    long version() {
+        return version;
+    }
 }

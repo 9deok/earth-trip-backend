@@ -20,24 +20,22 @@ public interface ScheduleChangeStorePort {
     void deleteResolution(UUID diagnosticId);
 
     record ChangeSetRecord(
-        UUID id,
-        UUID tripId,
-        UUID dayId,
-        UUID requestedBy,
-        String beforeSnapshot,
-        String afterSnapshot,
-        String status,
-        Instant appliedAt,
-        Instant revertedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            UUID dayId,
+            UUID requestedBy,
+            String beforeSnapshot,
+            String afterSnapshot,
+            String status,
+            Instant appliedAt,
+            Instant revertedAt,
+            long version) {}
 
     record ResolutionRecord(
-        UUID diagnosticId,
-        UUID tripId,
-        UUID dayId,
-        String note,
-        UUID resolvedBy,
-        Instant resolvedAt
-    ) { }
+            UUID diagnosticId,
+            UUID tripId,
+            UUID dayId,
+            String note,
+            UUID resolvedBy,
+            Instant resolvedAt) {}
 }

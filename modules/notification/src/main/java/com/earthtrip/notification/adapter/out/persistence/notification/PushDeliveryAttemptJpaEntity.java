@@ -1,6 +1,6 @@
 package com.earthtrip.notification.adapter.out.persistence.notification;
 
-import com.earthtrip.notification.application.port.out.NotificationStorePort;
+import com.earthtrip.notification.application.port.out.NotificationStoreRecords;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -43,9 +43,9 @@ class PushDeliveryAttemptJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    protected PushDeliveryAttemptJpaEntity() { }
+    protected PushDeliveryAttemptJpaEntity() {}
 
-    void apply(NotificationStorePort.DeliveryAttemptRecord record) {
+    void apply(NotificationStoreRecords.DeliveryAttemptRecord record) {
         id = record.id().toString();
         notificationId = record.notificationId().toString();
         deviceId = record.deviceId();
@@ -58,10 +58,17 @@ class PushDeliveryAttemptJpaEntity {
         updatedAt = record.updatedAt();
     }
 
-    NotificationStorePort.DeliveryAttemptRecord record() {
-        return new NotificationStorePort.DeliveryAttemptRecord(
-            UUID.fromString(id), UUID.fromString(notificationId), deviceId, status,
-            attempts, nextAttemptAt, lastError, providerMessageId, createdAt, updatedAt
-        );
+    NotificationStoreRecords.DeliveryAttemptRecord record() {
+        return new NotificationStoreRecords.DeliveryAttemptRecord(
+                UUID.fromString(id),
+                UUID.fromString(notificationId),
+                deviceId,
+                status,
+                attempts,
+                nextAttemptAt,
+                lastError,
+                providerMessageId,
+                createdAt,
+                updatedAt);
     }
 }

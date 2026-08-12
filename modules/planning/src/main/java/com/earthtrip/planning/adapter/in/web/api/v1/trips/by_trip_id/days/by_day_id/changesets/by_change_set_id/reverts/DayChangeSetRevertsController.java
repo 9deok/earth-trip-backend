@@ -14,9 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    "/api/v1/trips/{tripId}/days/{dayId}/changesets/{changeSetId}/reverts"
-)
+@RequestMapping("/api/v1/trips/{tripId}/days/{dayId}/changesets/{changeSetId}/reverts")
 class DayChangeSetRevertsController {
 
     private final DayChangeSetUseCase useCase;
@@ -30,15 +28,13 @@ class DayChangeSetRevertsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     DayChangeSetUseCase.ChangeSetResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID dayId,
-        @PathVariable UUID changeSetId,
-        @Valid @RequestBody DayChangeSetRevertRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID dayId,
+            @PathVariable UUID changeSetId,
+            @Valid @RequestBody DayChangeSetRevertRequest request) {
         return useCase.revert(
-            tripId, dayId, changeSetId, actor.requireUserId(), request.baseVersion()
-        );
+                tripId, dayId, changeSetId, actor.requireUserId(), request.baseVersion());
     }
 }
 
-record DayChangeSetRevertRequest(@PositiveOrZero long baseVersion) { }
+record DayChangeSetRevertRequest(@PositiveOrZero long baseVersion) {}

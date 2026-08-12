@@ -30,33 +30,23 @@ class DayChangeSetsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     DayChangeSetUseCase.ChangeSetResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID dayId,
-        @Valid @RequestBody DayChangeSetRequest request
-    ) {
-        return useCase.apply(
-            tripId, dayId, actor.requireUserId(), request.toCommand()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID dayId,
+            @Valid @RequestBody DayChangeSetRequest request) {
+        return useCase.apply(tripId, dayId, actor.requireUserId(), request.toCommand());
     }
 }
 
 record DayChangeSetRequest(
-    @NotNull UUID requestId,
-    @NotNull @Valid List<DayChangeSetOrderRequest> order
-) {
+        @NotNull UUID requestId, @NotNull @Valid List<DayChangeSetOrderRequest> order) {
     DayChangeSetUseCase.ChangeSetCommand toCommand() {
         return new DayChangeSetUseCase.ChangeSetCommand(
-            requestId,
-            order.stream().map(DayChangeSetOrderRequest::toItem).toList()
-        );
+                requestId, order.stream().map(DayChangeSetOrderRequest::toItem).toList());
     }
 }
 
 record DayChangeSetOrderRequest(
-    @NotNull UUID itemId,
-    @PositiveOrZero int sortOrder,
-    @PositiveOrZero long baseVersion
-) {
+        @NotNull UUID itemId, @PositiveOrZero int sortOrder, @PositiveOrZero long baseVersion) {
     DayChangeSetUseCase.OrderItem toItem() {
         return new DayChangeSetUseCase.OrderItem(itemId, sortOrder, baseVersion);
     }

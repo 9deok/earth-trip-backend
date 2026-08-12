@@ -19,7 +19,7 @@ import org.springframework.web.client.RestClientResponseException;
 class FirebasePushDeliveryAdapter implements PushDeliveryPort {
 
     private static final String FIREBASE_SCOPE =
-        "https://www.googleapis.com/auth/firebase.messaging";
+            "https://www.googleapis.com/auth/firebase.messaging";
 
     private final String projectId;
     private final RestClient restClient;
@@ -27,21 +27,16 @@ class FirebasePushDeliveryAdapter implements PushDeliveryPort {
 
     @Autowired
     FirebasePushDeliveryAdapter(
-        @Value("${earthtrip.providers.firebase.project-id:}") String projectId,
-        RestClient.Builder restClientBuilder
-    ) {
+            @Value("${earthtrip.providers.firebase.project-id:}") String projectId,
+            RestClient.Builder restClientBuilder) {
         this(
-            projectId,
-            restClientBuilder.baseUrl("https://fcm.googleapis.com").build(),
-            new GoogleAccessTokenSupplier()
-        );
+                projectId,
+                restClientBuilder.baseUrl("https://fcm.googleapis.com").build(),
+                new GoogleAccessTokenSupplier());
     }
 
     FirebasePushDeliveryAdapter(
-        String projectId,
-        RestClient restClient,
-        AccessTokenSupplier accessTokenSupplier
-    ) {
+            String projectId, RestClient restClient, AccessTokenSupplier accessTokenSupplier) {
         this.projectId = projectId == null ? "" : projectId.strip();
         this.restClient = restClient;
         this.accessTokenSupplier = accessTokenSupplier;
@@ -52,18 +47,21 @@ class FirebasePushDeliveryAdapter implements PushDeliveryPort {
         requireConfigured();
         try {
             String bearerToken = accessTokenSupplier.accessToken();
-            JsonNode response = restClient.post()
-                .uri("/v1/projects/{projectId}/messages:send", projectId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .headers(headers -> headers.setBearerAuth(bearerToken))
-                .body(Map.of("message", providerMessage(rawDeviceToken, message)))
-                .retrieve()
-                .body(JsonNode.class);
+            JsonNode response =
+                    restClient
+                            .post()
+                            .uri("/v1/projects/{projectId}/messages:send", projectId)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .headers(headers -> headers.setBearerAuth(bearerToken))
+                            .body(Map.of("message", providerMessage(rawDeviceToken, message)))
+                            .retrieve()
+                            .body(JsonNode.class);
             String providerMessageId = response == null ? null : response.path("name").asText(null);
             return new DeliveryResult("DELIVERED", providerMessageId, null);
         } catch (RestClientResponseException exception) {
             String body = exception.getResponseBodyAsString();
-            if (body.contains("UNREGISTERED") || body.contains("registration-token-not-registered")) {
+            if (body.contains("UNREGISTERED")
+                    || body.contains("registration-token-not-registered")) {
                 return new DeliveryResult("UNREGISTERED", null, "UNREGISTERED");
             }
             int status = exception.getStatusCode().value();
@@ -88,27 +86,22 @@ class FirebasePushDeliveryAdapter implements PushDeliveryPort {
         }
         Map<String, Object> providerMessage = new LinkedHashMap<>();
         providerMessage.put("token", token);
-        providerMessage.put("notification", Map.of(
-            "title", message.title(),
-            "body", message.body()
-        ));
+        providerMessage.put(
+                "notification",
+                Map.of(
+                        "title", message.title(),
+                        "body", message.body()));
         providerMessage.put("data", data);
-        providerMessage.put("android", Map.of(
-            "priority", "high",
-            "notification", Map.of("sound", "default")
-        ));
-        providerMessage.put("apns", Map.of(
-            "payload", Map.of("aps", Map.of("sound", "default"))
-        ));
+        providerMessage.put(
+                "android", Map.of("priority", "high", "notification", Map.of("sound", "default")));
+        providerMessage.put("apns", Map.of("payload", Map.of("aps", Map.of("sound", "default"))));
         return providerMessage;
     }
 
     private void requireConfigured() {
         if (projectId.isBlank()) {
             throw EarthTripException.unavailable(
-                "FIREBASE_NOT_CONFIGURED",
-                "Firebase 프로젝트 ID가 설정되지 않았습니다."
-            );
+                    "FIREBASE_NOT_CONFIGURED", "Firebase 프로젝트 ID가 설정되지 않았습니다.");
         }
     }
 
@@ -124,8 +117,9 @@ class FirebasePushDeliveryAdapter implements PushDeliveryPort {
         @Override
         public synchronized String accessToken() throws IOException {
             if (credentials == null) {
-                credentials = GoogleCredentials.getApplicationDefault()
-                    .createScoped(List.of(FIREBASE_SCOPE));
+                credentials =
+                        GoogleCredentials.getApplicationDefault()
+                                .createScoped(List.of(FIREBASE_SCOPE));
             }
             credentials.refreshIfExpired();
             if (credentials.getAccessToken() == null) {

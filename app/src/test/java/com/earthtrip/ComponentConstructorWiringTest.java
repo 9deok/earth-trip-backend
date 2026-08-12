@@ -18,27 +18,31 @@ class ComponentConstructorWiringTest {
         var scanner = new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AnnotationTypeFilter(Component.class));
 
-        List<String> ambiguousComponents = scanner
-            .findCandidateComponents("com.earthtrip")
-            .stream()
-            .map(definition -> definition.getBeanClassName())
-            .filter(name -> name != null)
-            .map(ComponentConstructorWiringTest::loadClass)
-            .filter(type -> {
-                Constructor<?>[] constructors = type.getDeclaredConstructors();
-                return constructors.length > 1
-                    && java.util.Arrays.stream(constructors)
-                        .noneMatch(constructor -> constructor.getParameterCount() == 0)
-                    && java.util.Arrays.stream(constructors)
-                        .noneMatch(constructor -> constructor.isAnnotationPresent(Autowired.class));
-            })
-            .map(Class::getName)
-            .sorted(Comparator.naturalOrder())
-            .toList();
+        List<String> ambiguousComponents =
+                scanner.findCandidateComponents("com.earthtrip").stream()
+                        .map(definition -> definition.getBeanClassName())
+                        .filter(name -> name != null)
+                        .map(ComponentConstructorWiringTest::loadClass)
+                        .filter(
+                                type -> {
+                                    Constructor<?>[] constructors = type.getDeclaredConstructors();
+                                    return constructors.length > 1
+                                            && java.util.Arrays.stream(constructors)
+                                                    .noneMatch(
+                                                            constructor ->
+                                                                    constructor.getParameterCount()
+                                                                            == 0)
+                                            && java.util.Arrays.stream(constructors)
+                                                    .noneMatch(
+                                                            constructor ->
+                                                                    constructor.isAnnotationPresent(
+                                                                            Autowired.class));
+                                })
+                        .map(Class::getName)
+                        .sorted(Comparator.naturalOrder())
+                        .toList();
 
-        assertThat(ambiguousComponents)
-            .as("기본 생성자가 없는 다중 생성자 Spring 컴포넌트")
-            .isEmpty();
+        assertThat(ambiguousComponents).as("기본 생성자가 없는 다중 생성자 Spring 컴포넌트").isEmpty();
     }
 
     private static Class<?> loadClass(String name) {

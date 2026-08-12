@@ -14,18 +14,14 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    "/api/v1/trips/{tripId}/preparation-suggestions/{suggestionId}/acceptances"
-)
+@RequestMapping("/api/v1/trips/{tripId}/preparation-suggestions/{suggestionId}/acceptances")
 class PreparationSuggestionAcceptancesController {
 
     private final PreparationSuggestionUseCase useCase;
     private final CurrentActor actor;
 
     PreparationSuggestionAcceptancesController(
-        PreparationSuggestionUseCase useCase,
-        CurrentActor actor
-    ) {
+            PreparationSuggestionUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
@@ -33,14 +29,11 @@ class PreparationSuggestionAcceptancesController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     PreparationSuggestionUseCase.AcceptanceResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID suggestionId,
-        @Valid @RequestBody PreparationSuggestionAcceptanceRequest request
-    ) {
-        return useCase.accept(
-            tripId, suggestionId, actor.requireUserId(), request.requestId()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID suggestionId,
+            @Valid @RequestBody PreparationSuggestionAcceptanceRequest request) {
+        return useCase.accept(tripId, suggestionId, actor.requireUserId(), request.requestId());
     }
 }
 
-record PreparationSuggestionAcceptanceRequest(@NotNull UUID requestId) { }
+record PreparationSuggestionAcceptanceRequest(@NotNull UUID requestId) {}

@@ -30,20 +30,13 @@ class TripExportsController {
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     TripExportUseCase.ExportResult create(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody TripExportRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody TripExportRequest request) {
         return useCase.create(
-            tripId, actor.requireUserId(),
-            new TripExportUseCase.ExportCommand(
-                request.requestId(), request.format(), request.scopes()
-            )
-        );
+                tripId,
+                actor.requireUserId(),
+                new TripExportUseCase.ExportCommand(
+                        request.requestId(), request.format(), request.scopes()));
     }
 }
 
-record TripExportRequest(
-    @NotNull UUID requestId,
-    @NotBlank String format,
-    Set<String> scopes
-) { }
+record TripExportRequest(@NotNull UUID requestId, @NotBlank String format, Set<String> scopes) {}

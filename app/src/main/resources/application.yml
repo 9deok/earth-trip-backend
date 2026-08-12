@@ -43,9 +43,13 @@ management:
         enabled: true
 
 earthtrip:
+  http-client:
+    connect-timeout: ${OUTBOUND_HTTP_CONNECT_TIMEOUT:5s}
+    read-timeout: ${OUTBOUND_HTTP_READ_TIMEOUT:15s}
   logging:
     http:
-      max-payload-bytes: ${HTTP_LOG_MAX_PAYLOAD_BYTES:65536}
+      max-payload-bytes: ${HTTP_LOG_MAX_PAYLOAD_BYTES:8192}
+      success-details-enabled: ${HTTP_LOG_SUCCESS_DETAILS_ENABLED:false}
   public-base-url: ${PUBLIC_BASE_URL:http://localhost:3000}
   backend-public-base-url: ${BACKEND_PUBLIC_BASE_URL:http://localhost:8080}
   oauth:

@@ -11,18 +11,18 @@ public interface PlatformInfoUseCase {
     List<CountryReference> countries();
 
     record AppCapabilities(
-        String apiVersion,
-        int minimumAndroidBuild,
-        int minimumIosBuild,
-        boolean maintenanceMode,
-        String maintenanceMessage,
-        boolean readOnlyAvailable,
-        List<ProviderCapability> providers
-    ) { }
+            String apiVersion,
+            int minimumAndroidBuild,
+            int minimumIosBuild,
+            boolean maintenanceMode,
+            String maintenanceMessage,
+            boolean readOnlyAvailable,
+            List<ProviderCapability> providers) {}
 
-    record ProviderCapability(String provider, boolean available, String status) { }
+    record ProviderCapability(String provider, boolean available, String status) {}
 
-    record CurrencyReference(String code, int fractionDigits, int numericCode, String displayName) { }
+    record CurrencyReference(
+            String code, int fractionDigits, int numericCode, String displayName) {}
 
-    record CountryReference(String code, String displayName, String currencyCode) { }
+    record CountryReference(String code, String displayName, String currencyCode) {}
 }

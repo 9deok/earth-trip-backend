@@ -23,17 +23,13 @@ class EmailVerificationConfirmationController {
 
     @PostMapping
     EmailVerificationConfirmationResponse confirm(
-        @Valid @RequestBody EmailVerificationConfirmationRequest request
-    ) {
+            @Valid @RequestBody EmailVerificationConfirmationRequest request) {
         EmailVerificationUseCase.ConfirmResult result = useCase.confirm(request.token());
         return new EmailVerificationConfirmationResponse(
-            result.userId(),
-            result.email(),
-            result.verifiedAt()
-        );
+                result.userId(), result.email(), result.verifiedAt());
     }
 }
 
-record EmailVerificationConfirmationRequest(@NotBlank @Size(max = 200) String token) { }
+record EmailVerificationConfirmationRequest(@NotBlank @Size(max = 200) String token) {}
 
-record EmailVerificationConfirmationResponse(UUID userId, String email, Instant verifiedAt) { }
+record EmailVerificationConfirmationResponse(UUID userId, String email, Instant verifiedAt) {}

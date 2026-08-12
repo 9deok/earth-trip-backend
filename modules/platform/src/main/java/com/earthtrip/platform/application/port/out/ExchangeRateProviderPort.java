@@ -7,8 +7,5 @@ import java.util.List;
 public interface ExchangeRateProviderPort {
 
     ProviderProxyUseCase.ExchangeRateResult rates(
-        String baseCurrency,
-        List<String> quoteCurrencies,
-        Instant observedAt
-    );
+            String baseCurrency, List<String> quoteCurrencies, Instant observedAt);
 }

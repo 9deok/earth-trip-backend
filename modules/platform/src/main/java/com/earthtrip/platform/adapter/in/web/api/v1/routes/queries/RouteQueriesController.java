@@ -24,29 +24,28 @@ class RouteQueriesController {
 
     @PostMapping
     ProviderProxyUseCase.RouteResult post(@Valid @RequestBody RouteQueryRequest request) {
-        return useCase.route(new ProviderProxyUseCase.RouteQuery(
-            request.origin().toPoint(), request.destination().toPoint(),
-            request.waypoints() == null ? List.of() : request.waypoints().stream()
-                .map(RoutePointRequest::toPoint)
-                .toList(),
-            request.mode(), request.departureAt()
-        ));
+        return useCase.route(
+                new ProviderProxyUseCase.RouteQuery(
+                        request.origin().toPoint(),
+                        request.destination().toPoint(),
+                        request.waypoints() == null
+                                ? List.of()
+                                : request.waypoints().stream()
+                                        .map(RoutePointRequest::toPoint)
+                                        .toList(),
+                        request.mode(),
+                        request.departureAt()));
     }
 }
 
 record RouteQueryRequest(
-    @NotNull @Valid RoutePointRequest origin,
-    @NotNull @Valid RoutePointRequest destination,
-    @Size(max = 10) @Valid List<RoutePointRequest> waypoints,
-    String mode,
-    Instant departureAt
-) { }
+        @NotNull @Valid RoutePointRequest origin,
+        @NotNull @Valid RoutePointRequest destination,
+        @Size(max = 10) @Valid List<RoutePointRequest> waypoints,
+        String mode,
+        Instant departureAt) {}
 
-record RoutePointRequest(
-    BigDecimal latitude,
-    BigDecimal longitude,
-    String providerPlaceId
-) {
+record RoutePointRequest(BigDecimal latitude, BigDecimal longitude, String providerPlaceId) {
     ProviderProxyUseCase.RoutePoint toPoint() {
         return new ProviderProxyUseCase.RoutePoint(latitude, longitude, providerPlaceId);
     }

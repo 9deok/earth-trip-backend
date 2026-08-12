@@ -31,19 +31,20 @@ class SettlementSupplementsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     SettlementAdjustmentUseCase.SupplementResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID settlementId,
-        @Valid @RequestBody SettlementSupplementRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID settlementId,
+            @Valid @RequestBody SettlementSupplementRequest request) {
         return useCase.createSupplement(
-            tripId, settlementId, actor.requireUserId(), request.requestId(),
-            request.settlementBaseVersion(), request.minorUnitRates()
-        );
+                tripId,
+                settlementId,
+                actor.requireUserId(),
+                request.requestId(),
+                request.settlementBaseVersion(),
+                request.minorUnitRates());
     }
 }
 
 record SettlementSupplementRequest(
-    @NotNull UUID requestId,
-    @PositiveOrZero long settlementBaseVersion,
-    Map<String, BigDecimal> minorUnitRates
-) { }
+        @NotNull UUID requestId,
+        @PositiveOrZero long settlementBaseVersion,
+        Map<String, BigDecimal> minorUnitRates) {}

@@ -1,3 +1,40 @@
-package com.earthtrip.expense.adapter.in.web.api.v1.trips.by_trip_id.cash_reconciliations;import com.earthtrip.expense.application.port.in.FinanceLedgerUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import jakarta.validation.Valid;import jakarta.validation.constraints.*;import java.util.*;import org.springframework.http.HttpStatus;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/v1/trips/{tripId}/cash-reconciliations") class CashReconciliationsController{private final FinanceLedgerUseCase useCase;private final CurrentActor actor;CashReconciliationsController(FinanceLedgerUseCase u,CurrentActor a){useCase=u;actor=a;}@PostMapping @ResponseStatus(HttpStatus.CREATED) FinanceLedgerUseCase.CashResult post(@PathVariable UUID tripId,@Valid @RequestBody ReconciliationMutation r){return useCase.reconcile(tripId,actor.requireUserId(),r.requestId(),r.currency(),r.countedBalanceMinor(),r.payload());}}
-record ReconciliationMutation(@NotNull UUID requestId,@NotBlank String currency,long countedBalanceMinor,Map<String,Object>payload){}
+package com.earthtrip.expense.adapter.in.web.api.v1.trips.by_trip_id.cash_reconciliations;
+
+import com.earthtrip.expense.application.port.in.FinanceLedgerUseCase;
+import com.earthtrip.sharedkernel.security.CurrentActor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
+import java.util.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/cash-reconciliations")
+class CashReconciliationsController {
+    private final FinanceLedgerUseCase useCase;
+    private final CurrentActor actor;
+
+    CashReconciliationsController(FinanceLedgerUseCase u, CurrentActor a) {
+        useCase = u;
+        actor = a;
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    FinanceLedgerUseCase.CashResult post(
+            @PathVariable UUID tripId, @Valid @RequestBody ReconciliationMutation r) {
+        return useCase.reconcile(
+                tripId,
+                actor.requireUserId(),
+                r.requestId(),
+                r.currency(),
+                r.countedBalanceMinor(),
+                r.payload());
+    }
+}
+
+record ReconciliationMutation(
+        @NotNull UUID requestId,
+        @NotBlank String currency,
+        long countedBalanceMinor,
+        Map<String, Object> payload) {}

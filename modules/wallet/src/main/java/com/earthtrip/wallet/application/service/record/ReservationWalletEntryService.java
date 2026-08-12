@@ -21,75 +21,67 @@ class ReservationWalletEntryService implements ReservationWalletEntryUseCase {
 
     @Override
     public WalletRecordUseCase.RecordResult put(
-        UUID tripId,
-        UUID reservationId,
-        UUID actorUserId,
-        Command command
-    ) {
+            UUID tripId, UUID reservationId, UUID actorUserId, Command command) {
         records.get(tripId, actorUserId, "RESERVATION", reservationId);
-        List<WalletRecordUseCase.RecordResult> entries = records.list(
-            tripId, actorUserId, "WALLET_ENTRY", reservationId
-        );
+        List<WalletRecordUseCase.RecordResult> entries =
+                records.list(tripId, actorUserId, "WALLET_ENTRY", reservationId);
         if (entries.size() > 1) {
             throw EarthTripException.conflict(
-                "DUPLICATE_RESERVATION_WALLET_ENTRY",
-                "예약에 여행 지갑 항목이 여러 개 연결되어 관리자 확인이 필요합니다."
-            );
+                    "DUPLICATE_RESERVATION_WALLET_ENTRY", "예약에 여행 지갑 항목이 여러 개 연결되어 관리자 확인이 필요합니다.");
         }
         Map<String, Object> payload = command.payload();
         if (payload == null) {
-            throw EarthTripException.badRequest(
-                "PAYLOAD_REQUIRED",
-                "여행 지갑에 표시할 정보가 필요합니다."
-            );
+            throw EarthTripException.badRequest("PAYLOAD_REQUIRED", "여행 지갑에 표시할 정보가 필요합니다.");
         }
         if (entries.isEmpty()) {
             if (command.requestId() == null) {
                 throw EarthTripException.badRequest(
-                    "REQUEST_ID_REQUIRED",
-                    "새 여행 지갑 항목의 요청 ID가 필요합니다."
-                );
+                        "REQUEST_ID_REQUIRED", "새 여행 지갑 항목의 요청 ID가 필요합니다.");
             }
             return records.create(
-                tripId, actorUserId, "WALLET_ENTRY", false,
-                new WalletRecordUseCase.Command(
-                    command.requestId(), reservationId, payload, "ACTIVE",
-                    command.visibility(), command.sortOrder(), 0
-                )
-            );
+                    tripId,
+                    actorUserId,
+                    "WALLET_ENTRY",
+                    false,
+                    new WalletRecordUseCase.Command(
+                            command.requestId(),
+                            reservationId,
+                            payload,
+                            "ACTIVE",
+                            command.visibility(),
+                            command.sortOrder(),
+                            0));
         }
         WalletRecordUseCase.RecordResult current = entries.getFirst();
         return records.update(
-            tripId, actorUserId, "WALLET_ENTRY", current.id(), false,
-            new WalletRecordUseCase.Command(
-                current.id(), reservationId, payload, "ACTIVE", command.visibility(),
-                command.sortOrder(), command.baseVersion()
-            )
-        );
+                tripId,
+                actorUserId,
+                "WALLET_ENTRY",
+                current.id(),
+                false,
+                new WalletRecordUseCase.Command(
+                        current.id(),
+                        reservationId,
+                        payload,
+                        "ACTIVE",
+                        command.visibility(),
+                        command.sortOrder(),
+                        command.baseVersion()));
     }
 
     @Override
-    public void delete(
-        UUID tripId,
-        UUID reservationId,
-        UUID actorUserId,
-        long baseVersion
-    ) {
+    public void delete(UUID tripId, UUID reservationId, UUID actorUserId, long baseVersion) {
         records.get(tripId, actorUserId, "RESERVATION", reservationId);
-        List<WalletRecordUseCase.RecordResult> entries = records.list(
-            tripId, actorUserId, "WALLET_ENTRY", reservationId
-        );
+        List<WalletRecordUseCase.RecordResult> entries =
+                records.list(tripId, actorUserId, "WALLET_ENTRY", reservationId);
         if (entries.isEmpty()) {
             return;
         }
         if (entries.size() > 1) {
             throw EarthTripException.conflict(
-                "DUPLICATE_RESERVATION_WALLET_ENTRY",
-                "예약에 여행 지갑 항목이 여러 개 연결되어 관리자 확인이 필요합니다."
-            );
+                    "DUPLICATE_RESERVATION_WALLET_ENTRY", "예약에 여행 지갑 항목이 여러 개 연결되어 관리자 확인이 필요합니다.");
         }
         records.delete(
-            tripId, actorUserId, "WALLET_ENTRY", entries.getFirst().id(), false, baseVersion
-        );
+                tripId, actorUserId, "WALLET_ENTRY", entries.getFirst().id(), false, baseVersion);
     }
 }

@@ -27,42 +27,40 @@ class ScheduleItemMovesController {
 
     @PostMapping
     ScheduleMoveUseCase.MoveResult post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ScheduleItemMoveRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody ScheduleItemMoveRequest request) {
         return useCase.move(
-            tripId,
-            actor.requireUserId(),
-            new ScheduleMoveUseCase.MoveCommand(
-                request.itemId(), request.sourceDayId(), request.targetDayId(),
-                request.itemBaseVersion(), order(request.sourceOrder()),
-                order(request.targetOrder())
-            )
-        );
+                tripId,
+                actor.requireUserId(),
+                new ScheduleMoveUseCase.MoveCommand(
+                        request.itemId(),
+                        request.sourceDayId(),
+                        request.targetDayId(),
+                        request.itemBaseVersion(),
+                        order(request.sourceOrder()),
+                        order(request.targetOrder())));
     }
 
     private static List<ScheduleMoveUseCase.OrderItem> order(List<ScheduleOrderRequest> requests) {
         return requests == null
-            ? null
-            : requests.stream()
-                .map(item -> new ScheduleMoveUseCase.OrderItem(
-                    item.itemId(), item.sortOrder(), item.baseVersion()
-                ))
-                .toList();
+                ? null
+                : requests.stream()
+                        .map(
+                                item ->
+                                        new ScheduleMoveUseCase.OrderItem(
+                                                item.itemId(),
+                                                item.sortOrder(),
+                                                item.baseVersion()))
+                        .toList();
     }
 }
 
 record ScheduleItemMoveRequest(
-    @NotNull UUID itemId,
-    @NotNull UUID sourceDayId,
-    @NotNull UUID targetDayId,
-    @PositiveOrZero long itemBaseVersion,
-    @Valid List<ScheduleOrderRequest> sourceOrder,
-    @NotNull @Valid List<ScheduleOrderRequest> targetOrder
-) { }
+        @NotNull UUID itemId,
+        @NotNull UUID sourceDayId,
+        @NotNull UUID targetDayId,
+        @PositiveOrZero long itemBaseVersion,
+        @Valid List<ScheduleOrderRequest> sourceOrder,
+        @NotNull @Valid List<ScheduleOrderRequest> targetOrder) {}
 
 record ScheduleOrderRequest(
-    @NotNull UUID itemId,
-    @PositiveOrZero int sortOrder,
-    @PositiveOrZero long baseVersion
-) { }
+        @NotNull UUID itemId, @PositiveOrZero int sortOrder, @PositiveOrZero long baseVersion) {}

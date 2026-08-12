@@ -16,35 +16,62 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController @RequestMapping("/api/v1/trips/{tripId}/members/{memberId}")
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/members/{memberId}")
 class TripMemberByIdController {
-    private final TripMemberUseCase useCase; private final CurrentUserProvider currentUser;
+    private final TripMemberUseCase useCase;
+    private final CurrentUserProvider currentUser;
+
     TripMemberByIdController(TripMemberUseCase useCase, CurrentUserProvider currentUser) {
-        this.useCase = useCase; this.currentUser = currentUser;
+        this.useCase = useCase;
+        this.currentUser = currentUser;
     }
-    @PatchMapping MemberResponse patch(
-        @PathVariable UUID tripId, @PathVariable UUID memberId,
-        @Valid @RequestBody MemberRoleRequest request
-    ) {
-        TripMemberUseCase.MemberResult m = useCase.changeRole(
-            tripId, memberId, currentUser.requireUserId(), request.role(), request.baseVersion()
-        );
+
+    @PatchMapping
+    MemberResponse patch(
+            @PathVariable UUID tripId,
+            @PathVariable UUID memberId,
+            @Valid @RequestBody MemberRoleRequest request) {
+        TripMemberUseCase.MemberResult m =
+                useCase.changeRole(
+                        tripId,
+                        memberId,
+                        currentUser.requireUserId(),
+                        request.role(),
+                        request.baseVersion());
         return new MemberResponse(
-            m.memberId(), m.userId(), m.displayName(), m.email(), m.role(), m.status(),
-            m.currentUser(), m.joinedAt(), m.version()
-        );
+                m.memberId(),
+                m.userId(),
+                m.displayName(),
+                m.email(),
+                m.role(),
+                m.status(),
+                m.currentUser(),
+                m.joinedAt(),
+                m.version());
     }
-    @DeleteMapping @ResponseStatus(HttpStatus.NO_CONTENT)
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId, @PathVariable UUID memberId,
-        @Valid @RequestBody MemberDeleteRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID memberId,
+            @Valid @RequestBody MemberDeleteRequest request) {
         useCase.remove(tripId, memberId, currentUser.requireUserId(), request.baseVersion());
     }
 }
-record MemberRoleRequest(@NotBlank String role, @Min(0) long baseVersion) { }
-record MemberDeleteRequest(@Min(0) long baseVersion) { }
+
+record MemberRoleRequest(@NotBlank String role, @Min(0) long baseVersion) {}
+
+record MemberDeleteRequest(@Min(0) long baseVersion) {}
+
 record MemberResponse(
-    UUID memberId, UUID userId, String displayName, String email, String role, String status,
-    boolean currentUser, Instant joinedAt, long version
-) { }
+        UUID memberId,
+        UUID userId,
+        String displayName,
+        String email,
+        String role,
+        String status,
+        boolean currentUser,
+        Instant joinedAt,
+        long version) {}

@@ -22,42 +22,39 @@ class ReservationImportConfirmationsController {
     private final ReservationImportUseCase useCase;
     private final CurrentActor actor;
 
-    ReservationImportConfirmationsController(
-        ReservationImportUseCase useCase,
-        CurrentActor actor
-    ) {
+    ReservationImportConfirmationsController(ReservationImportUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PostMapping
     ReservationImportUseCase.ConfirmationResult confirm(
-        @PathVariable UUID jobId,
-        @Valid @RequestBody ReservationImportConfirmationRequest request
-    ) {
+            @PathVariable UUID jobId,
+            @Valid @RequestBody ReservationImportConfirmationRequest request) {
         return useCase.confirm(
-            jobId,
-            actor.requireUserId(),
-            request.items().stream().map(ReservationImportConfirmationItem::command).toList()
-        );
+                jobId,
+                actor.requireUserId(),
+                request.items().stream().map(ReservationImportConfirmationItem::command).toList());
     }
 }
 
 record ReservationImportConfirmationRequest(
-    @NotEmpty List<@Valid ReservationImportConfirmationItem> items
-) { }
+        @NotEmpty List<@Valid ReservationImportConfirmationItem> items) {}
 
 record ReservationImportConfirmationItem(
-    @NotNull UUID candidateId,
-    @NotNull UUID reservationRequestId,
-    Map<String, Object> payloadOverride,
-    String visibility,
-    @PositiveOrZero Integer sortOrder,
-    @PositiveOrZero long baseVersion
-) {
+        @NotNull UUID candidateId,
+        @NotNull UUID reservationRequestId,
+        Map<String, Object> payloadOverride,
+        String visibility,
+        @PositiveOrZero Integer sortOrder,
+        @PositiveOrZero long baseVersion) {
     ReservationImportUseCase.ConfirmationItem command() {
         return new ReservationImportUseCase.ConfirmationItem(
-            candidateId, reservationRequestId, payloadOverride, visibility, sortOrder, baseVersion
-        );
+                candidateId,
+                reservationRequestId,
+                payloadOverride,
+                visibility,
+                sortOrder,
+                baseVersion);
     }
 }

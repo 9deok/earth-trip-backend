@@ -22,15 +22,14 @@ public final class UserAccount {
     private Instant updatedAt;
 
     private UserAccount(
-        UserId id,
-        EmailAddress email,
-        String passwordHash,
-        String displayName,
-        Status status,
-        Instant emailVerifiedAt,
-        Instant createdAt,
-        Instant updatedAt
-    ) {
+            UserId id,
+            EmailAddress email,
+            String passwordHash,
+            String displayName,
+            Status status,
+            Instant emailVerifiedAt,
+            Instant createdAt,
+            Instant updatedAt) {
         this.id = Objects.requireNonNull(id);
         this.email = Objects.requireNonNull(email);
         this.passwordHash = requireText(passwordHash, "비밀번호 해시는 필수입니다.", 255);
@@ -42,44 +41,29 @@ public final class UserAccount {
     }
 
     public static UserAccount register(
-        UserId id,
-        EmailAddress email,
-        String passwordHash,
-        String displayName,
-        Instant now
-    ) {
+            UserId id, EmailAddress email, String passwordHash, String displayName, Instant now) {
         return new UserAccount(
-            id,
-            email,
-            passwordHash,
-            displayName,
-            Status.PENDING_VERIFICATION,
-            null,
-            now,
-            now
-        );
+                id, email, passwordHash, displayName, Status.PENDING_VERIFICATION, null, now, now);
     }
 
     public static UserAccount restore(
-        UserId id,
-        EmailAddress email,
-        String passwordHash,
-        String displayName,
-        Status status,
-        Instant emailVerifiedAt,
-        Instant createdAt,
-        Instant updatedAt
-    ) {
+            UserId id,
+            EmailAddress email,
+            String passwordHash,
+            String displayName,
+            Status status,
+            Instant emailVerifiedAt,
+            Instant createdAt,
+            Instant updatedAt) {
         return new UserAccount(
-            id,
-            email,
-            passwordHash,
-            displayName,
-            status,
-            emailVerifiedAt,
-            createdAt,
-            updatedAt
-        );
+                id,
+                email,
+                passwordHash,
+                displayName,
+                status,
+                emailVerifiedAt,
+                createdAt,
+                updatedAt);
     }
 
     public void verifyEmail(Instant now) {
@@ -129,24 +113,40 @@ public final class UserAccount {
     }
 
     public boolean canSignIn() {
-        return status == Status.ACTIVE;
+        return status == Status.ACTIVE || status == Status.DELETION_PENDING;
     }
 
-    public UserId id() { return id; }
+    public UserId id() {
+        return id;
+    }
 
-    public EmailAddress email() { return email; }
+    public EmailAddress email() {
+        return email;
+    }
 
-    public String passwordHash() { return passwordHash; }
+    public String passwordHash() {
+        return passwordHash;
+    }
 
-    public String displayName() { return displayName; }
+    public String displayName() {
+        return displayName;
+    }
 
-    public Status status() { return status; }
+    public Status status() {
+        return status;
+    }
 
-    public Instant emailVerifiedAt() { return emailVerifiedAt; }
+    public Instant emailVerifiedAt() {
+        return emailVerifiedAt;
+    }
 
-    public Instant createdAt() { return createdAt; }
+    public Instant createdAt() {
+        return createdAt;
+    }
 
-    public Instant updatedAt() { return updatedAt; }
+    public Instant updatedAt() {
+        return updatedAt;
+    }
 
     private static String requireText(String value, String message, int maxLength) {
         Objects.requireNonNull(value, message);

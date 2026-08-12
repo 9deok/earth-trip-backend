@@ -15,36 +15,45 @@ import java.util.UUID;
 @Table(name = "trip_templates")
 class TripTemplateJpaEntity {
 
-    @Id @Column(name = "id", nullable = false, length = 36)
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
+
     @Column(name = "owner_user_id", nullable = false, length = 36)
     private String ownerUserId;
+
     @Column(name = "source_trip_id", nullable = false, length = 36)
     private String sourceTripId;
+
     @Column(name = "name", nullable = false, length = 120)
     private String name;
+
     @Column(name = "description", length = 500)
     private String description;
+
     @Column(name = "include_scopes", nullable = false, columnDefinition = "JSON")
     private String includeScopes;
+
     @Column(name = "snapshot", nullable = false, columnDefinition = "JSON")
     private String snapshot;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
     @Column(name = "deleted_at")
     private Instant deletedAt;
-    @Version @Column(name = "version", nullable = false)
+
+    @Version
+    @Column(name = "version", nullable = false)
     private long version;
 
-    protected TripTemplateJpaEntity() { }
+    protected TripTemplateJpaEntity() {}
 
     TripTemplateJpaEntity(
-        TripTemplateStorePort.TemplateRecord record,
-        String scopes,
-        String snapshot
-    ) {
+            TripTemplateStorePort.TemplateRecord record, String scopes, String snapshot) {
         id = record.id().toString();
         ownerUserId = record.ownerUserId().toString();
         sourceTripId = record.sourceTripId().toString();
@@ -61,16 +70,27 @@ class TripTemplateJpaEntity {
         deletedAt = record.deletedAt();
     }
 
-    String includeScopes() { return includeScopes; }
-    String snapshot() { return snapshot; }
+    String includeScopes() {
+        return includeScopes;
+    }
+
+    String snapshot() {
+        return snapshot;
+    }
 
     TripTemplateStorePort.TemplateRecord toRecord(
-        Set<String> scopes,
-        Map<String, Object> snapshotData
-    ) {
+            Set<String> scopes, Map<String, Object> snapshotData) {
         return new TripTemplateStorePort.TemplateRecord(
-            UUID.fromString(id), UUID.fromString(ownerUserId), UUID.fromString(sourceTripId),
-            name, description, scopes, snapshotData, createdAt, updatedAt, deletedAt, version
-        );
+                UUID.fromString(id),
+                UUID.fromString(ownerUserId),
+                UUID.fromString(sourceTripId),
+                name,
+                description,
+                scopes,
+                snapshotData,
+                createdAt,
+                updatedAt,
+                deletedAt,
+                version);
     }
 }

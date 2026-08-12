@@ -29,12 +29,11 @@ class EmailVerificationService implements EmailVerificationUseCase {
     private final Clock clock;
 
     EmailVerificationService(
-        UserAccountStorePort accountStore,
-        AuthTokenStorePort tokenStore,
-        CredentialPort credentialPort,
-        VerificationDeliveryPort deliveryPort,
-        Clock clock
-    ) {
+            UserAccountStorePort accountStore,
+            AuthTokenStorePort tokenStore,
+            CredentialPort credentialPort,
+            VerificationDeliveryPort deliveryPort,
+            Clock clock) {
         this.accountStore = accountStore;
         this.tokenStore = tokenStore;
         this.credentialPort = credentialPort;
@@ -55,48 +54,48 @@ class EmailVerificationService implements EmailVerificationUseCase {
 
         tokenStore.invalidateFor(account.id(), AuthToken.Purpose.EMAIL_VERIFICATION, now);
         String rawToken = credentialPort.newToken();
-        tokenStore.save(AuthToken.create(
-            requestId,
-            account.id(),
-            AuthToken.Purpose.EMAIL_VERIFICATION,
-            credentialPort.hashToken(rawToken),
-            expiresAt,
-            now
-        ));
-        VerificationDeliveryPort.DeliveryStatus status = deliveryPort.sendEmailVerification(
-            email,
-            rawToken,
-            expiresAt
-        );
+        tokenStore.save(
+                AuthToken.create(
+                        requestId,
+                        account.id(),
+                        AuthToken.Purpose.EMAIL_VERIFICATION,
+                        credentialPort.hashToken(rawToken),
+                        expiresAt,
+                        now));
+        VerificationDeliveryPort.DeliveryStatus status =
+                deliveryPort.sendEmailVerification(email, rawToken, expiresAt);
         return new RequestResult(requestId, expiresAt, status.name());
     }
 
     @Override
     public ConfirmResult confirm(String rawToken) {
         if (rawToken == null || rawToken.isBlank()) {
-            throw EarthTripException.badRequest(
-                "VERIFICATION_TOKEN_REQUIRED",
-                "이메일 인증 토큰이 필요합니다."
-            );
+            throw EarthTripException.badRequest("VERIFICATION_TOKEN_REQUIRED", "이메일 인증 토큰이 필요합니다.");
         }
-        AuthToken token = tokenStore.findUsableByHash(
-            credentialPort.hashToken(rawToken),
-            AuthToken.Purpose.EMAIL_VERIFICATION
-        ).orElseThrow(() -> EarthTripException.badRequest(
-            "INVALID_VERIFICATION_TOKEN",
-            "만료되었거나 올바르지 않은 인증 토큰입니다."
-        ));
+        AuthToken token =
+                tokenStore
+                        .findUsableByHash(
+                                credentialPort.hashToken(rawToken),
+                                AuthToken.Purpose.EMAIL_VERIFICATION)
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.badRequest(
+                                                "INVALID_VERIFICATION_TOKEN",
+                                                "만료되었거나 올바르지 않은 인증 토큰입니다."));
         Instant now = clock.instant();
         try {
             token.consume(now);
         } catch (IllegalStateException exception) {
             throw EarthTripException.badRequest(
-                "INVALID_VERIFICATION_TOKEN",
-                exception.getMessage()
-            );
+                    "INVALID_VERIFICATION_TOKEN", exception.getMessage());
         }
-        UserAccount account = accountStore.findById(token.userId())
-            .orElseThrow(() -> EarthTripException.notFound("ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다."));
+        UserAccount account =
+                accountStore
+                        .findById(token.userId())
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.notFound(
+                                                "ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다."));
         account.verifyEmail(now);
         tokenStore.save(token);
         accountStore.save(account);

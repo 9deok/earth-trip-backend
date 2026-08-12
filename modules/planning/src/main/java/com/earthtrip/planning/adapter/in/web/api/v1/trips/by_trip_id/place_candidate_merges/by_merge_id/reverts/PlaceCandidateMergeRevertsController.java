@@ -21,12 +21,7 @@ class PlaceCandidateMergeRevertsController {
     }
 
     @PostMapping
-    PlanningMergeUseCase.MergeResult revert(
-        @PathVariable UUID tripId,
-        @PathVariable UUID mergeId
-    ) {
-        return useCase.revertPlaceCandidateMerge(
-            tripId, mergeId, actor.requireUserId()
-        );
+    PlanningMergeUseCase.MergeResult revert(@PathVariable UUID tripId, @PathVariable UUID mergeId) {
+        return useCase.revertPlaceCandidateMerge(tripId, mergeId, actor.requireUserId());
     }
 }

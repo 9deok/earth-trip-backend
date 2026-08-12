@@ -12,10 +12,8 @@ class RestClientJsonConfiguration {
     @Bean
     @SuppressWarnings("removal")
     ClientHttpMessageConvertersCustomizer jackson2RestClientMessageConverter(
-        ObjectMapper objectMapper
-    ) {
-        return converters -> converters.withJsonConverter(
-            new MappingJackson2HttpMessageConverter(objectMapper)
-        );
+            ObjectMapper objectMapper) {
+        return converters ->
+                converters.withJsonConverter(new MappingJackson2HttpMessageConverter(objectMapper));
     }
 }

@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -33,68 +34,65 @@ class GoogleGeoTravelClient {
     @Autowired
     GoogleGeoTravelClient(GoogleMapsApiClient client, Clock clock) {
         this(
-            client,
-            HttpClient.newBuilder()
-                .connectTimeout(Duration.ofSeconds(5))
-                .followRedirects(HttpClient.Redirect.NEVER)
-                .build(),
-            clock
-        );
+                client,
+                HttpClient.newBuilder()
+                        .connectTimeout(Duration.ofSeconds(5))
+                        .followRedirects(HttpClient.Redirect.NEVER)
+                        .build(),
+                clock);
     }
 
-    GoogleGeoTravelClient(
-        GoogleMapsApiClient client,
-        HttpClient redirectClient,
-        Clock clock
-    ) {
+    GoogleGeoTravelClient(GoogleMapsApiClient client, HttpClient redirectClient, Clock clock) {
         this.client = client;
         this.redirectClient = redirectClient;
         this.clock = clock;
     }
 
     List<ExternalTravelUseCase.GeoResult> forward(String query, String language, int limit) {
-        URI uri = UriComponentsBuilder
-            .fromUriString("https://maps.googleapis.com/maps/api/geocode/json")
-            .queryParam("address", query)
-            .queryParam("language", language)
-            .build()
-            .encode()
-            .toUri();
+        URI uri =
+                UriComponentsBuilder.fromUriString(
+                                "https://maps.googleapis.com/maps/api/geocode/json")
+                        .queryParam("address", query)
+                        .queryParam("language", language)
+                        .build()
+                        .encode()
+                        .toUri();
         return geocode(uri).stream().limit(limit).toList();
     }
 
     ExternalTravelUseCase.GeoResult reverse(
-        BigDecimal latitude,
-        BigDecimal longitude,
-        String language
-    ) {
-        URI uri = UriComponentsBuilder
-            .fromUriString("https://maps.googleapis.com/maps/api/geocode/json")
-            .queryParam("latlng", latitude + "," + longitude)
-            .queryParam("language", language)
-            .build()
-            .encode()
-            .toUri();
-        return geocode(uri).stream().findFirst().orElseThrow(() ->
-            EarthTripException.notFound("GEOCODING_RESULT_NOT_FOUND", "주소를 찾지 못했습니다.")
-        );
+            BigDecimal latitude, BigDecimal longitude, String language) {
+        URI uri =
+                UriComponentsBuilder.fromUriString(
+                                "https://maps.googleapis.com/maps/api/geocode/json")
+                        .queryParam("latlng", latitude + "," + longitude)
+                        .queryParam("language", language)
+                        .build()
+                        .encode()
+                        .toUri();
+        return geocode(uri).stream()
+                .findFirst()
+                .orElseThrow(
+                        () ->
+                                EarthTripException.notFound(
+                                        "GEOCODING_RESULT_NOT_FOUND", "주소를 찾지 못했습니다."));
     }
 
     ExternalTravelUseCase.TimeZoneResult timeZone(BigDecimal latitude, BigDecimal longitude) {
-        URI uri = UriComponentsBuilder
-            .fromUriString("https://maps.googleapis.com/maps/api/timezone/json")
-            .queryParam("location", latitude + "," + longitude)
-            .queryParam("timestamp", clock.instant().getEpochSecond())
-            .build()
-            .encode()
-            .toUri();
+        URI uri =
+                UriComponentsBuilder.fromUriString(
+                                "https://maps.googleapis.com/maps/api/timezone/json")
+                        .queryParam("location", latitude + "," + longitude)
+                        .queryParam("timestamp", clock.instant().getEpochSecond())
+                        .build()
+                        .encode()
+                        .toUri();
         JsonNode response = client.getLegacy(uri, "TIME_ZONE_PROVIDER");
         requireOk(response, "TIME_ZONE_RESULT_NOT_FOUND", "시간대를 찾지 못했습니다.");
         return new ExternalTravelUseCase.TimeZoneResult(
-            response.path("timeZoneId").asText(),
-            response.path("timeZoneName").asText(),
-            "GOOGLE_TIME_ZONE"
-        );
+                response.path("timeZoneId").asText(),
+                response.path("timeZoneName").asText(),
+                "GOOGLE_TIME_ZONE");
     }
 
     ExternalTravelUseCase.PlaceUrlResult resolve(String rawUrl, String language) {
@@ -106,46 +104,48 @@ class GoogleGeoTravelClient {
             placeId = query.get("place_id");
         }
         if (placeId != null && !placeId.isBlank()) {
-            URI uri = UriComponentsBuilder
-                .fromUriString("https://maps.googleapis.com/maps/api/geocode/json")
-                .queryParam("place_id", placeId)
-                .queryParam("language", language)
-                .build()
-                .encode()
-                .toUri();
+            URI uri =
+                    UriComponentsBuilder.fromUriString(
+                                    "https://maps.googleapis.com/maps/api/geocode/json")
+                            .queryParam("place_id", placeId)
+                            .queryParam("language", language)
+                            .build()
+                            .encode()
+                            .toUri();
             results = geocode(uri);
         } else {
-            String search = firstNonBlank(
-                query.get("query"),
-                query.get("q"),
-                query.get("destination"),
-                placeNameFromPath(canonical)
-            );
+            String search =
+                    firstNonBlank(
+                            query.get("query"),
+                            query.get("q"),
+                            query.get("destination"),
+                            placeNameFromPath(canonical));
             if (search == null) {
                 BigDecimal[] coordinates = coordinatesFromPath(canonical);
                 if (coordinates == null) {
                     throw EarthTripException.badRequest(
-                        "UNSUPPORTED_GOOGLE_MAPS_URL",
-                        "장소를 식별할 수 있는 Google Maps 링크가 아닙니다."
-                    );
+                            "UNSUPPORTED_GOOGLE_MAPS_URL", "장소를 식별할 수 있는 Google Maps 링크가 아닙니다.");
                 }
                 results = List.of(reverse(coordinates[0], coordinates[1], language));
             } else {
                 results = forward(search, language, 1);
             }
         }
-        ExternalTravelUseCase.GeoResult place = results.stream().findFirst().orElseThrow(() ->
-            EarthTripException.notFound("PLACE_URL_RESULT_NOT_FOUND", "링크의 장소를 찾지 못했습니다.")
-        );
+        ExternalTravelUseCase.GeoResult place =
+                results.stream()
+                        .findFirst()
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.notFound(
+                                                "PLACE_URL_RESULT_NOT_FOUND", "링크의 장소를 찾지 못했습니다."));
         return new ExternalTravelUseCase.PlaceUrlResult(
-            canonical.toString(),
-            place.providerPlaceId(),
-            placeNameFromPath(canonical),
-            place.formattedAddress(),
-            place.latitude(),
-            place.longitude(),
-            "GOOGLE_MAPS_URL"
-        );
+                canonical.toString(),
+                place.providerPlaceId(),
+                placeNameFromPath(canonical),
+                place.formattedAddress(),
+                place.latitude(),
+                place.longitude(),
+                "GOOGLE_MAPS_URL");
     }
 
     private List<ExternalTravelUseCase.GeoResult> geocode(URI uri) {
@@ -154,13 +154,13 @@ class GoogleGeoTravelClient {
         List<ExternalTravelUseCase.GeoResult> results = new ArrayList<>();
         for (JsonNode item : response.path("results")) {
             JsonNode location = item.path("geometry").path("location");
-            results.add(new ExternalTravelUseCase.GeoResult(
-                item.path("formatted_address").asText(),
-                decimal(location, "lat"),
-                decimal(location, "lng"),
-                item.path("place_id").asText(),
-                "GOOGLE_GEOCODING"
-            ));
+            results.add(
+                    new ExternalTravelUseCase.GeoResult(
+                            item.path("formatted_address").asText(),
+                            decimal(location, "lat"),
+                            decimal(location, "lng"),
+                            item.path("place_id").asText(),
+                            "GOOGLE_GEOCODING"));
         }
         return List.copyOf(results);
     }
@@ -169,11 +169,12 @@ class GoogleGeoTravelClient {
         URI current = start;
         for (int count = 0; count <= MAX_REDIRECTS; count++) {
             requireGoogleMapsHost(current);
-            HttpRequest request = HttpRequest.newBuilder(current)
-                .timeout(Duration.ofSeconds(8))
-                .header("User-Agent", "EarthTrip-PlaceResolver/1.0")
-                .GET()
-                .build();
+            HttpRequest request =
+                    HttpRequest.newBuilder(current)
+                            .timeout(Duration.ofSeconds(8))
+                            .header("User-Agent", "EarthTrip-PlaceResolver/1.0")
+                            .GET()
+                            .build();
             HttpResponse<Void> response;
             try {
                 response = redirectClient.send(request, HttpResponse.BodyHandlers.discarding());
@@ -186,34 +187,38 @@ class GoogleGeoTravelClient {
             if (response.statusCode() < 300 || response.statusCode() >= 400) {
                 return current;
             }
-            String location = response.headers().firstValue("Location").orElseThrow(() ->
-                new EarthTripException(
-                    "INVALID_GOOGLE_MAPS_REDIRECT",
-                    502,
-                    "Google Maps 링크 이동 주소가 없습니다."
-                )
-            );
+            String location =
+                    response.headers()
+                            .firstValue("Location")
+                            .orElseThrow(
+                                    () ->
+                                            new EarthTripException(
+                                                    "INVALID_GOOGLE_MAPS_REDIRECT",
+                                                    502,
+                                                    "Google Maps 링크 이동 주소가 없습니다."));
             current = current.resolve(location).normalize();
         }
         throw new EarthTripException(
-            "TOO_MANY_GOOGLE_MAPS_REDIRECTS",
-            502,
-            "Google Maps 링크 이동 횟수가 너무 많습니다."
-        );
+                "TOO_MANY_GOOGLE_MAPS_REDIRECTS", 502, "Google Maps 링크 이동 횟수가 너무 많습니다.");
     }
 
     private static void requireGoogleMapsHost(URI uri) {
         String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase(Locale.ROOT);
-        if (!(host.equals("maps.app.goo.gl")
-            || host.equals("goo.gl")
-            || host.equals("maps.google.com")
-            || host.startsWith("maps.google."))
-            || uri.getUserInfo() != null
-            || !("https".equalsIgnoreCase(uri.getScheme()) || "http".equalsIgnoreCase(uri.getScheme()))) {
+        if (!Set.of(
+                                "maps.app.goo.gl",
+                                "goo.gl",
+                                "maps.google.com",
+                                "www.google.com",
+                                "google.com",
+                                "maps.google.co.kr",
+                                "www.google.co.kr",
+                                "google.co.kr")
+                        .contains(host)
+                || uri.getUserInfo() != null
+                || !("https".equalsIgnoreCase(uri.getScheme())
+                        || "http".equalsIgnoreCase(uri.getScheme()))) {
             throw EarthTripException.badRequest(
-                "UNSUPPORTED_PLACE_URL_PROVIDER",
-                "Google Maps 장소 링크만 자동 해석할 수 있습니다."
-            );
+                    "UNSUPPORTED_PLACE_URL_PROVIDER", "Google Maps 장소 링크만 자동 해석할 수 있습니다.");
         }
     }
 
@@ -251,12 +256,14 @@ class GoogleGeoTravelClient {
         if (path == null) {
             return null;
         }
-        java.util.regex.Matcher matcher = java.util.regex.Pattern
-            .compile("@(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)")
-            .matcher(path);
+        java.util.regex.Matcher matcher =
+                java.util.regex.Pattern.compile("@(-?\\d+(?:\\.\\d+)?),(-?\\d+(?:\\.\\d+)?)")
+                        .matcher(path);
         return matcher.find()
-            ? new BigDecimal[] {new BigDecimal(matcher.group(1)), new BigDecimal(matcher.group(2))}
-            : null;
+                ? new BigDecimal[] {
+                    new BigDecimal(matcher.group(1)), new BigDecimal(matcher.group(2))
+                }
+                : null;
     }
 
     private static void requireOk(JsonNode response, String emptyCode, String emptyMessage) {
@@ -266,17 +273,14 @@ class GoogleGeoTravelClient {
         }
         if (!"OK".equals(status)) {
             throw new EarthTripException(
-                "GOOGLE_MAPS_PROVIDER_REJECTED",
-                502,
-                "Google Maps Platform이 요청을 처리하지 못했습니다."
-            );
+                    "GOOGLE_MAPS_PROVIDER_REJECTED", 502, "Google Maps Platform이 요청을 처리하지 못했습니다.");
         }
     }
 
     private static BigDecimal decimal(JsonNode node, String field) {
         return node.has(field) && node.get(field).isNumber()
-            ? node.get(field).decimalValue()
-            : null;
+                ? node.get(field).decimalValue()
+                : null;
     }
 
     private static String firstNonBlank(String... values) {
@@ -294,8 +298,6 @@ class GoogleGeoTravelClient {
 
     private static EarthTripException providerUnavailable() {
         return EarthTripException.unavailable(
-            "GOOGLE_MAPS_LINK_PROVIDER_UNAVAILABLE",
-            "Google Maps 링크를 해석할 수 없습니다."
-        );
+                "GOOGLE_MAPS_LINK_PROVIDER_UNAVAILABLE", "Google Maps 링크를 해석할 수 없습니다.");
     }
 }

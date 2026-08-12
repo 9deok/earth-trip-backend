@@ -10,13 +10,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-@RestController @RequestMapping("/api/v1/trips/{tripId}/members/me")
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/members/me")
 class CurrentTripMemberController {
-    private final TripMemberUseCase useCase; private final CurrentUserProvider currentUser;
+    private final TripMemberUseCase useCase;
+    private final CurrentUserProvider currentUser;
+
     CurrentTripMemberController(TripMemberUseCase useCase, CurrentUserProvider currentUser) {
-        this.useCase = useCase; this.currentUser = currentUser;
+        this.useCase = useCase;
+        this.currentUser = currentUser;
     }
-    @DeleteMapping @ResponseStatus(HttpStatus.NO_CONTENT)
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(@PathVariable UUID tripId) {
         useCase.leave(tripId, currentUser.requireUserId());
     }

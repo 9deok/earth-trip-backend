@@ -20,23 +20,17 @@ public interface TripStructureStorePort {
     void deleteResolution(UUID diagnosticId);
 
     record ChangeSetRecord(
-        UUID id,
-        UUID tripId,
-        UUID requestedBy,
-        String proposalHash,
-        String beforeSnapshot,
-        String afterSnapshot,
-        String status,
-        Instant appliedAt,
-        Instant revertedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            UUID requestedBy,
+            String proposalHash,
+            String beforeSnapshot,
+            String afterSnapshot,
+            String status,
+            Instant appliedAt,
+            Instant revertedAt,
+            long version) {}
 
     record ResolutionRecord(
-        UUID diagnosticId,
-        UUID tripId,
-        String note,
-        UUID resolvedBy,
-        Instant resolvedAt
-    ) { }
+            UUID diagnosticId, UUID tripId, String note, UUID resolvedBy, Instant resolvedAt) {}
 }

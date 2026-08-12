@@ -23,9 +23,7 @@ class StatementImportCandidatesController {
 
     @GetMapping
     List<StatementImportUseCase.CandidateResult> get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID importId
-    ) {
+            @PathVariable UUID tripId, @PathVariable UUID importId) {
         return useCase.candidates(tripId, importId, actor.requireUserId());
     }
 }

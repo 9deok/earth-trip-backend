@@ -9,14 +9,13 @@ public interface TripMemberView {
     List<Member> members(UUID tripId, UUID actorUserId);
 
     record Member(
-        UUID memberId,
-        UUID userId,
-        String displayName,
-        String email,
-        String role,
-        String status,
-        boolean currentUser,
-        Instant joinedAt,
-        long version
-    ) { }
+            UUID memberId,
+            UUID userId,
+            String displayName,
+            String email,
+            String role,
+            String status,
+            boolean currentUser,
+            Instant joinedAt,
+            long version) {}
 }

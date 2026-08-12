@@ -44,7 +44,7 @@ class PreferenceJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected PreferenceJpaEntity() { }
+    protected PreferenceJpaEntity() {}
 
     PreferenceJpaEntity(PreferenceStorePort.PreferenceRecord record) {
         apply(record);
@@ -65,8 +65,15 @@ class PreferenceJpaEntity {
 
     PreferenceStorePort.PreferenceRecord toRecord() {
         return new PreferenceStorePort.PreferenceRecord(
-            java.util.UUID.fromString(userId), locale, defaultCurrency, timeZone,
-            shareTicketNames, sharePersonalExpense, optionalAnalytics, version, createdAt, updatedAt
-        );
+                java.util.UUID.fromString(userId),
+                locale,
+                defaultCurrency,
+                timeZone,
+                shareTicketNames,
+                sharePersonalExpense,
+                optionalAnalytics,
+                version,
+                createdAt,
+                updatedAt);
     }
 }

@@ -21,9 +21,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -49,20 +47,18 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
     private final Clock clock;
 
     LocalPersonalDataExporter(
-        @Value("${earthtrip.exports.local.root:}") String root,
-        UserAccountStorePort accounts,
-        AccountIdentityStorePort identities,
-        AuthSessionStorePort sessions,
-        PreferenceStorePort preferences,
-        PolicyStorePort policies,
-        PersonalSupportStorePort support,
-        AccountDeletionStorePort deletions,
-        ObjectMapper json,
-        Clock clock
-    ) {
-        this.root = root == null || root.isBlank()
-            ? null
-            : Path.of(root).toAbsolutePath().normalize();
+            @Value("${earthtrip.exports.local.root:}") String root,
+            UserAccountStorePort accounts,
+            AccountIdentityStorePort identities,
+            AuthSessionStorePort sessions,
+            PreferenceStorePort preferences,
+            PolicyStorePort policies,
+            PersonalSupportStorePort support,
+            AccountDeletionStorePort deletions,
+            ObjectMapper json,
+            Clock clock) {
+        this.root =
+                root == null || root.isBlank() ? null : Path.of(root).toAbsolutePath().normalize();
         this.accounts = accounts;
         this.identities = identities;
         this.sessions = sessions;
@@ -77,9 +73,12 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
     @Override
     public ExportArtifact export(UUID userId, UUID exportId, String format) {
         requireConfigured();
-        UserAccount account = accounts.findById(new UserId(userId)).orElseThrow(() ->
-            EarthTripException.notFound("ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다.")
-        );
+        UserAccount account =
+                accounts.findById(new UserId(userId))
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.notFound(
+                                                "ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다."));
         byte[] content = serialize(snapshot(account), format);
         Path target = path(userId, exportId, format);
         write(target, content);
@@ -93,19 +92,14 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
         try {
             if (!Files.isRegularFile(target)) {
                 throw EarthTripException.notFound(
-                    "DATA_EXPORT_FILE_NOT_FOUND",
-                    "개인정보 내보내기 파일을 찾을 수 없습니다."
-                );
+                        "DATA_EXPORT_FILE_NOT_FOUND", "개인정보 내보내기 파일을 찾을 수 없습니다.");
             }
             String extension = "ZIP".equals(format) ? "zip" : "json";
-            String contentType = "ZIP".equals(format)
-                ? "application/zip"
-                : "application/json";
+            String contentType = "ZIP".equals(format) ? "application/zip" : "application/json";
             return new DownloadArtifact(
-                Files.readAllBytes(target),
-                contentType,
-                "earth-trip-personal-data-" + exportId + "." + extension
-            );
+                    Files.readAllBytes(target),
+                    contentType,
+                    "earth-trip-personal-data-" + exportId + "." + extension);
         } catch (IOException exception) {
             throw storageUnavailable();
         }
@@ -116,38 +110,55 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("schemaVersion", "v1");
         result.put("exportedAt", clock.instant());
-        result.put("account", Map.of(
-            "userId", userId,
-            "email", account.email().value(),
-            "displayName", account.displayName(),
-            "status", account.status().name(),
-            "emailVerifiedAt", nullable(account.emailVerifiedAt()),
-            "createdAt", account.createdAt(),
-            "updatedAt", account.updatedAt()
-        ));
-        result.put("linkedIdentities", identities.findByUser(userId).stream().map(identity -> Map.of(
-            "provider", identity.provider(),
-            "providerEmail", nullable(identity.providerEmail()),
-            "createdAt", identity.createdAt(),
-            "lastUsedAt", identity.lastUsedAt()
-        )).toList());
-        result.put("sessions", sessions.findByUserId(account.id()).stream()
-            .map(LocalPersonalDataExporter::session)
-            .toList());
-        result.put("preferences", preferences.find(userId).map(LocalPersonalDataExporter::preference)
-            .orElse(Map.of()));
-        result.put("policyConsents", policies.findConsents(userId).stream().map(consent -> Map.of(
-            "policyId", consent.policy().id(),
-            "policyType", consent.policy().type(),
-            "policyVersion", consent.policy().version(),
-            "decision", consent.decision(),
-            "decidedAt", consent.decidedAt(),
-            "source", consent.source()
-        )).toList());
+        result.put(
+                "account",
+                Map.of(
+                        "userId", userId,
+                        "email", account.email().value(),
+                        "displayName", account.displayName(),
+                        "status", account.status().name(),
+                        "emailVerifiedAt", nullable(account.emailVerifiedAt()),
+                        "createdAt", account.createdAt(),
+                        "updatedAt", account.updatedAt()));
+        result.put(
+                "linkedIdentities",
+                identities.findByUser(userId).stream()
+                        .map(
+                                identity ->
+                                        Map.of(
+                                                "provider", identity.provider(),
+                                                "providerEmail", nullable(identity.providerEmail()),
+                                                "createdAt", identity.createdAt(),
+                                                "lastUsedAt", identity.lastUsedAt()))
+                        .toList());
+        result.put(
+                "sessions",
+                sessions.findByUserId(account.id()).stream()
+                        .map(LocalPersonalDataExporter::session)
+                        .toList());
+        result.put(
+                "preferences",
+                preferences
+                        .find(userId)
+                        .map(LocalPersonalDataExporter::preference)
+                        .orElse(Map.of()));
+        result.put(
+                "policyConsents",
+                policies.findConsents(userId).stream()
+                        .map(
+                                consent ->
+                                        Map.of(
+                                                "policyId", consent.policy().id(),
+                                                "policyType", consent.policy().type(),
+                                                "policyVersion", consent.policy().version(),
+                                                "decision", consent.decision(),
+                                                "decidedAt", consent.decidedAt(),
+                                                "source", consent.source()))
+                        .toList());
         result.put("favoriteCompanions", support.favorites(userId));
-        result.put("deletionRequest", deletions.findPending(account.id())
-            .<Object>map(value -> value)
-            .orElse(Map.of()));
+        result.put(
+                "deletionRequest",
+                deletions.findPending(account.id()).<Object>map(value -> value).orElse(Map.of()));
         return Map.copyOf(result);
     }
 
@@ -178,11 +189,10 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
             Files.write(temporary, content);
             try {
                 Files.move(
-                    temporary,
-                    target,
-                    StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING
-                );
+                        temporary,
+                        target,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
             } catch (java.nio.file.AtomicMoveNotSupportedException exception) {
                 Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
             }
@@ -201,13 +211,15 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
 
     private Path path(UUID userId, UUID exportId, String format) {
         String extension = "ZIP".equals(format) ? ".zip" : ".json";
-        Path result = root.resolve("users").resolve(userId.toString())
-            .resolve("exports").resolve(exportId + extension).normalize();
+        Path result =
+                root.resolve("users")
+                        .resolve(userId.toString())
+                        .resolve("exports")
+                        .resolve(exportId + extension)
+                        .normalize();
         if (!result.startsWith(root)) {
             throw EarthTripException.badRequest(
-                "INVALID_DATA_EXPORT_PATH",
-                "개인정보 내보내기 경로가 올바르지 않습니다."
-            );
+                    "INVALID_DATA_EXPORT_PATH", "개인정보 내보내기 경로가 올바르지 않습니다.");
         }
         return result;
     }
@@ -215,34 +227,30 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
     private void requireConfigured() {
         if (root == null) {
             throw EarthTripException.unavailable(
-                "DATA_EXPORT_STORAGE_NOT_CONFIGURED",
-                "개인정보 내보내기 저장 경로가 설정되지 않았습니다."
-            );
+                    "DATA_EXPORT_STORAGE_NOT_CONFIGURED", "개인정보 내보내기 저장 경로가 설정되지 않았습니다.");
         }
     }
 
     private static Map<String, Object> session(AuthSession session) {
         return Map.of(
-            "sessionId", session.id(),
-            "deviceName", session.deviceName(),
-            "accessExpiresAt", session.accessExpiresAt(),
-            "refreshExpiresAt", session.refreshExpiresAt(),
-            "lastUsedAt", session.lastUsedAt(),
-            "revokedAt", nullable(session.revokedAt()),
-            "createdAt", session.createdAt()
-        );
+                "sessionId", session.id(),
+                "deviceName", session.deviceName(),
+                "accessExpiresAt", session.accessExpiresAt(),
+                "refreshExpiresAt", session.refreshExpiresAt(),
+                "lastUsedAt", session.lastUsedAt(),
+                "revokedAt", nullable(session.revokedAt()),
+                "createdAt", session.createdAt());
     }
 
     private static Map<String, Object> preference(PreferenceStorePort.PreferenceRecord preference) {
         return Map.of(
-            "locale", preference.locale(),
-            "defaultCurrency", preference.defaultCurrency(),
-            "timeZone", preference.timeZone(),
-            "shareTicketNames", preference.shareTicketNames(),
-            "sharePersonalExpense", preference.sharePersonalExpense(),
-            "optionalAnalytics", preference.optionalAnalytics(),
-            "updatedAt", preference.updatedAt()
-        );
+                "locale", preference.locale(),
+                "defaultCurrency", preference.defaultCurrency(),
+                "timeZone", preference.timeZone(),
+                "shareTicketNames", preference.shareTicketNames(),
+                "sharePersonalExpense", preference.sharePersonalExpense(),
+                "optionalAnalytics", preference.optionalAnalytics(),
+                "updatedAt", preference.updatedAt());
     }
 
     private static Object nullable(Object value) {
@@ -251,11 +259,12 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
 
     private static void restrictDirectory(Path directory) {
         try {
-            Files.setPosixFilePermissions(directory, Set.of(
-                PosixFilePermission.OWNER_READ,
-                PosixFilePermission.OWNER_WRITE,
-                PosixFilePermission.OWNER_EXECUTE
-            ));
+            Files.setPosixFilePermissions(
+                    directory,
+                    Set.of(
+                            PosixFilePermission.OWNER_READ,
+                            PosixFilePermission.OWNER_WRITE,
+                            PosixFilePermission.OWNER_EXECUTE));
         } catch (UnsupportedOperationException | IOException ignored) {
             // POSIX 권한을 지원하지 않는 개발 파일시스템에서는 OS 기본 권한을 사용한다.
         }
@@ -263,10 +272,8 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
 
     private static void restrictFile(Path file) {
         try {
-            Files.setPosixFilePermissions(file, Set.of(
-                PosixFilePermission.OWNER_READ,
-                PosixFilePermission.OWNER_WRITE
-            ));
+            Files.setPosixFilePermissions(
+                    file, Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE));
         } catch (UnsupportedOperationException | IOException ignored) {
             // POSIX 권한을 지원하지 않는 개발 파일시스템에서는 OS 기본 권한을 사용한다.
         }
@@ -274,8 +281,6 @@ class LocalPersonalDataExporter implements PersonalDataExporterPort {
 
     private static EarthTripException storageUnavailable() {
         return EarthTripException.unavailable(
-            "DATA_EXPORT_STORAGE_UNAVAILABLE",
-            "개인정보 내보내기 파일을 저장하거나 읽을 수 없습니다."
-        );
+                "DATA_EXPORT_STORAGE_UNAVAILABLE", "개인정보 내보내기 파일을 저장하거나 읽을 수 없습니다.");
     }
 }

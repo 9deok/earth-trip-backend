@@ -30,21 +30,19 @@ class ConflictResolutionsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     SyncConflictUseCase.ConflictResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID conflictId,
-        @Valid @RequestBody ConflictResolutionRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID conflictId,
+            @Valid @RequestBody ConflictResolutionRequest request) {
         return useCase.resolve(
-            tripId, conflictId, actor.requireUserId(),
-            new SyncConflictUseCase.ResolutionCommand(
-                request.strategy(), request.mergedPayload(), request.baseVersion()
-            )
-        );
+                tripId,
+                conflictId,
+                actor.requireUserId(),
+                new SyncConflictUseCase.ResolutionCommand(
+                        request.strategy(), request.mergedPayload(), request.baseVersion()));
     }
 }
 
 record ConflictResolutionRequest(
-    @NotBlank String strategy,
-    Map<String, Object> mergedPayload,
-    @PositiveOrZero long baseVersion
-) { }
+        @NotBlank String strategy,
+        Map<String, Object> mergedPayload,
+        @PositiveOrZero long baseVersion) {}

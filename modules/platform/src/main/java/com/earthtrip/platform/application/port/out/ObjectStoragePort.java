@@ -12,5 +12,5 @@ public interface ObjectStoragePort {
 
     void delete(String storageKey);
 
-    record SignedUrl(String url, Instant expiresAt) { }
+    record SignedUrl(String url, Instant expiresAt) {}
 }

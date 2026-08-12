@@ -26,27 +26,32 @@ class PlanningAnalysisTargetService implements PlanningAnalysisTarget {
 
     @Override
     public TargetResult confirmResearchSource(
-        UUID tripId,
-        UUID sourceId,
-        UUID actorUserId,
-        Map<String, Object> confirmedFields,
-        long baseVersion
-    ) {
-        PlanningResourceUseCase.ResourceResult current = resources.get(
-            tripId, actorUserId, "RESEARCH_SOURCE", sourceId
-        );
+            UUID tripId,
+            UUID sourceId,
+            UUID actorUserId,
+            Map<String, Object> confirmedFields,
+            long baseVersion) {
+        PlanningResourceUseCase.ResourceResult current =
+                resources.get(tripId, actorUserId, "RESEARCH_SOURCE", sourceId);
         Map<String, Object> payload = new LinkedHashMap<>(current.payload());
         if (confirmedFields != null) {
             payload.putAll(confirmedFields);
         }
-        return result(resources.update(
-            tripId, actorUserId, "RESEARCH_SOURCE", sourceId,
-            PlanningResourceUseCase.WritePermission.EDITOR,
-            new PlanningResourceUseCase.ResourceCommand(
-                sourceId, null, null, Map.copyOf(payload), current.status(),
-                current.sortOrder(), baseVersion
-            )
-        ));
+        return result(
+                resources.update(
+                        tripId,
+                        actorUserId,
+                        "RESEARCH_SOURCE",
+                        sourceId,
+                        PlanningResourceUseCase.WritePermission.EDITOR,
+                        new PlanningResourceUseCase.ResourceCommand(
+                                sourceId,
+                                null,
+                                null,
+                                Map.copyOf(payload),
+                                current.status(),
+                                current.sortOrder(),
+                                baseVersion)));
     }
 
     private static TargetResult result(PlanningResourceUseCase.ResourceResult resource) {

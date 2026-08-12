@@ -11,5 +11,8 @@ public interface VerificationDeliveryPort {
 
     DeliveryStatus sendEmailChange(EmailAddress email, String rawToken, Instant expiresAt);
 
-    enum DeliveryStatus { SENT, PROVIDER_NOT_CONFIGURED }
+    enum DeliveryStatus {
+        SENT,
+        PROVIDER_NOT_CONFIGURED
+    }
 }

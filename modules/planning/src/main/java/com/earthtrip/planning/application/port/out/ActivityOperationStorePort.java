@@ -15,39 +15,36 @@ public interface ActivityOperationStorePort {
     long latestSequence(UUID tripId);
 
     void appendActivity(
-        UUID tripId,
-        UUID actorId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> details,
-        Instant occurredAt
-    );
+            UUID tripId,
+            UUID actorId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> details,
+            Instant occurredAt);
 
     Optional<OperationRecord> findOperation(UUID operationId);
 
     OperationRecord saveOperation(OperationRecord record);
 
     record ActivityRecord(
-        long sequenceId,
-        UUID activityId,
-        UUID tripId,
-        UUID actorId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> details,
-        Instant occurredAt
-    ) { }
+            long sequenceId,
+            UUID activityId,
+            UUID tripId,
+            UUID actorId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> details,
+            Instant occurredAt) {}
 
     record OperationRecord(
-        UUID operationId,
-        UUID tripId,
-        UUID actorId,
-        String status,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> result,
-        Instant createdAt
-    ) { }
+            UUID operationId,
+            UUID tripId,
+            UUID actorId,
+            String status,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> result,
+            Instant createdAt) {}
 }

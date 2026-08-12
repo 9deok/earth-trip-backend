@@ -13,17 +13,16 @@ import org.springframework.stereotype.Component;
 @Component
 class StatementImportPersistenceAdapter implements StatementImportStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
 
     private final StatementImportJpaRepository imports;
     private final StatementImportCandidateJpaRepository candidates;
     private final ObjectMapper json;
 
     StatementImportPersistenceAdapter(
-        StatementImportJpaRepository imports,
-        StatementImportCandidateJpaRepository candidates,
-        ObjectMapper json
-    ) {
+            StatementImportJpaRepository imports,
+            StatementImportCandidateJpaRepository candidates,
+            ObjectMapper json) {
         this.imports = imports;
         this.candidates = candidates;
         this.json = json;
@@ -32,8 +31,8 @@ class StatementImportPersistenceAdapter implements StatementImportStorePort {
     @Override
     public List<ImportRecord> findImports(UUID tripId) {
         return imports.findAllByTripIdOrderByCreatedAtDesc(tripId.toString()).stream()
-            .map(StatementImportJpaEntity::toRecord)
-            .toList();
+                .map(StatementImportJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
@@ -43,20 +42,22 @@ class StatementImportPersistenceAdapter implements StatementImportStorePort {
 
     @Override
     public ImportRecord saveImport(ImportRecord record) {
-        StatementImportJpaEntity entity = imports.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record);
-                return existing;
-            })
-            .orElseGet(() -> new StatementImportJpaEntity(record));
+        StatementImportJpaEntity entity =
+                imports.findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new StatementImportJpaEntity(record));
         return imports.saveAndFlush(entity).toRecord();
     }
 
     @Override
     public List<CandidateRecord> findCandidates(UUID importId) {
         return candidates.findAllByImportIdOrderByOccurredAtAsc(importId.toString()).stream()
-            .map(this::candidate)
-            .toList();
+                .map(this::candidate)
+                .toList();
     }
 
     @Override
@@ -67,12 +68,15 @@ class StatementImportPersistenceAdapter implements StatementImportStorePort {
     @Override
     public CandidateRecord saveCandidate(CandidateRecord record) {
         String payload = write(record.payload());
-        StatementImportCandidateJpaEntity entity = candidates.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record, payload);
-                return existing;
-            })
-            .orElseGet(() -> new StatementImportCandidateJpaEntity(record, payload));
+        StatementImportCandidateJpaEntity entity =
+                candidates
+                        .findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, payload);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new StatementImportCandidateJpaEntity(record, payload));
         return candidate(candidates.saveAndFlush(entity));
     }
 

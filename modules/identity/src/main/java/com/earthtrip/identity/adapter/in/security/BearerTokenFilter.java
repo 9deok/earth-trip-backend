@@ -26,27 +26,23 @@ class BearerTokenFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-        HttpServletRequest request,
-        HttpServletResponse response,
-        FilterChain filterChain
-    ) throws ServletException, IOException {
+            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith(PREFIX)) {
             filterChain.doFilter(request, response);
             return;
         }
         try {
-            AuthenticationResult result = authenticationUseCase.authenticate(
-                authorization.substring(PREFIX.length()).strip()
-            );
-            EarthTripPrincipal principal = new EarthTripPrincipal(
-                result.userId(),
-                result.sessionId(),
-                result.displayName()
-            );
-            SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(principal, null, List.of())
-            );
+            AuthenticationResult result =
+                    authenticationUseCase.authenticate(
+                            authorization.substring(PREFIX.length()).strip());
+            EarthTripPrincipal principal =
+                    new EarthTripPrincipal(
+                            result.userId(), result.sessionId(), result.displayName());
+            SecurityContextHolder.getContext()
+                    .setAuthentication(
+                            new UsernamePasswordAuthenticationToken(principal, null, List.of()));
             filterChain.doFilter(request, response);
         } catch (EarthTripException exception) {
             SecurityContextHolder.clearContext();
@@ -55,20 +51,25 @@ class BearerTokenFilter extends OncePerRequestFilter {
     }
 
     private static void writeUnauthorized(
-        HttpServletResponse response,
-        HttpServletRequest request,
-        EarthTripException exception
-    ) throws IOException {
+            HttpServletResponse response, HttpServletRequest request, EarthTripException exception)
+            throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
-        String traceId = request.getAttribute("earthTripTraceId") instanceof String value
-            ? value
-            : "unknown";
-        response.getWriter().write("{\"type\":\"https://earthtrip.app/problems/invalid-access-token\","
-            + "\"title\":\"Unauthorized\",\"status\":401,"
-            + "\"detail\":\"로그인 세션이 만료되었거나 올바르지 않습니다.\","
-            + "\"code\":\"" + exception.code() + "\","
-            + "\"traceId\":\"" + traceId + "\"}");
+        String traceId =
+                request.getAttribute("earthTripTraceId") instanceof String value
+                        ? value
+                        : "unknown";
+        response.getWriter()
+                .write(
+                        "{\"type\":\"https://earthtrip.app/problems/invalid-access-token\","
+                                + "\"title\":\"Unauthorized\",\"status\":401,"
+                                + "\"detail\":\"로그인 세션이 만료되었거나 올바르지 않습니다.\","
+                                + "\"code\":\""
+                                + exception.code()
+                                + "\","
+                                + "\"traceId\":\""
+                                + traceId
+                                + "\"}");
     }
 }

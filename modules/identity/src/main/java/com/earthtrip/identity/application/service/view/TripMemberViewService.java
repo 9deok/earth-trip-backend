@@ -20,11 +20,18 @@ class TripMemberViewService implements TripMemberView {
     @Override
     public List<Member> members(UUID tripId, UUID actorUserId) {
         return members.list(tripId, actorUserId).stream()
-            .map(member -> new Member(
-                member.memberId(), member.userId(), member.displayName(), member.email(),
-                member.role(), member.status(), member.currentUser(), member.joinedAt(),
-                member.version()
-            ))
-            .toList();
+                .map(
+                        member ->
+                                new Member(
+                                        member.memberId(),
+                                        member.userId(),
+                                        member.displayName(),
+                                        member.email(),
+                                        member.role(),
+                                        member.status(),
+                                        member.currentUser(),
+                                        member.joinedAt(),
+                                        member.version()))
+                .toList();
     }
 }

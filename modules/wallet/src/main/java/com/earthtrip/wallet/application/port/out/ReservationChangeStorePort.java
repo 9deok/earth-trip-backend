@@ -12,13 +12,12 @@ public interface ReservationChangeStorePort {
     ChangeSetRecord save(ChangeSetRecord record);
 
     record ChangeSetRecord(
-        UUID id,
-        UUID tripId,
-        UUID reservationId,
-        UUID requestedBy,
-        String proposalHash,
-        Map<String, Object> beforeSnapshot,
-        Map<String, Object> afterSnapshot,
-        Instant appliedAt
-    ) { }
+            UUID id,
+            UUID tripId,
+            UUID reservationId,
+            UUID requestedBy,
+            String proposalHash,
+            Map<String, Object> beforeSnapshot,
+            Map<String, Object> afterSnapshot,
+            Instant appliedAt) {}
 }

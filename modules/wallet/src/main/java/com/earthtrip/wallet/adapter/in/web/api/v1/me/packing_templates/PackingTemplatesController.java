@@ -37,33 +37,31 @@ class PackingTemplatesController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    PackingTemplateUseCase.TemplateResult post(
-        @Valid @RequestBody PackingTemplateRequest request
-    ) {
+    PackingTemplateUseCase.TemplateResult post(@Valid @RequestBody PackingTemplateRequest request) {
         return useCase.create(actor.requireUserId(), request.toCommand());
     }
 }
 
 record PackingTemplateRequest(
-    @NotNull UUID requestId,
-    @NotBlank @Size(max = 120) String name,
-    String visibility,
-    @NotNull @Size(min = 1, max = 200) @Valid List<PackingTemplateItemRequest> items
-) {
+        @NotNull UUID requestId,
+        @NotBlank @Size(max = 120) String name,
+        String visibility,
+        @NotNull @Size(max = 200) @Valid List<PackingTemplateItemRequest> items) {
     PackingTemplateUseCase.TemplateCommand toCommand() {
         return new PackingTemplateUseCase.TemplateCommand(
-            requestId, name, visibility,
-            items.stream().map(PackingTemplateItemRequest::toItem).toList(), 0
-        );
+                requestId,
+                name,
+                visibility,
+                items.stream().map(PackingTemplateItemRequest::toItem).toList(),
+                0);
     }
 }
 
 record PackingTemplateItemRequest(
-    @NotBlank @Size(max = 120) String name,
-    @Size(max = 60) String category,
-    @Min(1) @Max(999) int quantity,
-    @Size(max = 500) String note
-) {
+        @NotBlank @Size(max = 120) String name,
+        @Size(max = 60) String category,
+        @Min(1) @Max(999) int quantity,
+        @Size(max = 500) String note) {
     PackingTemplateUseCase.TemplateItem toItem() {
         return new PackingTemplateUseCase.TemplateItem(name, category, quantity, note);
     }

@@ -18,8 +18,8 @@ class DataExportPersistenceAdapter implements DataExportStorePort {
     @Override
     public List<ExportRecord> findAll(UUID userId) {
         return repository.findAllByUserIdOrderByCreatedAtDesc(userId.toString()).stream()
-            .map(DataExportJpaEntity::toRecord)
-            .toList();
+                .map(DataExportJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
@@ -29,12 +29,15 @@ class DataExportPersistenceAdapter implements DataExportStorePort {
 
     @Override
     public ExportRecord save(ExportRecord record) {
-        DataExportJpaEntity entity = repository.findById(record.id().toString())
-            .map(current -> {
-                current.apply(record);
-                return current;
-            })
-            .orElseGet(() -> new DataExportJpaEntity(record));
+        DataExportJpaEntity entity =
+                repository
+                        .findById(record.id().toString())
+                        .map(
+                                current -> {
+                                    current.apply(record);
+                                    return current;
+                                })
+                        .orElseGet(() -> new DataExportJpaEntity(record));
         return repository.save(entity).toRecord();
     }
 }

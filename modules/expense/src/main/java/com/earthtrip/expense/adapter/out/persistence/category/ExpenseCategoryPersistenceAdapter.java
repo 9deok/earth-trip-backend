@@ -17,34 +17,39 @@ class ExpenseCategoryPersistenceAdapter implements ExpenseCategoryStorePort {
 
     @Override
     public List<CategoryRecord> findAll(UUID tripId) {
-        return repository.findAllByTripIdAndDeletedAtIsNullOrderBySortOrderAscNameAsc(
-                tripId.toString()
-            ).stream()
-            .map(ExpenseCategoryJpaEntity::toRecord)
-            .toList();
+        return repository
+                .findAllByTripIdAndDeletedAtIsNullOrderBySortOrderAscNameAsc(tripId.toString())
+                .stream()
+                .map(ExpenseCategoryJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
     public Optional<CategoryRecord> findById(UUID categoryId) {
-        return repository.findById(categoryId.toString())
-            .map(ExpenseCategoryJpaEntity::toRecord)
-            .filter(record -> record.deletedAt() == null);
+        return repository
+                .findById(categoryId.toString())
+                .map(ExpenseCategoryJpaEntity::toRecord)
+                .filter(record -> record.deletedAt() == null);
     }
 
     @Override
     public Optional<CategoryRecord> findByCode(UUID tripId, String code) {
-        return repository.findByTripIdAndCodeAndDeletedAtIsNull(tripId.toString(), code)
-            .map(ExpenseCategoryJpaEntity::toRecord);
+        return repository
+                .findByTripIdAndCodeAndDeletedAtIsNull(tripId.toString(), code)
+                .map(ExpenseCategoryJpaEntity::toRecord);
     }
 
     @Override
     public CategoryRecord save(CategoryRecord record) {
-        ExpenseCategoryJpaEntity entity = repository.findById(record.id().toString())
-            .map(current -> {
-                current.apply(record);
-                return current;
-            })
-            .orElseGet(() -> new ExpenseCategoryJpaEntity(record));
+        ExpenseCategoryJpaEntity entity =
+                repository
+                        .findById(record.id().toString())
+                        .map(
+                                current -> {
+                                    current.apply(record);
+                                    return current;
+                                })
+                        .orElseGet(() -> new ExpenseCategoryJpaEntity(record));
         return repository.saveAndFlush(entity).toRecord();
     }
 }

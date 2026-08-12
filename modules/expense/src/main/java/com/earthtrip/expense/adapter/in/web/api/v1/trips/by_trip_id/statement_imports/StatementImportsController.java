@@ -40,38 +40,33 @@ class StatementImportsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     StatementImportUseCase.ImportResult post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody StatementImportRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody StatementImportRequest request) {
         return useCase.create(tripId, actor.requireUserId(), request.toCommand());
     }
 }
 
 record StatementImportRequest(
-    @NotNull UUID requestId,
-    @NotBlank @Size(max = 80) String source,
-    @NotNull @Size(min = 1, max = 500) @Valid List<StatementCandidateRequest> candidates
-) {
+        @NotNull UUID requestId,
+        @NotBlank @Size(max = 80) String source,
+        @NotNull @Size(min = 1, max = 500) @Valid List<StatementCandidateRequest> candidates) {
     StatementImportUseCase.ImportCommand toCommand() {
         return new StatementImportUseCase.ImportCommand(
-            requestId, source,
-            candidates.stream().map(StatementCandidateRequest::toCommand).toList()
-        );
+                requestId,
+                source,
+                candidates.stream().map(StatementCandidateRequest::toCommand).toList());
     }
 }
 
 record StatementCandidateRequest(
-    @NotNull UUID candidateId,
-    @NotBlank @Size(max = 200) String title,
-    @Positive long amountMinor,
-    @NotBlank String currency,
-    @NotNull Instant occurredAt,
-    @NotNull UUID payerUserId,
-    Map<String, Object> payload
-) {
+        @NotNull UUID candidateId,
+        @NotBlank @Size(max = 200) String title,
+        @Positive long amountMinor,
+        @NotBlank String currency,
+        @NotNull Instant occurredAt,
+        @NotNull UUID payerUserId,
+        Map<String, Object> payload) {
     StatementImportUseCase.CandidateCommand toCommand() {
         return new StatementImportUseCase.CandidateCommand(
-            candidateId, title, amountMinor, currency, occurredAt, payerUserId, payload
-        );
+                candidateId, title, amountMinor, currency, occurredAt, payerUserId, payload);
     }
 }

@@ -20,11 +20,10 @@ class CandidateSourceLinkService implements CandidateSourceLinkUseCase {
     private final Clock clock;
 
     CandidateSourceLinkService(
-        TripAccess access,
-        PlanningResourceUseCase resources,
-        CandidateSourceLinkStorePort links,
-        Clock clock
-    ) {
+            TripAccess access,
+            PlanningResourceUseCase resources,
+            CandidateSourceLinkStorePort links,
+            Clock clock) {
         this.access = access;
         this.resources = resources;
         this.links = links;
@@ -32,63 +31,50 @@ class CandidateSourceLinkService implements CandidateSourceLinkUseCase {
     }
 
     @Override
-    public LinkResult link(
-        UUID tripId,
-        UUID candidateId,
-        UUID sourceId,
-        UUID actorUserId
-    ) {
+    public LinkResult link(UUID tripId, UUID candidateId, UUID sourceId, UUID actorUserId) {
         access.requireEditor(tripId, actorUserId);
         requireResources(tripId, candidateId, sourceId, actorUserId);
-        CandidateSourceLinkStorePort.LinkRecord existing = links.find(
-            candidateId, sourceId
-        ).orElse(null);
+        CandidateSourceLinkStorePort.LinkRecord existing =
+                links.find(candidateId, sourceId).orElse(null);
         if (existing != null) {
             if (!existing.tripId().equals(tripId)) {
                 throw EarthTripException.conflict(
-                    "CANDIDATE_SOURCE_LINK_CONFLICT",
-                    "다른 여행의 자료 연결과 충돌했습니다."
-                );
+                        "CANDIDATE_SOURCE_LINK_CONFLICT", "다른 여행의 자료 연결과 충돌했습니다.");
             }
             return result(existing);
         }
-        return result(links.save(new CandidateSourceLinkStorePort.LinkRecord(
-            tripId, candidateId, sourceId, actorUserId, clock.instant()
-        )));
+        return result(
+                links.save(
+                        new CandidateSourceLinkStorePort.LinkRecord(
+                                tripId, candidateId, sourceId, actorUserId, clock.instant())));
     }
 
     @Override
-    public void unlink(
-        UUID tripId,
-        UUID candidateId,
-        UUID sourceId,
-        UUID actorUserId
-    ) {
+    public void unlink(UUID tripId, UUID candidateId, UUID sourceId, UUID actorUserId) {
         access.requireEditor(tripId, actorUserId);
         requireResources(tripId, candidateId, sourceId, actorUserId);
-        CandidateSourceLinkStorePort.LinkRecord link = links.find(candidateId, sourceId)
-            .filter(candidate -> candidate.tripId().equals(tripId))
-            .orElseThrow(() -> EarthTripException.notFound(
-                "CANDIDATE_SOURCE_LINK_NOT_FOUND",
-                "장소 후보와 원본 자료의 연결을 찾을 수 없습니다."
-            ));
+        CandidateSourceLinkStorePort.LinkRecord link =
+                links.find(candidateId, sourceId)
+                        .filter(candidate -> candidate.tripId().equals(tripId))
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.notFound(
+                                                "CANDIDATE_SOURCE_LINK_NOT_FOUND",
+                                                "장소 후보와 원본 자료의 연결을 찾을 수 없습니다."));
         links.delete(link.candidateId(), link.sourceId());
     }
 
-    private void requireResources(
-        UUID tripId,
-        UUID candidateId,
-        UUID sourceId,
-        UUID actorUserId
-    ) {
+    private void requireResources(UUID tripId, UUID candidateId, UUID sourceId, UUID actorUserId) {
         resources.get(tripId, actorUserId, "PLACE_CANDIDATE", candidateId);
         resources.get(tripId, actorUserId, "RESEARCH_SOURCE", sourceId);
     }
 
     private static LinkResult result(CandidateSourceLinkStorePort.LinkRecord record) {
         return new LinkResult(
-            record.tripId(), record.candidateId(), record.sourceId(),
-            record.linkedBy(), record.linkedAt()
-        );
+                record.tripId(),
+                record.candidateId(),
+                record.sourceId(),
+                record.linkedBy(),
+                record.linkedAt());
     }
 }

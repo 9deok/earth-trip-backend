@@ -17,11 +17,10 @@ public interface ExpenseReviewStorePort {
     void delete(UUID tripId, LocalDate localDate);
 
     record ReviewRecord(
-        UUID tripId,
-        LocalDate localDate,
-        UUID completedBy,
-        String note,
-        Instant completedAt,
-        long version
-    ) { }
+            UUID tripId,
+            LocalDate localDate,
+            UUID completedBy,
+            String note,
+            Instant completedAt,
+            long version) {}
 }

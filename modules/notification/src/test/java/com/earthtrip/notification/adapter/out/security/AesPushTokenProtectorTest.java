@@ -10,9 +10,11 @@ class AesPushTokenProtectorTest {
 
     @Test
     void encryptedDeviceTokenCanBeRevealedForDelivery() {
-        String key = Base64.getEncoder().encodeToString(
-            "01234567890123456789012345678901".getBytes(StandardCharsets.UTF_8)
-        );
+        String key =
+                Base64.getEncoder()
+                        .encodeToString(
+                                "01234567890123456789012345678901"
+                                        .getBytes(StandardCharsets.UTF_8));
         AesPushTokenProtector protector = new AesPushTokenProtector(key);
 
         var protectedToken = protector.protect("fcm-device-token");

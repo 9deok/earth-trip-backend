@@ -1,7 +1,7 @@
 package com.earthtrip;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import java.time.Clock;
 import org.springframework.context.annotation.Bean;

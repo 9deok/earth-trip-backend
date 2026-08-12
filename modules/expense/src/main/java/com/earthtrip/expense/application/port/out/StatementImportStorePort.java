@@ -21,30 +21,28 @@ public interface StatementImportStorePort {
     CandidateRecord saveCandidate(CandidateRecord record);
 
     record ImportRecord(
-        UUID id,
-        UUID tripId,
-        String source,
-        String status,
-        UUID createdBy,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            String source,
+            String status,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 
     record CandidateRecord(
-        UUID id,
-        UUID importId,
-        UUID tripId,
-        String title,
-        long amountMinor,
-        String currency,
-        Instant occurredAt,
-        UUID payerUserId,
-        Map<String, Object> payload,
-        String status,
-        UUID expenseId,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID importId,
+            UUID tripId,
+            String title,
+            long amountMinor,
+            String currency,
+            Instant occurredAt,
+            UUID payerUserId,
+            Map<String, Object> payload,
+            String status,
+            UUID expenseId,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 }

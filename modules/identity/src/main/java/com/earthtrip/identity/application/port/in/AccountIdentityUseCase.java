@@ -19,28 +19,22 @@ public interface AccountIdentityUseCase {
     EmailChangeResult confirmEmailChange(UUID actorUserId, String token);
 
     record OAuthCommand(
-        String authorizationCode,
-        String idToken,
-        String redirectUri,
-        String codeVerifier,
-        String deviceName
-    ) { }
+            String authorizationCode,
+            String idToken,
+            String redirectUri,
+            String codeVerifier,
+            String deviceName) {}
 
     record IdentityResult(
-        UUID identityId,
-        String provider,
-        String providerEmail,
-        Instant createdAt,
-        Instant lastUsedAt,
-        long version
-    ) { }
+            UUID identityId,
+            String provider,
+            String providerEmail,
+            Instant createdAt,
+            Instant lastUsedAt,
+            long version) {}
 
     record EmailChangeRequestResult(
-        UUID requestId,
-        String newEmail,
-        Instant expiresAt,
-        String deliveryStatus
-    ) { }
+            UUID requestId, String newEmail, Instant expiresAt, String deliveryStatus) {}
 
-    record EmailChangeResult(UUID userId, String email, Instant confirmedAt) { }
+    record EmailChangeResult(UUID userId, String email, Instant confirmedAt) {}
 }

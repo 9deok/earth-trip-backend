@@ -30,10 +30,9 @@ class AesSensitiveWalletDataAdapter implements SensitiveWalletDataPort {
     private final SecureRandom random = new SecureRandom();
 
     AesSensitiveWalletDataAdapter(
-        @Value("${earthtrip.wallet.encryption-keys:}") String encodedKeys,
-        @Value("${earthtrip.wallet.primary-key-id:primary}") String primaryKeyId,
-        ObjectMapper json
-    ) {
+            @Value("${earthtrip.wallet.encryption-keys:}") String encodedKeys,
+            @Value("${earthtrip.wallet.primary-key-id:primary}") String primaryKeyId,
+            ObjectMapper json) {
         this.keys = parseKeys(encodedKeys);
         this.primaryKeyId = primaryKeyId == null ? "" : primaryKeyId.strip();
         this.json = json;
@@ -46,26 +45,21 @@ class AesSensitiveWalletDataAdapter implements SensitiveWalletDataPort {
         }
         if (isProtected(value)) {
             throw EarthTripException.badRequest(
-                "SENSITIVE_VALUE_ALREADY_PROTECTED",
-                "암호화 envelope를 API 값으로 직접 저장할 수 없습니다."
-            );
+                    "SENSITIVE_VALUE_ALREADY_PROTECTED", "암호화 envelope를 API 값으로 직접 저장할 수 없습니다.");
         }
         byte[] key = keys.get(primaryKeyId);
         if (key == null) {
             throw EarthTripException.unavailable(
-                "WALLET_ENCRYPTION_NOT_CONFIGURED",
-                "민감 예약정보 암호화 키가 설정되지 않았습니다."
-            );
+                    "WALLET_ENCRYPTION_NOT_CONFIGURED", "민감 예약정보 암호화 키가 설정되지 않았습니다.");
         }
         try {
             byte[] iv = new byte[IV_BYTES];
             random.nextBytes(iv);
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(
-                Cipher.ENCRYPT_MODE,
-                new SecretKeySpec(key, "AES"),
-                new GCMParameterSpec(128, iv)
-            );
+                    Cipher.ENCRYPT_MODE,
+                    new SecretKeySpec(key, "AES"),
+                    new GCMParameterSpec(128, iv));
             cipher.updateAAD(fieldName.getBytes(StandardCharsets.UTF_8));
             byte[] encrypted = cipher.doFinal(json.writeValueAsBytes(value));
             Map<String, Object> envelope = new LinkedHashMap<>();
@@ -90,9 +84,7 @@ class AesSensitiveWalletDataAdapter implements SensitiveWalletDataPort {
         byte[] key = keys.get(keyId);
         if (key == null) {
             throw EarthTripException.unavailable(
-                "WALLET_DECRYPTION_KEY_NOT_AVAILABLE",
-                "저장된 민감 예약정보를 복호화할 키가 없습니다."
-            );
+                    "WALLET_DECRYPTION_KEY_NOT_AVAILABLE", "저장된 민감 예약정보를 복호화할 키가 없습니다.");
         }
         if (!ALGORITHM.equals(string(envelope, "algorithm"))) {
             throw corrupted();
@@ -105,10 +97,9 @@ class AesSensitiveWalletDataAdapter implements SensitiveWalletDataPort {
             }
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(
-                Cipher.DECRYPT_MODE,
-                new SecretKeySpec(key, "AES"),
-                new GCMParameterSpec(128, iv)
-            );
+                    Cipher.DECRYPT_MODE,
+                    new SecretKeySpec(key, "AES"),
+                    new GCMParameterSpec(128, iv));
             cipher.updateAAD(fieldName.getBytes(StandardCharsets.UTF_8));
             return json.readValue(cipher.doFinal(encrypted), Object.class);
         } catch (AEADBadTagException exception) {
@@ -155,9 +146,6 @@ class AesSensitiveWalletDataAdapter implements SensitiveWalletDataPort {
 
     private static EarthTripException corrupted() {
         return new EarthTripException(
-            "SENSITIVE_WALLET_DATA_CORRUPTED",
-            500,
-            "저장된 민감 예약정보의 무결성을 확인할 수 없습니다."
-        );
+                "SENSITIVE_WALLET_DATA_CORRUPTED", 500, "저장된 민감 예약정보의 무결성을 확인할 수 없습니다.");
     }
 }

@@ -12,9 +12,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 class RequestRateLimitFilterTest {
 
-    private static final Clock CLOCK = Clock.fixed(
-        Instant.parse("2026-08-04T12:00:00Z"), ZoneOffset.UTC
-    );
+    private static final Clock CLOCK =
+            Clock.fixed(Instant.parse("2026-08-04T12:00:00Z"), ZoneOffset.UTC);
 
     @Test
     void blocksRepeatedSharePasswordAttemptsPerClient() throws Exception {
@@ -23,14 +22,13 @@ class RequestRateLimitFilterTest {
         MockHttpServletResponse last = null;
 
         for (int index = 0; index < 9; index++) {
-            MockHttpServletRequest request = new MockHttpServletRequest(
-                "POST", "/api/v1/shared-trips/token/password-verifications"
-            );
+            MockHttpServletRequest request =
+                    new MockHttpServletRequest(
+                            "POST", "/api/v1/shared-trips/token/password-verifications");
             request.setRemoteAddr("203.0.113.20");
             last = new MockHttpServletResponse();
-            filter.doFilter(request, last, (ignoredRequest, ignoredResponse) ->
-                accepted.incrementAndGet()
-            );
+            filter.doFilter(
+                    request, last, (ignoredRequest, ignoredResponse) -> accepted.incrementAndGet());
         }
 
         assertThat(accepted).hasValue(8);
@@ -47,21 +45,25 @@ class RequestRateLimitFilterTest {
 
         for (int index = 0; index < 9; index++) {
             MockHttpServletRequest first = request("198.51.100.1");
-            filter.doFilter(first, new MockHttpServletResponse(),
-                (ignoredRequest, ignoredResponse) -> accepted.incrementAndGet());
+            filter.doFilter(
+                    first,
+                    new MockHttpServletResponse(),
+                    (ignoredRequest, ignoredResponse) -> accepted.incrementAndGet());
         }
         MockHttpServletResponse secondResponse = new MockHttpServletResponse();
-        filter.doFilter(request("198.51.100.2"), secondResponse,
-            (ignoredRequest, ignoredResponse) -> accepted.incrementAndGet());
+        filter.doFilter(
+                request("198.51.100.2"),
+                secondResponse,
+                (ignoredRequest, ignoredResponse) -> accepted.incrementAndGet());
 
         assertThat(accepted).hasValue(9);
         assertThat(secondResponse.getStatus()).isEqualTo(200);
     }
 
     private static MockHttpServletRequest request(String forwardedFor) {
-        MockHttpServletRequest request = new MockHttpServletRequest(
-            "POST", "/api/v1/shared-trips/token/password-verifications"
-        );
+        MockHttpServletRequest request =
+                new MockHttpServletRequest(
+                        "POST", "/api/v1/shared-trips/token/password-verifications");
         request.setRemoteAddr("127.0.0.1");
         request.addHeader("X-Forwarded-For", forwardedFor);
         return request;

@@ -1,25 +1,306 @@
 package com.earthtrip.planning.application.service.resource;
-import com.earthtrip.planning.application.port.in.PlanningResourceUseCase;import com.earthtrip.planning.application.port.out.PlanningResourceStorePort;import com.earthtrip.planning.domain.PlanningResource;import com.earthtrip.sharedkernel.error.EarthTripException;import com.earthtrip.trip.api.TripAccess;import com.earthtrip.trip.api.TripChangePublisher;import java.time.*;import java.util.*;import org.springframework.stereotype.Service;import org.springframework.transaction.annotation.Transactional;
-@Service @Transactional class PlanningResourceService implements PlanningResourceUseCase{
-    private static final Set<String> TYPES=Set.of("COLLECTION_CATEGORY","RESEARCH_SOURCE","PLACE_CANDIDATE","PLACE_COMMENT","COMPARISON_OPTION","POLL","POLL_OPTION","DECISION","SCHEDULE_ITEM","ROUTE_PREFERENCE","ROUTE_OVERRIDE","DIAGNOSTIC","CHANGESET","RESERVATION_CANDIDATE","PREPARATION_SUGGESTION");
-    private final TripAccess access;private final PlanningResourceStorePort store;private final TripChangePublisher changes;private final Clock clock;
-    PlanningResourceService(TripAccess a,PlanningResourceStorePort s,TripChangePublisher p,Clock c){access=a;store=s;changes=p;clock=c;}
-    @Override @Transactional(readOnly=true) public List<ResourceResult> listAll(UUID trip,UUID actor){access.requireViewer(trip,actor);return store.findAll(trip).stream().map(this::result).toList();}
-    @Override @Transactional(readOnly=true) public List<ResourceResult> list(UUID trip,UUID actor,String type,UUID parent,LocalDate date){type(type);access.requireViewer(trip,actor);return store.findAll(trip,type,parent,date).stream().map(this::result).toList();}
-    @Override @Transactional(readOnly=true) public ResourceResult get(UUID trip,UUID actor,String type,UUID id){type(type);access.requireViewer(trip,actor);return result(load(trip,type,id));}
-    @Override public ResourceResult create(UUID trip,UUID actor,String type,WritePermission permission,ResourceCommand c){type(type);writeAccess(trip,actor,permission);if(c.requestId()==null)throw EarthTripException.badRequest("REQUEST_ID_REQUIRED","requestId가 필요합니다.");PlanningResource old=store.findById(c.requestId()).orElse(null);if(old!=null){if(!old.tripId().equals(trip)||!old.type().equals(type))throw EarthTripException.conflict("IDEMPOTENCY_KEY_REUSED","이미 사용된 요청 ID입니다.");return result(old);}Map<String,Object> payload=payload(c.payload());validate(type,payload);Instant now=clock.instant();PlanningResource r=PlanningResource.create(c.requestId(),trip,type,c.parentId(),c.localDate(),payload,c.status()==null?"ACTIVE":c.status(),c.sortOrder()==null?0:c.sortOrder(),actor,now);PlanningResource saved=store.save(r);changes.publish(trip,actor,"CREATED",type,saved.id());return result(saved);}
-    @Override public ResourceResult update(UUID trip,UUID actor,String type,UUID id,WritePermission permission,ResourceCommand c){type(type);writeAccess(trip,actor,permission);PlanningResource r=load(trip,type,id);requireAuthorForMember(r,actor,permission);version(r,c.baseVersion());Map<String,Object> data=c.payload()==null?null:payload(c.payload());if(data!=null)validate(type,data);Instant now=clock.instant();r.update(c.localDate(),data,c.status(),c.sortOrder(),actor,now);PlanningResource saved=store.save(r);changes.publish(trip,actor,"UPDATED",type,id,Map.of("version",saved.version()));return result(saved);}
-    @Override public ResourceResult relocate(UUID trip,UUID actor,String type,UUID id,WritePermission permission,UUID parent,LocalDate date,int order,long baseVersion){type(type);writeAccess(trip,actor,permission);PlanningResource r=load(trip,type,id);requireAuthorForMember(r,actor,permission);version(r,baseVersion);UUID fromParent=r.parentId();LocalDate fromDate=r.localDate();Instant now=clock.instant();r.relocate(parent,date,order,actor,now);PlanningResource saved=store.save(r);Map<String,Object> activity=new LinkedHashMap<>();activity.put("fromParentId",fromParent);activity.put("toParentId",parent);activity.put("fromLocalDate",fromDate);activity.put("toLocalDate",date);changes.publish(trip,actor,"MOVED",type,id,activity);return result(saved);}
-    @Override public void delete(UUID trip,UUID actor,String type,UUID id,WritePermission permission,long baseVersion){type(type);writeAccess(trip,actor,permission);PlanningResource r=load(trip,type,id);requireAuthorForMember(r,actor,permission);version(r,baseVersion);Instant now=clock.instant();r.delete(actor,now);store.save(r);changes.publish(trip,actor,"DELETED",type,id);}
-    @Override public UserStateResult putUserState(UUID trip,UUID actor,String type,UUID id,String stateType,Map<String,Object> value){type(type);access.requireViewer(trip,actor);load(trip,type,id);String state=stateType.strip().toUpperCase(Locale.ROOT);PlanningResourceStorePort.UserStateRecord saved=store.saveUserState(id,actor,state,payload(value),clock.instant());changes.publish(trip,actor,"USER_STATE_UPDATED",type,id,Map.of("stateType",state));return state(saved);}
-    @Override public void deleteUserState(UUID trip,UUID actor,String type,UUID id,String stateType){type(type);access.requireViewer(trip,actor);load(trip,type,id);String state=stateType.strip().toUpperCase(Locale.ROOT);store.deleteUserState(id,actor,state);changes.publish(trip,actor,"USER_STATE_DELETED",type,id,Map.of("stateType",state));}
-    private void writeAccess(UUID trip,UUID actor,WritePermission p){switch(p){case MEMBER->access.requireViewer(trip,actor);case EDITOR->access.requireEditor(trip,actor);case OWNER->access.requireOwner(trip,actor);}}
-    private PlanningResource load(UUID trip,String type,UUID id){return store.findById(id).filter(r->r.tripId().equals(trip)&&r.type().equals(type)).orElseThrow(()->EarthTripException.notFound("PLANNING_RESOURCE_NOT_FOUND","계획 항목을 찾을 수 없습니다."));}
-    private ResourceResult result(PlanningResource r){return new ResourceResult(r.id(),r.tripId(),r.type(),r.parentId(),r.localDate(),r.payload(),r.status(),r.sortOrder(),store.userStates(r.id()).stream().map(PlanningResourceService::state).toList(),r.version(),r.createdBy(),r.updatedBy(),r.createdAt(),r.updatedAt());}
-    private static UserStateResult state(PlanningResourceStorePort.UserStateRecord s){return new UserStateResult(s.userId(),s.stateType(),s.value(),s.updatedAt());}
-    private static Map<String,Object> payload(Map<String,Object> value){if(value==null)throw EarthTripException.badRequest("PAYLOAD_REQUIRED","payload가 필요합니다.");if(value.size()>100)throw EarthTripException.badRequest("PAYLOAD_TOO_LARGE","필드가 너무 많습니다.");return new LinkedHashMap<>(value);}
-    private static void type(String type){if(!TYPES.contains(type))throw EarthTripException.badRequest("INVALID_RESOURCE_TYPE","지원하지 않는 계획 리소스 유형입니다.");}
-    private static void validate(String type,Map<String,Object> p){if((type.equals("COLLECTION_CATEGORY")||type.equals("PLACE_CANDIDATE")||type.equals("POLL")||type.equals("SCHEDULE_ITEM"))&&!p.containsKey("title")&&!p.containsKey("name"))throw EarthTripException.badRequest("TITLE_REQUIRED","이 항목에는 title 또는 name이 필요합니다.");}
-    private static void version(PlanningResource r,long v){if(r.version()!=v)throw new EarthTripException("VERSION_CONFLICT",409,"다른 계획 변경이 먼저 저장되었습니다.",Map.of("serverVersion",r.version()));}
-    private static void requireAuthorForMember(PlanningResource r,UUID actor,WritePermission p){if(p==WritePermission.MEMBER&&!r.createdBy().equals(actor))throw EarthTripException.forbidden("RESOURCE_AUTHOR_REQUIRED","작성자만 이 항목을 변경할 수 있습니다.");}
+
+import com.earthtrip.planning.application.port.in.PlanningResourceUseCase;
+import com.earthtrip.planning.application.port.out.PlanningResourceStorePort;
+import com.earthtrip.planning.domain.PlanningResource;
+import com.earthtrip.sharedkernel.error.EarthTripException;
+import com.earthtrip.trip.api.TripAccess;
+import com.earthtrip.trip.api.TripChangePublisher;
+import java.time.*;
+import java.util.*;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@Transactional
+class PlanningResourceService implements PlanningResourceUseCase {
+    private static final Set<String> TYPES =
+            Set.of(
+                    "COLLECTION_CATEGORY",
+                    "RESEARCH_SOURCE",
+                    "PLACE_CANDIDATE",
+                    "PLACE_COMMENT",
+                    "COMPARISON_OPTION",
+                    "POLL",
+                    "POLL_OPTION",
+                    "DECISION",
+                    "SCHEDULE_ITEM",
+                    "ROUTE_PREFERENCE",
+                    "ROUTE_OVERRIDE",
+                    "DIAGNOSTIC",
+                    "CHANGESET",
+                    "RESERVATION_CANDIDATE",
+                    "PREPARATION_SUGGESTION");
+    private final TripAccess access;
+    private final PlanningResourceStorePort store;
+    private final TripChangePublisher changes;
+    private final Clock clock;
+
+    PlanningResourceService(
+            TripAccess a, PlanningResourceStorePort s, TripChangePublisher p, Clock c) {
+        access = a;
+        store = s;
+        changes = p;
+        clock = c;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResourceResult> listAll(UUID trip, UUID actor) {
+        access.requireViewer(trip, actor);
+        return results(store.findAll(trip));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ResourceResult> list(
+            UUID trip, UUID actor, String type, UUID parent, LocalDate date) {
+        type(type);
+        access.requireViewer(trip, actor);
+        return results(store.findAll(trip, type, parent, date));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ResourceResult get(UUID trip, UUID actor, String type, UUID id) {
+        type(type);
+        access.requireViewer(trip, actor);
+        return result(load(trip, type, id));
+    }
+
+    @Override
+    public ResourceResult create(
+            UUID trip, UUID actor, String type, WritePermission permission, ResourceCommand c) {
+        type(type);
+        writeAccess(trip, actor, permission);
+        if (c.requestId() == null)
+            throw EarthTripException.badRequest("REQUEST_ID_REQUIRED", "requestId가 필요합니다.");
+        PlanningResource old = store.findById(c.requestId()).orElse(null);
+        if (old != null) {
+            if (!old.tripId().equals(trip) || !old.type().equals(type))
+                throw EarthTripException.conflict("IDEMPOTENCY_KEY_REUSED", "이미 사용된 요청 ID입니다.");
+            return result(old);
+        }
+        Map<String, Object> payload = payload(c.payload());
+        validate(type, payload);
+        Instant now = clock.instant();
+        PlanningResource r =
+                PlanningResource.create(
+                        c.requestId(),
+                        trip,
+                        type,
+                        c.parentId(),
+                        c.localDate(),
+                        payload,
+                        c.status() == null ? "ACTIVE" : c.status(),
+                        c.sortOrder() == null ? 0 : c.sortOrder(),
+                        actor,
+                        now);
+        PlanningResource saved = store.save(r);
+        changes.publish(trip, actor, "CREATED", type, saved.id());
+        return result(saved);
+    }
+
+    @Override
+    public ResourceResult update(
+            UUID trip,
+            UUID actor,
+            String type,
+            UUID id,
+            WritePermission permission,
+            ResourceCommand c) {
+        type(type);
+        writeAccess(trip, actor, permission);
+        PlanningResource r = load(trip, type, id);
+        requireAuthorForMember(r, actor, permission);
+        version(r, c.baseVersion());
+        Map<String, Object> data = c.payload() == null ? null : payload(c.payload());
+        if (data != null) validate(type, data);
+        Instant now = clock.instant();
+        r.update(c.localDate(), data, c.status(), c.sortOrder(), actor, now);
+        PlanningResource saved = store.save(r);
+        changes.publish(trip, actor, "UPDATED", type, id, Map.of("version", saved.version()));
+        return result(saved);
+    }
+
+    @Override
+    public ResourceResult relocate(
+            UUID trip,
+            UUID actor,
+            String type,
+            UUID id,
+            WritePermission permission,
+            UUID parent,
+            LocalDate date,
+            int order,
+            long baseVersion) {
+        type(type);
+        writeAccess(trip, actor, permission);
+        PlanningResource r = load(trip, type, id);
+        requireAuthorForMember(r, actor, permission);
+        version(r, baseVersion);
+        UUID fromParent = r.parentId();
+        LocalDate fromDate = r.localDate();
+        Instant now = clock.instant();
+        r.relocate(parent, date, order, actor, now);
+        PlanningResource saved = store.save(r);
+        Map<String, Object> activity = new LinkedHashMap<>();
+        activity.put("fromParentId", fromParent);
+        activity.put("toParentId", parent);
+        activity.put("fromLocalDate", fromDate);
+        activity.put("toLocalDate", date);
+        changes.publish(trip, actor, "MOVED", type, id, activity);
+        return result(saved);
+    }
+
+    @Override
+    public void delete(
+            UUID trip,
+            UUID actor,
+            String type,
+            UUID id,
+            WritePermission permission,
+            long baseVersion) {
+        type(type);
+        writeAccess(trip, actor, permission);
+        PlanningResource r = load(trip, type, id);
+        requireAuthorForMember(r, actor, permission);
+        version(r, baseVersion);
+        Instant now = clock.instant();
+        r.delete(actor, now);
+        store.save(r);
+        changes.publish(trip, actor, "DELETED", type, id);
+    }
+
+    @Override
+    public UserStateResult putUserState(
+            UUID trip,
+            UUID actor,
+            String type,
+            UUID id,
+            String stateType,
+            Map<String, Object> value) {
+        type(type);
+        access.requireViewer(trip, actor);
+        load(trip, type, id);
+        String state = stateType.strip().toUpperCase(Locale.ROOT);
+        PlanningResourceStorePort.UserStateRecord saved =
+                store.saveUserState(id, actor, state, payload(value), clock.instant());
+        changes.publish(trip, actor, "USER_STATE_UPDATED", type, id, Map.of("stateType", state));
+        return state(saved);
+    }
+
+    @Override
+    public void deleteUserState(UUID trip, UUID actor, String type, UUID id, String stateType) {
+        type(type);
+        access.requireViewer(trip, actor);
+        load(trip, type, id);
+        String state = stateType.strip().toUpperCase(Locale.ROOT);
+        store.deleteUserState(id, actor, state);
+        changes.publish(trip, actor, "USER_STATE_DELETED", type, id, Map.of("stateType", state));
+    }
+
+    private void writeAccess(UUID trip, UUID actor, WritePermission p) {
+        switch (p) {
+            case MEMBER -> access.requireViewer(trip, actor);
+            case EDITOR -> access.requireEditor(trip, actor);
+            case OWNER -> access.requireOwner(trip, actor);
+        }
+    }
+
+    private PlanningResource load(UUID trip, String type, UUID id) {
+        return store.findById(id)
+                .filter(r -> r.tripId().equals(trip) && r.type().equals(type))
+                .orElseThrow(
+                        () ->
+                                EarthTripException.notFound(
+                                        "PLANNING_RESOURCE_NOT_FOUND", "계획 항목을 찾을 수 없습니다."));
+    }
+
+    private ResourceResult result(PlanningResource r) {
+        return new ResourceResult(
+                r.id(),
+                r.tripId(),
+                r.type(),
+                r.parentId(),
+                r.localDate(),
+                r.payload(),
+                r.status(),
+                r.sortOrder(),
+                store.userStates(r.id()).stream().map(PlanningResourceService::state).toList(),
+                r.version(),
+                r.createdBy(),
+                r.updatedBy(),
+                r.createdAt(),
+                r.updatedAt());
+    }
+
+    private List<ResourceResult> results(List<PlanningResource> rows) {
+        Map<UUID, List<PlanningResourceStorePort.UserStateRecord>> states =
+                store.userStates(rows.stream().map(PlanningResource::id).toList());
+        return rows.stream()
+                .map(row -> result(row, states.getOrDefault(row.id(), List.of())))
+                .toList();
+    }
+
+    private ResourceResult result(
+            PlanningResource r, List<PlanningResourceStorePort.UserStateRecord> states) {
+        return new ResourceResult(
+                r.id(),
+                r.tripId(),
+                r.type(),
+                r.parentId(),
+                r.localDate(),
+                r.payload(),
+                r.status(),
+                r.sortOrder(),
+                states.stream().map(PlanningResourceService::state).toList(),
+                r.version(),
+                r.createdBy(),
+                r.updatedBy(),
+                r.createdAt(),
+                r.updatedAt());
+    }
+
+    private static UserStateResult state(PlanningResourceStorePort.UserStateRecord s) {
+        return new UserStateResult(s.userId(), s.stateType(), s.value(), s.updatedAt());
+    }
+
+    private static Map<String, Object> payload(Map<String, Object> value) {
+        if (value == null)
+            throw EarthTripException.badRequest("PAYLOAD_REQUIRED", "payload가 필요합니다.");
+        if (value.size() > 100)
+            throw EarthTripException.badRequest("PAYLOAD_TOO_LARGE", "필드가 너무 많습니다.");
+        return new LinkedHashMap<>(value);
+    }
+
+    private static void type(String type) {
+        if (!TYPES.contains(type))
+            throw EarthTripException.badRequest("INVALID_RESOURCE_TYPE", "지원하지 않는 계획 리소스 유형입니다.");
+    }
+
+    private static void validate(String type, Map<String, Object> p) {
+        if ((type.equals("COLLECTION_CATEGORY")
+                        || type.equals("PLACE_CANDIDATE")
+                        || type.equals("POLL")
+                        || type.equals("SCHEDULE_ITEM"))
+                && !p.containsKey("title")
+                && !p.containsKey("name"))
+            throw EarthTripException.badRequest("TITLE_REQUIRED", "이 항목에는 title 또는 name이 필요합니다.");
+    }
+
+    private static void version(PlanningResource r, long v) {
+        if (r.version() != v)
+            throw new EarthTripException(
+                    "VERSION_CONFLICT",
+                    409,
+                    "다른 계획 변경이 먼저 저장되었습니다.",
+                    Map.of("serverVersion", r.version()));
+    }
+
+    private static void requireAuthorForMember(PlanningResource r, UUID actor, WritePermission p) {
+        if (p == WritePermission.MEMBER && !r.createdBy().equals(actor))
+            throw EarthTripException.forbidden(
+                    "RESOURCE_AUTHOR_REQUIRED", "작성자만 이 항목을 변경할 수 있습니다.");
+    }
 }

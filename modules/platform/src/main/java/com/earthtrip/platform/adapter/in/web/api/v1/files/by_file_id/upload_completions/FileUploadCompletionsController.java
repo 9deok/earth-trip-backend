@@ -26,33 +26,34 @@ class FileUploadCompletionsController {
 
     @PostMapping
     CompletedFileResponse post(
-        @PathVariable UUID fileId,
-        @Valid @RequestBody FileUploadCompletionRequest request
-    ) {
+            @PathVariable UUID fileId, @Valid @RequestBody FileUploadCompletionRequest request) {
         return CompletedFileResponse.from(
-            useCase.complete(actor.requireUserId(), fileId, request.uploadSessionId())
-        );
+                useCase.complete(actor.requireUserId(), fileId, request.uploadSessionId()));
     }
 }
 
-record FileUploadCompletionRequest(@NotNull UUID uploadSessionId) { }
+record FileUploadCompletionRequest(@NotNull UUID uploadSessionId) {}
 
 record CompletedFileResponse(
-    UUID fileId,
-    String fileName,
-    String mimeType,
-    long sizeBytes,
-    String checksumSha256,
-    String status,
-    long version,
-    Instant createdAt,
-    Instant completedAt
-) {
+        UUID fileId,
+        String fileName,
+        String mimeType,
+        long sizeBytes,
+        String checksumSha256,
+        String status,
+        long version,
+        Instant createdAt,
+        Instant completedAt) {
     static CompletedFileResponse from(FileUseCase.FileResult result) {
         return new CompletedFileResponse(
-            result.fileId(), result.fileName(), result.mimeType(), result.sizeBytes(),
-            result.checksumSha256(), result.status(), result.version(), result.createdAt(),
-            result.completedAt()
-        );
+                result.fileId(),
+                result.fileName(),
+                result.mimeType(),
+                result.sizeBytes(),
+                result.checksumSha256(),
+                result.status(),
+                result.version(),
+                result.createdAt(),
+                result.completedAt());
     }
 }

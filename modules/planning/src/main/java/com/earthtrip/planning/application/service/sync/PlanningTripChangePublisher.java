@@ -5,8 +5,8 @@ import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.api.TripRealtimeNotifier;
 import java.time.Clock;
 import java.util.Collections;
-import java.util.List;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
@@ -24,10 +24,9 @@ class PlanningTripChangePublisher implements TripChangePublisher {
     private final List<TripRealtimeNotifier> realtimeNotifiers;
 
     PlanningTripChangePublisher(
-        ActivityOperationStorePort activities,
-        Clock clock,
-        List<TripRealtimeNotifier> realtimeNotifiers
-    ) {
+            ActivityOperationStorePort activities,
+            Clock clock,
+            List<TripRealtimeNotifier> realtimeNotifiers) {
         this.activities = activities;
         this.clock = clock;
         this.realtimeNotifiers = List.copyOf(realtimeNotifiers);
@@ -35,51 +34,48 @@ class PlanningTripChangePublisher implements TripChangePublisher {
 
     @Override
     public void publish(
-        UUID tripId,
-        UUID actorUserId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> details
-    ) {
+            UUID tripId,
+            UUID actorUserId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> details) {
         String normalizedAction = normalize(action);
         String normalizedResourceType = normalize(resourceType);
-        Map<String, Object> safeDetails = details == null
-            ? Map.of()
-            : Collections.unmodifiableMap(new LinkedHashMap<>(details));
+        Map<String, Object> safeDetails =
+                details == null
+                        ? Map.of()
+                        : Collections.unmodifiableMap(new LinkedHashMap<>(details));
         activities.appendActivity(
-            tripId,
-            actorUserId,
-            normalizedAction,
-            normalizedResourceType,
-            resourceId,
-            safeDetails,
-            clock.instant()
-        );
+                tripId,
+                actorUserId,
+                normalizedAction,
+                normalizedResourceType,
+                resourceId,
+                safeDetails,
+                clock.instant());
         notifyAfterCommit(tripId, normalizedAction, normalizedResourceType, resourceId);
     }
 
     private void notifyAfterCommit(
-        UUID tripId,
-        String action,
-        String resourceType,
-        UUID resourceId
-    ) {
-        Runnable notification = () -> realtimeNotifiers.forEach(
-            notifier -> notifier.notifyChange(tripId, action, resourceType, resourceId)
-        );
+            UUID tripId, String action, String resourceType, UUID resourceId) {
+        Runnable notification =
+                () ->
+                        realtimeNotifiers.forEach(
+                                notifier ->
+                                        notifier.notifyChange(
+                                                tripId, action, resourceType, resourceId));
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
             notification.run();
             return;
         }
         TransactionSynchronizationManager.registerSynchronization(
-            new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    notification.run();
-                }
-            }
-        );
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        notification.run();
+                    }
+                });
     }
 
     private static String normalize(String value) {

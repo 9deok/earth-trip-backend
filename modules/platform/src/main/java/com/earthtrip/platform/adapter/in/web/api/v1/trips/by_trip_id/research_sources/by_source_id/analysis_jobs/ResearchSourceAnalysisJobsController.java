@@ -24,42 +24,45 @@ import org.springframework.web.bind.annotation.RestController;
 class ResearchSourceAnalysisJobsController {
     private final AnalysisJobUseCase useCase;
     private final CurrentActor actor;
+
     ResearchSourceAnalysisJobsController(AnalysisJobUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @PostMapping @ResponseStatus(HttpStatus.ACCEPTED)
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.ACCEPTED)
     AnalysisJobUseCase.JobResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID sourceId,
-        @Valid @RequestBody ResearchAnalysisJobRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID sourceId,
+            @Valid @RequestBody ResearchAnalysisJobRequest request) {
         return useCase.createResearchSourceJob(
-            tripId, sourceId, actor.requireUserId(), request.command()
-        );
+                tripId, sourceId, actor.requireUserId(), request.command());
     }
 }
+
 record ResearchAnalysisJobRequest(
-    @NotNull UUID requestId,
-    @NotNull Map<String, Object> inputPayload,
-    @Size(max = 200) List<@Valid ResearchAnalysisSuggestion> suggestions
-) {
+        @NotNull UUID requestId,
+        @NotNull Map<String, Object> inputPayload,
+        @Size(max = 200) List<@Valid ResearchAnalysisSuggestion> suggestions) {
     AnalysisJobUseCase.CreateCommand command() {
         return new AnalysisJobUseCase.CreateCommand(
-            requestId, inputPayload, suggestions == null ? List.of()
-                : suggestions.stream().map(ResearchAnalysisSuggestion::command).toList()
-        );
+                requestId,
+                inputPayload,
+                suggestions == null
+                        ? List.of()
+                        : suggestions.stream().map(ResearchAnalysisSuggestion::command).toList());
     }
 }
+
 record ResearchAnalysisSuggestion(
-    @NotBlank String field,
-    Object value,
-    @DecimalMin("0.0") @DecimalMax("1.0") Double confidence,
-    String sourceReference,
-    List<String> warnings
-) {
+        @NotBlank String field,
+        Object value,
+        @DecimalMin("0.0") @DecimalMax("1.0") Double confidence,
+        String sourceReference,
+        List<String> warnings) {
     AnalysisJobUseCase.SuggestionCommand command() {
         return new AnalysisJobUseCase.SuggestionCommand(
-            field, value, confidence, sourceReference, warnings
-        );
+                field, value, confidence, sourceReference, warnings);
     }
 }

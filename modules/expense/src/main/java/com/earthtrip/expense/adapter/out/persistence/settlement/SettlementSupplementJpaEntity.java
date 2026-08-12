@@ -12,18 +12,23 @@ import java.util.UUID;
 @Table(name = "settlement_supplements")
 class SettlementSupplementJpaEntity {
 
-    @Id @Column(name = "id", nullable = false, length = 36)
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
+
     @Column(name = "original_settlement_id", nullable = false, length = 36)
     private String originalSettlementId;
+
     @Column(name = "supplement_settlement_id", nullable = false, length = 36)
     private String supplementSettlementId;
+
     @Column(name = "created_by", nullable = false, length = 36)
     private String createdBy;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected SettlementSupplementJpaEntity() { }
+    protected SettlementSupplementJpaEntity() {}
 
     SettlementSupplementJpaEntity(SettlementStorePort.SupplementRecord record) {
         id = record.id().toString();
@@ -35,8 +40,10 @@ class SettlementSupplementJpaEntity {
 
     SettlementStorePort.SupplementRecord toRecord() {
         return new SettlementStorePort.SupplementRecord(
-            UUID.fromString(id), UUID.fromString(originalSettlementId),
-            UUID.fromString(supplementSettlementId), UUID.fromString(createdBy), createdAt
-        );
+                UUID.fromString(id),
+                UUID.fromString(originalSettlementId),
+                UUID.fromString(supplementSettlementId),
+                UUID.fromString(createdBy),
+                createdAt);
     }
 }

@@ -18,9 +18,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(
-    "/api/v1/trips/{tripId}/expense-review-days/{localDate}/completion"
-)
+@RequestMapping("/api/v1/trips/{tripId}/expense-review-days/{localDate}/completion")
 class ExpenseReviewCompletionController {
 
     private final ExpenseReviewUseCase useCase;
@@ -33,27 +31,22 @@ class ExpenseReviewCompletionController {
 
     @PutMapping
     ExpenseReviewUseCase.ReviewDayResult put(
-        @PathVariable UUID tripId,
-        @PathVariable LocalDate localDate,
-        @Valid @RequestBody ExpenseReviewCompletionRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable LocalDate localDate,
+            @Valid @RequestBody ExpenseReviewCompletionRequest request) {
         return useCase.complete(
-            tripId, localDate, actor.requireUserId(), request.note(), request.baseVersion()
-        );
+                tripId, localDate, actor.requireUserId(), request.note(), request.baseVersion());
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId,
-        @PathVariable LocalDate localDate,
-        @RequestParam @PositiveOrZero long baseVersion
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable LocalDate localDate,
+            @RequestParam @PositiveOrZero long baseVersion) {
         useCase.reopen(tripId, localDate, actor.requireUserId(), baseVersion);
     }
 }
 
 record ExpenseReviewCompletionRequest(
-    @Size(max = 1000) String note,
-    @PositiveOrZero long baseVersion
-) { }
+        @Size(max = 1000) String note, @PositiveOrZero long baseVersion) {}

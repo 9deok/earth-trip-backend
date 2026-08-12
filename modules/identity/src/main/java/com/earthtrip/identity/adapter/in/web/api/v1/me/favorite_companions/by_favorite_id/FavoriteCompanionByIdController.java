@@ -18,9 +18,7 @@ class FavoriteCompanionByIdController {
     private final CurrentUserProvider currentUser;
 
     FavoriteCompanionByIdController(
-        FavoriteCompanionUseCase useCase,
-        CurrentUserProvider currentUser
-    ) {
+            FavoriteCompanionUseCase useCase, CurrentUserProvider currentUser) {
         this.useCase = useCase;
         this.currentUser = currentUser;
     }

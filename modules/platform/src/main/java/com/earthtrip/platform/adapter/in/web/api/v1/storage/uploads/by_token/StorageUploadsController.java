@@ -23,10 +23,9 @@ class StorageUploadsController {
     @PutMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void put(
-        @PathVariable String token,
-        @RequestHeader(name = "Content-Type", required = false) String contentType,
-        @RequestBody byte[] content
-    ) {
+            @PathVariable String token,
+            @RequestHeader(name = "Content-Type", required = false) String contentType,
+            @RequestBody byte[] content) {
         useCase.upload(token, contentType, content);
     }
 }

@@ -26,13 +26,10 @@ class RouteOverrideByIdController {
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
     void delete(
-        @PathVariable UUID tripId,
-        @PathVariable UUID dayId,
-        @PathVariable UUID overrideId,
-        @RequestParam long baseVersion
-    ) {
-        useCase.delete(
-            tripId, dayId, overrideId, actor.requireUserId(), baseVersion
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID dayId,
+            @PathVariable UUID overrideId,
+            @RequestParam long baseVersion) {
+        useCase.delete(tripId, dayId, overrideId, actor.requireUserId(), baseVersion);
     }
 }

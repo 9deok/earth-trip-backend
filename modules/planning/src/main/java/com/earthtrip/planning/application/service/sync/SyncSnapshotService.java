@@ -19,10 +19,7 @@ class SyncSnapshotService implements SyncSnapshotUseCase {
     private final Clock clock;
 
     SyncSnapshotService(
-        PlanningResourceUseCase resources,
-        ActivityOperationStorePort activities,
-        Clock clock
-    ) {
+            PlanningResourceUseCase resources, ActivityOperationStorePort activities, Clock clock) {
         this.resources = resources;
         this.activities = activities;
         this.clock = clock;
@@ -31,8 +28,10 @@ class SyncSnapshotService implements SyncSnapshotUseCase {
     @Override
     public SnapshotResult get(UUID tripId, UUID actorUserId) {
         return new SnapshotResult(
-            tripId, SCHEMA_VERSION, activities.latestSequence(tripId), clock.instant(),
-            resources.listAll(tripId, actorUserId)
-        );
+                tripId,
+                SCHEMA_VERSION,
+                activities.latestSequence(tripId),
+                clock.instant(),
+                resources.listAll(tripId, actorUserId));
     }
 }

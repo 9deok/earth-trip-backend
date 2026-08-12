@@ -11,14 +11,18 @@ public interface CurrentActor {
     Optional<UUID> currentSessionId();
 
     default UUID requireUserId() {
-        return currentUserId().orElseThrow(() ->
-            EarthTripException.unauthorized("AUTHENTICATION_REQUIRED", "로그인이 필요합니다.")
-        );
+        return currentUserId()
+                .orElseThrow(
+                        () ->
+                                EarthTripException.unauthorized(
+                                        "AUTHENTICATION_REQUIRED", "로그인이 필요합니다."));
     }
 
     default UUID requireSessionId() {
-        return currentSessionId().orElseThrow(() ->
-            EarthTripException.unauthorized("AUTHENTICATION_REQUIRED", "로그인이 필요합니다.")
-        );
+        return currentSessionId()
+                .orElseThrow(
+                        () ->
+                                EarthTripException.unauthorized(
+                                        "AUTHENTICATION_REQUIRED", "로그인이 필요합니다."));
     }
 }

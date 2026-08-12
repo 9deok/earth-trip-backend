@@ -1,2 +1,84 @@
-package com.earthtrip.notification.adapter.out.persistence.notification;import com.earthtrip.notification.application.port.out.NotificationStorePort;import jakarta.persistence.*;import java.time.Instant;import java.util.UUID;
-@Entity @Table(name="notifications") class NotificationJpaEntity{@Id @Column(name="id",nullable=false,length=36)private String id;@Column(name="user_id",nullable=false,length=36)private String userId;@Column(name="trip_id",length=36)private String tripId;@Column(name="type",nullable=false,length=50)private String type;@Column(name="title",nullable=false,length=160)private String title;@Column(name="body",nullable=false,length=500)private String body;@Column(name="deep_link",length=500)private String deepLink;@Column(name="metadata",nullable=false,columnDefinition="JSON")private String metadata;@Column(name="created_at",nullable=false)private Instant createdAt;@Column(name="read_at")private Instant readAt;@Column(name="hidden_at")private Instant hiddenAt;@Version @Column(name="version",nullable=false)private long version;protected NotificationJpaEntity(){}void apply(NotificationStorePort.NotificationRecord r,String json){id=r.id().toString();userId=r.userId().toString();tripId=r.tripId()==null?null:r.tripId().toString();type=r.type();title=r.title();body=r.body();deepLink=r.deepLink();metadata=json;createdAt=r.createdAt();readAt=r.readAt();hiddenAt=r.hiddenAt();}String metadata(){return metadata;}NotificationStorePort.NotificationRecord record(java.util.Map<String,Object>data){return new NotificationStorePort.NotificationRecord(UUID.fromString(id),UUID.fromString(userId),tripId==null?null:UUID.fromString(tripId),type,title,body,deepLink,data,createdAt,readAt,hiddenAt,version);}}
+package com.earthtrip.notification.adapter.out.persistence.notification;
+
+import com.earthtrip.notification.application.port.out.NotificationStoreRecords;
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "notifications")
+class NotificationJpaEntity {
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
+
+    @Column(name = "user_id", nullable = false, length = 36)
+    private String userId;
+
+    @Column(name = "trip_id", length = 36)
+    private String tripId;
+
+    @Column(name = "type", nullable = false, length = 50)
+    private String type;
+
+    @Column(name = "title", nullable = false, length = 160)
+    private String title;
+
+    @Column(name = "body", nullable = false, length = 500)
+    private String body;
+
+    @Column(name = "deep_link", length = 500)
+    private String deepLink;
+
+    @Column(name = "metadata", nullable = false, columnDefinition = "JSON")
+    private String metadata;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "read_at")
+    private Instant readAt;
+
+    @Column(name = "hidden_at")
+    private Instant hiddenAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected NotificationJpaEntity() {}
+
+    void apply(NotificationStoreRecords.NotificationRecord r, String json) {
+        id = r.id().toString();
+        userId = r.userId().toString();
+        tripId = r.tripId() == null ? null : r.tripId().toString();
+        type = r.type();
+        title = r.title();
+        body = r.body();
+        deepLink = r.deepLink();
+        metadata = json;
+        createdAt = r.createdAt();
+        readAt = r.readAt();
+        hiddenAt = r.hiddenAt();
+    }
+
+    String metadata() {
+        return metadata;
+    }
+
+    NotificationStoreRecords.NotificationRecord record(java.util.Map<String, Object> data) {
+        return new NotificationStoreRecords.NotificationRecord(
+                UUID.fromString(id),
+                UUID.fromString(userId),
+                tripId == null ? null : UUID.fromString(tripId),
+                type,
+                title,
+                body,
+                deepLink,
+                data,
+                createdAt,
+                readAt,
+                hiddenAt,
+                version);
+    }
+}

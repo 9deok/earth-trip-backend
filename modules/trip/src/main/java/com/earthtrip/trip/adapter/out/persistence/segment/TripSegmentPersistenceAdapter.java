@@ -12,12 +12,15 @@ import org.springframework.stereotype.Component;
 class TripSegmentPersistenceAdapter implements TripSegmentStorePort {
     private final TripSegmentJpaRepository repository;
 
-    TripSegmentPersistenceAdapter(TripSegmentJpaRepository repository) { this.repository = repository; }
+    TripSegmentPersistenceAdapter(TripSegmentJpaRepository repository) {
+        this.repository = repository;
+    }
 
     @Override
     public List<TripSegment> findAll(TripId tripId) {
         return repository.findAllByTripIdOrderBySortOrderAsc(tripId.toString()).stream()
-            .map(TripSegmentJpaEntity::toDomain).toList();
+                .map(TripSegmentJpaEntity::toDomain)
+                .toList();
     }
 
     @Override
@@ -27,12 +30,20 @@ class TripSegmentPersistenceAdapter implements TripSegmentStorePort {
 
     @Override
     public TripSegment save(TripSegment segment) {
-        TripSegmentJpaEntity entity = repository.findById(segment.id().toString())
-            .map(existing -> { existing.apply(segment); return existing; })
-            .orElseGet(() -> TripSegmentJpaEntity.from(segment));
+        TripSegmentJpaEntity entity =
+                repository
+                        .findById(segment.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(segment);
+                                    return existing;
+                                })
+                        .orElseGet(() -> TripSegmentJpaEntity.from(segment));
         return repository.saveAndFlush(entity).toDomain();
     }
 
     @Override
-    public void delete(UUID segmentId) { repository.deleteById(segmentId.toString()); }
+    public void delete(UUID segmentId) {
+        repository.deleteById(segmentId.toString());
+    }
 }

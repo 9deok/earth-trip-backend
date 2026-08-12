@@ -22,14 +22,13 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 @Component
-class TripRealtimeWebSocketHandler extends TextWebSocketHandler
-    implements TripRealtimeNotifier {
+class TripRealtimeWebSocketHandler extends TextWebSocketHandler implements TripRealtimeNotifier {
 
     private static final int MAX_MESSAGE_BYTES = 16 * 1024;
     private static final int SEND_TIME_LIMIT_MILLIS = 5_000;
     private static final int SEND_BUFFER_BYTES = 64 * 1024;
     private static final Set<String> CLIENT_MESSAGE_TYPES = Set.of("PING", "PRESENCE", "EDITING");
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
 
     private final TripAccess tripAccess;
     private final ObjectMapper json;
@@ -43,20 +42,23 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
     }
 
     @Override
-    public void notifyChange(
-        UUID tripId,
-        String action,
-        String resourceType,
-        UUID resourceId
-    ) {
-        broadcast(tripId, Map.of(
-            "type", "CHANGE",
-            "tripId", tripId.toString(),
-            "action", action,
-            "resourceType", resourceType,
-            "resourceId", resourceId.toString(),
-            "occurredAt", clock.instant().toString()
-        ), null);
+    public void notifyChange(UUID tripId, String action, String resourceType, UUID resourceId) {
+        broadcast(
+                tripId,
+                Map.of(
+                        "type",
+                        "CHANGE",
+                        "tripId",
+                        tripId.toString(),
+                        "action",
+                        action,
+                        "resourceType",
+                        resourceType,
+                        "resourceId",
+                        resourceId.toString(),
+                        "occurredAt",
+                        clock.instant().toString()),
+                null);
     }
 
     @Override
@@ -64,32 +66,33 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
         UUID tripId = tripId(rawSession);
         UUID userId = userId(rawSession);
         tripAccess.requireViewer(tripId, userId);
-        WebSocketSession session = new ConcurrentWebSocketSessionDecorator(
-            rawSession,
-            SEND_TIME_LIMIT_MILLIS,
-            SEND_BUFFER_BYTES
-        );
+        WebSocketSession session =
+                new ConcurrentWebSocketSessionDecorator(
+                        rawSession, SEND_TIME_LIMIT_MILLIS, SEND_BUFFER_BYTES);
         rooms.computeIfAbsent(tripId, ignored -> new ConcurrentHashMap<>())
-            .put(rawSession.getId(), new SessionMember(session, userId));
-        send(session, Map.of(
-            "type", "CONNECTED",
-            "tripId", tripId.toString(),
-            "userId", userId.toString(),
-            "onlineCount", rooms.get(tripId).size(),
-            "occurredAt", clock.instant().toString()
-        ));
-        broadcast(tripId, Map.of(
-            "type", "PRESENCE",
-            "userId", userId.toString(),
-            "status", "ONLINE",
-            "onlineCount", rooms.get(tripId).size(),
-            "occurredAt", clock.instant().toString()
-        ), rawSession.getId());
+                .put(rawSession.getId(), new SessionMember(session, userId));
+        send(
+                session,
+                Map.of(
+                        "type", "CONNECTED",
+                        "tripId", tripId.toString(),
+                        "userId", userId.toString(),
+                        "onlineCount", rooms.get(tripId).size(),
+                        "occurredAt", clock.instant().toString()));
+        broadcast(
+                tripId,
+                Map.of(
+                        "type", "PRESENCE",
+                        "userId", userId.toString(),
+                        "status", "ONLINE",
+                        "onlineCount", rooms.get(tripId).size(),
+                        "occurredAt", clock.instant().toString()),
+                rawSession.getId());
     }
 
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message)
-        throws Exception {
+            throws Exception {
         if (message.getPayloadLength() > MAX_MESSAGE_BYTES) {
             session.close(CloseStatus.TOO_BIG_TO_PROCESS);
             return;
@@ -113,13 +116,15 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
                 sendError(session, "INVALID_PRESENCE_STATUS", "presence 상태를 확인해 주세요.");
                 return;
             }
-            broadcast(tripId, Map.of(
-                "type", "PRESENCE",
-                "userId", userId.toString(),
-                "status", status,
-                "onlineCount", rooms.getOrDefault(tripId, Map.of()).size(),
-                "occurredAt", clock.instant().toString()
-            ), null);
+            broadcast(
+                    tripId,
+                    Map.of(
+                            "type", "PRESENCE",
+                            "userId", userId.toString(),
+                            "status", status,
+                            "onlineCount", rooms.getOrDefault(tripId, Map.of()).size(),
+                            "occurredAt", clock.instant().toString()),
+                    null);
             return;
         }
         String resourceType = text(payload, "resourceType");
@@ -133,19 +138,27 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
             sendError(session, "INVALID_EDITING_STATE", "editing.active는 boolean이어야 합니다.");
             return;
         }
-        broadcast(tripId, Map.of(
-            "type", "EDITING",
-            "userId", userId.toString(),
-            "resourceType", resourceType,
-            "resourceId", resourceId,
-            "active", active,
-            "occurredAt", clock.instant().toString()
-        ), null);
+        broadcast(
+                tripId,
+                Map.of(
+                        "type",
+                        "EDITING",
+                        "userId",
+                        userId.toString(),
+                        "resourceType",
+                        resourceType,
+                        "resourceId",
+                        resourceId,
+                        "active",
+                        active,
+                        "occurredAt",
+                        clock.instant().toString()),
+                null);
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception)
-        throws Exception {
+            throws Exception {
         remove(session, "TRANSPORT_ERROR");
         if (session.isOpen()) {
             session.close(CloseStatus.SERVER_ERROR);
@@ -173,13 +186,15 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
             rooms.remove(tripId, room);
         }
         if (removed != null) {
-            broadcast(tripId, Map.of(
-                "type", "PRESENCE",
-                "userId", removed.userId().toString(),
-                "status", status,
-                "onlineCount", room.size(),
-                "occurredAt", clock.instant().toString()
-            ), null);
+            broadcast(
+                    tripId,
+                    Map.of(
+                            "type", "PRESENCE",
+                            "userId", removed.userId().toString(),
+                            "status", status,
+                            "onlineCount", room.size(),
+                            "occurredAt", clock.instant().toString()),
+                    null);
         }
     }
 
@@ -214,13 +229,18 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
     }
 
     private void sendError(WebSocketSession session, String code, String detail)
-        throws IOException {
-        send(session, Map.of(
-            "type", "ERROR",
-            "code", code,
-            "detail", detail,
-            "occurredAt", clock.instant().toString()
-        ));
+            throws IOException {
+        send(
+                session,
+                Map.of(
+                        "type",
+                        "ERROR",
+                        "code",
+                        code,
+                        "detail",
+                        detail,
+                        "occurredAt",
+                        clock.instant().toString()));
     }
 
     private Map<String, Object> read(String payload) {
@@ -229,9 +249,7 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
             return result == null ? Map.of() : new LinkedHashMap<>(result);
         } catch (JsonProcessingException exception) {
             throw EarthTripException.badRequest(
-                "INVALID_REALTIME_MESSAGE",
-                "실시간 메시지는 JSON 객체여야 합니다."
-            );
+                    "INVALID_REALTIME_MESSAGE", "실시간 메시지는 JSON 객체여야 합니다.");
         }
     }
 
@@ -240,34 +258,26 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
         String prefix = "/ws/v1/trips/";
         if (!path.startsWith(prefix)) {
             throw EarthTripException.badRequest(
-                "INVALID_REALTIME_TRIP_PATH",
-                "실시간 여행 경로가 올바르지 않습니다."
-            );
+                    "INVALID_REALTIME_TRIP_PATH", "실시간 여행 경로가 올바르지 않습니다.");
         }
         try {
             return UUID.fromString(path.substring(prefix.length()));
         } catch (IllegalArgumentException exception) {
             throw EarthTripException.badRequest(
-                "INVALID_REALTIME_TRIP_ID",
-                "실시간 여행 ID가 올바르지 않습니다."
-            );
+                    "INVALID_REALTIME_TRIP_ID", "실시간 여행 ID가 올바르지 않습니다.");
         }
     }
 
     private static UUID userId(WebSocketSession session) {
         if (session.getPrincipal() == null) {
             throw EarthTripException.unauthorized(
-                "REALTIME_AUTHENTICATION_REQUIRED",
-                "실시간 연결에는 로그인이 필요합니다."
-            );
+                    "REALTIME_AUTHENTICATION_REQUIRED", "실시간 연결에는 로그인이 필요합니다.");
         }
         try {
             return UUID.fromString(session.getPrincipal().getName());
         } catch (IllegalArgumentException exception) {
             throw EarthTripException.unauthorized(
-                "INVALID_REALTIME_PRINCIPAL",
-                "실시간 연결의 사용자 정보가 올바르지 않습니다."
-            );
+                    "INVALID_REALTIME_PRINCIPAL", "실시간 연결의 사용자 정보가 올바르지 않습니다.");
         }
     }
 
@@ -275,12 +285,10 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler
         Object value = payload.get(field);
         if (value == null || value.toString().isBlank()) {
             throw EarthTripException.badRequest(
-                "REALTIME_FIELD_REQUIRED",
-                "실시간 메시지에 " + field + " 값이 필요합니다."
-            );
+                    "REALTIME_FIELD_REQUIRED", "실시간 메시지에 " + field + " 값이 필요합니다.");
         }
         return value.toString().strip();
     }
 
-    private record SessionMember(WebSocketSession session, UUID userId) { }
+    private record SessionMember(WebSocketSession session, UUID userId) {}
 }

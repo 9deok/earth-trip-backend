@@ -13,21 +13,20 @@ public interface AnalysisJobStorePort {
     JobRecord save(JobRecord job);
 
     record JobRecord(
-        UUID id,
-        UUID tripId,
-        String targetType,
-        UUID targetId,
-        Map<String, Object> inputPayload,
-        List<Map<String, Object>> suggestions,
-        String status,
-        UUID confirmationRequestId,
-        Map<String, Object> confirmedPayload,
-        String failureCode,
-        String failureMessage,
-        int attemptCount,
-        UUID createdBy,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID tripId,
+            String targetType,
+            UUID targetId,
+            Map<String, Object> inputPayload,
+            List<Map<String, Object>> suggestions,
+            String status,
+            UUID confirmationRequestId,
+            Map<String, Object> confirmedPayload,
+            String failureCode,
+            String failureMessage,
+            int attemptCount,
+            UUID createdBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 }

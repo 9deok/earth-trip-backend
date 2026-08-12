@@ -31,35 +31,36 @@ class RouteOverridesController {
 
     @GetMapping
     List<RouteOverrideUseCase.OverrideResult> get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID dayId
-    ) {
+            @PathVariable UUID tripId, @PathVariable UUID dayId) {
         return useCase.list(tripId, dayId, actor.requireUserId());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     RouteOverrideUseCase.OverrideResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID dayId,
-        @Valid @RequestBody RouteOverrideRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID dayId,
+            @Valid @RequestBody RouteOverrideRequest request) {
         return useCase.create(
-            tripId, dayId, actor.requireUserId(),
-            new RouteOverrideUseCase.OverrideCommand(
-                request.requestId(), request.fromItemId(), request.toItemId(),
-                request.durationMinutes(), request.distanceMeters(), request.mode(), request.note()
-            )
-        );
+                tripId,
+                dayId,
+                actor.requireUserId(),
+                new RouteOverrideUseCase.OverrideCommand(
+                        request.requestId(),
+                        request.fromItemId(),
+                        request.toItemId(),
+                        request.durationMinutes(),
+                        request.distanceMeters(),
+                        request.mode(),
+                        request.note()));
     }
 }
 
 record RouteOverrideRequest(
-    @NotNull UUID requestId,
-    @NotNull UUID fromItemId,
-    @NotNull UUID toItemId,
-    @NotNull @PositiveOrZero Integer durationMinutes,
-    @PositiveOrZero Long distanceMeters,
-    String mode,
-    @Size(max = 1000) String note
-) { }
+        @NotNull UUID requestId,
+        @NotNull UUID fromItemId,
+        @NotNull UUID toItemId,
+        @NotNull @PositiveOrZero Integer durationMinutes,
+        @PositiveOrZero Long distanceMeters,
+        String mode,
+        @Size(max = 1000) String note) {}

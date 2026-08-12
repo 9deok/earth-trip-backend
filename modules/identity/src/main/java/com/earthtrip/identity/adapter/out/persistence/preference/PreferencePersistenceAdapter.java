@@ -21,12 +21,15 @@ class PreferencePersistenceAdapter implements PreferenceStorePort {
 
     @Override
     public PreferenceRecord save(PreferenceRecord preference) {
-        PreferenceJpaEntity entity = repository.findById(preference.userId().toString())
-            .map(existing -> {
-                existing.apply(preference);
-                return existing;
-            })
-            .orElseGet(() -> new PreferenceJpaEntity(preference));
+        PreferenceJpaEntity entity =
+                repository
+                        .findById(preference.userId().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(preference);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new PreferenceJpaEntity(preference));
         return repository.saveAndFlush(entity).toRecord();
     }
 }

@@ -21,10 +21,7 @@ class TripExportByIdController {
     }
 
     @GetMapping
-    TripExportUseCase.ExportResult get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID exportId
-    ) {
+    TripExportUseCase.ExportResult get(@PathVariable UUID tripId, @PathVariable UUID exportId) {
         return useCase.get(tripId, exportId, actor.requireUserId());
     }
 }

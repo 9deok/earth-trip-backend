@@ -28,11 +28,10 @@ class PasswordResetRequestsController {
     PasswordResetRequestResponse post(@Valid @RequestBody PasswordResetRequest request) {
         PasswordResetUseCase.RequestResult result = useCase.request(request.email());
         return new PasswordResetRequestResponse(
-            result.requestId(), result.expiresAt(), result.deliveryStatus()
-        );
+                result.requestId(), result.expiresAt(), result.deliveryStatus());
     }
 }
 
-record PasswordResetRequest(@NotBlank @Email String email) { }
+record PasswordResetRequest(@NotBlank @Email String email) {}
 
-record PasswordResetRequestResponse(UUID requestId, Instant expiresAt, String deliveryStatus) { }
+record PasswordResetRequestResponse(UUID requestId, Instant expiresAt, String deliveryStatus) {}

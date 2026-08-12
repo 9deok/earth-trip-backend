@@ -34,10 +34,8 @@ class DataExportsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     DataExportUseCase.ExportResult post(@Valid @RequestBody DataExportRequest request) {
-        return useCase.create(
-            currentUser.requireUserId(), request.requestId(), request.format()
-        );
+        return useCase.create(currentUser.requireUserId(), request.requestId(), request.format());
     }
 }
 
-record DataExportRequest(@NotNull UUID requestId, String format) { }
+record DataExportRequest(@NotNull UUID requestId, String format) {}

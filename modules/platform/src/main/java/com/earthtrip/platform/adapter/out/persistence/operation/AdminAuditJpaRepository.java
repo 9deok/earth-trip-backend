@@ -8,7 +8,8 @@ import org.springframework.data.repository.query.Param;
 
 interface AdminAuditJpaRepository extends JpaRepository<AdminAuditJpaEntity, Long> {
 
-    @Query("""
+    @Query(
+            """
         select event from AdminAuditJpaEntity event
         where (:action is null or event.action = :action)
           and (:targetType is null or event.targetType = :targetType)
@@ -16,9 +17,8 @@ interface AdminAuditJpaRepository extends JpaRepository<AdminAuditJpaEntity, Lon
         order by event.occurredAt desc
         """)
     List<AdminAuditJpaEntity> search(
-        @Param("action") String action,
-        @Param("targetType") String targetType,
-        @Param("targetId") String targetId,
-        Pageable pageable
-    );
+            @Param("action") String action,
+            @Param("targetType") String targetType,
+            @Param("targetId") String targetId,
+            Pageable pageable);
 }

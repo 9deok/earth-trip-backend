@@ -15,11 +15,7 @@ public final class EarthTripException extends RuntimeException {
     }
 
     public EarthTripException(
-        String code,
-        int httpStatus,
-        String message,
-        Map<String, Object> properties
-    ) {
+            String code, int httpStatus, String message, Map<String, Object> properties) {
         super(Objects.requireNonNull(message, "오류 메시지는 필수입니다."));
         this.code = requireText(code, "오류 코드는 필수입니다.");
         if (httpStatus < 400 || httpStatus > 599) {

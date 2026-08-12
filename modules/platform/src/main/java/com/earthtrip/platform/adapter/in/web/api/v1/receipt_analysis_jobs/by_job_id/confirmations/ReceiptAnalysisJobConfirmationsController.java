@@ -19,13 +19,16 @@ import org.springframework.web.bind.annotation.RestController;
 class ReceiptAnalysisJobConfirmationsController {
     private final AnalysisJobUseCase useCase;
     private final CurrentActor actor;
+
     ReceiptAnalysisJobConfirmationsController(AnalysisJobUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @PostMapping AnalysisJobUseCase.ConfirmationResult post(
-        @PathVariable UUID jobId,
-        @Valid @RequestBody ReceiptAnalysisConfirmationRequest request
-    ) {
+
+    @PostMapping
+    AnalysisJobUseCase.ConfirmationResult post(
+            @PathVariable UUID jobId,
+            @Valid @RequestBody ReceiptAnalysisConfirmationRequest request) {
         UUID actorId = actor.requireUserId();
         AnalysisJobUseCase.JobResult job = useCase.get(jobId, actorId);
         if (!job.targetType().equals("EXPENSE_RECEIPT")) {
@@ -34,15 +37,14 @@ class ReceiptAnalysisJobConfirmationsController {
         return useCase.confirm(jobId, actorId, request.command());
     }
 }
+
 record ReceiptAnalysisConfirmationRequest(
-    @NotNull UUID requestId,
-    @NotNull Map<String, Object> confirmedFields,
-    @PositiveOrZero long targetBaseVersion,
-    @PositiveOrZero long jobBaseVersion
-) {
+        @NotNull UUID requestId,
+        @NotNull Map<String, Object> confirmedFields,
+        @PositiveOrZero long targetBaseVersion,
+        @PositiveOrZero long jobBaseVersion) {
     AnalysisJobUseCase.ConfirmationCommand command() {
         return new AnalysisJobUseCase.ConfirmationCommand(
-            requestId, confirmedFields, targetBaseVersion, jobBaseVersion
-        );
+                requestId, confirmedFields, targetBaseVersion, jobBaseVersion);
     }
 }

@@ -2,7 +2,9 @@ package com.earthtrip.platform.application.service.bootstrap;
 
 import com.earthtrip.expense.api.TripExpenseView;
 import com.earthtrip.identity.api.TripMemberView;
+import com.earthtrip.notification.api.TripNotificationView;
 import com.earthtrip.planning.api.TripPlanningView;
+import com.earthtrip.planning.api.TripSyncView;
 import com.earthtrip.platform.application.port.in.TripBootstrapUseCase;
 import com.earthtrip.trip.api.TripStructureView;
 import com.earthtrip.wallet.api.TripWalletView;
@@ -20,33 +22,42 @@ class TripBootstrapService implements TripBootstrapUseCase {
     private final TripPlanningView planning;
     private final TripWalletView wallet;
     private final TripExpenseView expenses;
+    private final TripNotificationView notifications;
+    private final TripSyncView sync;
     private final Clock clock;
 
     TripBootstrapService(
-        TripStructureView structure,
-        TripMemberView members,
-        TripPlanningView planning,
-        TripWalletView wallet,
-        TripExpenseView expenses,
-        Clock clock
-    ) {
+            TripStructureView structure,
+            TripMemberView members,
+            TripPlanningView planning,
+            TripWalletView wallet,
+            TripExpenseView expenses,
+            TripNotificationView notifications,
+            TripSyncView sync,
+            Clock clock) {
         this.structure = structure;
         this.members = members;
         this.planning = planning;
         this.wallet = wallet;
         this.expenses = expenses;
+        this.notifications = notifications;
+        this.sync = sync;
         this.clock = clock;
     }
 
     @Override
     public BootstrapResult get(UUID tripId, UUID actorUserId) {
+        TripWalletView.BootstrapSnapshot walletBootstrap = wallet.bootstrap(tripId, actorUserId);
         return new BootstrapResult(
-            structure.snapshot(tripId, actorUserId),
-            members.members(tripId, actorUserId),
-            planning.snapshot(tripId, actorUserId),
-            wallet.snapshot(tripId, actorUserId),
-            expenses.summary(tripId, actorUserId),
-            clock.instant()
-        );
+                structure.snapshot(tripId, actorUserId),
+                members.members(tripId, actorUserId),
+                planning.snapshot(tripId, actorUserId),
+                planning.nextDecision(tripId, actorUserId),
+                walletBootstrap.wallet(),
+                walletBootstrap.preparation(),
+                expenses.summary(tripId, actorUserId),
+                notifications.unreadCount(actorUserId, tripId),
+                sync.latestCursor(tripId, actorUserId),
+                clock.instant());
     }
 }

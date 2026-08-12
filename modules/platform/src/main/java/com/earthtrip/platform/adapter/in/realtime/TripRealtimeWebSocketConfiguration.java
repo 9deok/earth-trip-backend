@@ -15,9 +15,7 @@ class TripRealtimeWebSocketConfiguration implements WebSocketConfigurer {
     private final Environment environment;
 
     TripRealtimeWebSocketConfiguration(
-        TripRealtimeWebSocketHandler handler,
-        Environment environment
-    ) {
+            TripRealtimeWebSocketHandler handler, Environment environment) {
         this.handler = handler;
         this.environment = environment;
     }
@@ -26,10 +24,11 @@ class TripRealtimeWebSocketConfiguration implements WebSocketConfigurer {
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         var registration = registry.addHandler(handler, "/ws/v1/trips/{tripId}");
         String configured = environment.getProperty("earthtrip.realtime.allowed-origins", "");
-        String[] origins = Arrays.stream(configured.split(","))
-            .map(String::strip)
-            .filter(origin -> !origin.isEmpty())
-            .toArray(String[]::new);
+        String[] origins =
+                Arrays.stream(configured.split(","))
+                        .map(String::strip)
+                        .filter(origin -> !origin.isEmpty())
+                        .toArray(String[]::new);
         if (origins.length > 0) {
             registration.setAllowedOrigins(origins);
         }

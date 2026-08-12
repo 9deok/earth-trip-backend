@@ -14,28 +14,39 @@ import java.util.UUID;
 @Table(name = "dead_letter_events")
 class DeadLetterJpaEntity {
 
-    @Id @Column(name = "id", nullable = false, length = 36)
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
+
     @Column(name = "job_id", nullable = false, length = 36)
     private String jobId;
+
     @Column(name = "event_type", nullable = false, length = 50)
     private String eventType;
+
     @Column(name = "payload", nullable = false, columnDefinition = "JSON")
     private String payload;
+
     @Column(name = "error_code", nullable = false, length = 80)
     private String errorCode;
+
     @Column(name = "error_message", nullable = false, length = 500)
     private String errorMessage;
+
     @Column(name = "status", nullable = false, length = 30)
     private String status;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
+
     @Column(name = "replayed_at")
     private Instant replayedAt;
-    @Version @Column(name = "version", nullable = false)
+
+    @Version
+    @Column(name = "version", nullable = false)
     private long version;
 
-    protected DeadLetterJpaEntity() { }
+    protected DeadLetterJpaEntity() {}
 
     DeadLetterJpaEntity(OperationalStorePort.DeadLetterRecord record, String payload) {
         id = record.id().toString();
@@ -67,16 +78,15 @@ class DeadLetterJpaEntity {
 
     OperationalStorePort.DeadLetterRecord record(Map<String, Object> payloadValue) {
         return new OperationalStorePort.DeadLetterRecord(
-            UUID.fromString(id),
-            UUID.fromString(jobId),
-            eventType,
-            payloadValue,
-            errorCode,
-            errorMessage,
-            status,
-            createdAt,
-            replayedAt,
-            version
-        );
+                UUID.fromString(id),
+                UUID.fromString(jobId),
+                eventType,
+                payloadValue,
+                errorCode,
+                errorMessage,
+                status,
+                createdAt,
+                replayedAt,
+                version);
     }
 }

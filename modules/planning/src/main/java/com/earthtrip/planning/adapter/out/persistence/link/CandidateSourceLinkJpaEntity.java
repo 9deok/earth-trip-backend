@@ -12,8 +12,7 @@ import java.util.UUID;
 @Table(name = "candidate_source_links")
 class CandidateSourceLinkJpaEntity {
 
-    @EmbeddedId
-    private CandidateSourceLinkId id;
+    @EmbeddedId private CandidateSourceLinkId id;
 
     @Column(name = "trip_id", nullable = false, length = 36)
     private String tripId;
@@ -24,12 +23,12 @@ class CandidateSourceLinkJpaEntity {
     @Column(name = "linked_at", nullable = false)
     private Instant linkedAt;
 
-    protected CandidateSourceLinkJpaEntity() { }
+    protected CandidateSourceLinkJpaEntity() {}
 
     CandidateSourceLinkJpaEntity(CandidateSourceLinkStorePort.LinkRecord record) {
-        id = new CandidateSourceLinkId(
-            record.candidateId().toString(), record.sourceId().toString()
-        );
+        id =
+                new CandidateSourceLinkId(
+                        record.candidateId().toString(), record.sourceId().toString());
         tripId = record.tripId().toString();
         linkedBy = record.linkedBy().toString();
         linkedAt = record.linkedAt();
@@ -37,8 +36,10 @@ class CandidateSourceLinkJpaEntity {
 
     CandidateSourceLinkStorePort.LinkRecord toRecord() {
         return new CandidateSourceLinkStorePort.LinkRecord(
-            UUID.fromString(tripId), UUID.fromString(id.candidateId()),
-            UUID.fromString(id.sourceId()), UUID.fromString(linkedBy), linkedAt
-        );
+                UUID.fromString(tripId),
+                UUID.fromString(id.candidateId()),
+                UUID.fromString(id.sourceId()),
+                UUID.fromString(linkedBy),
+                linkedAt);
     }
 }

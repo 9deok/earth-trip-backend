@@ -6,12 +6,7 @@ public interface PushDeliveryPort {
 
     DeliveryResult send(String rawDeviceToken, PushMessage message);
 
-    record PushMessage(
-        String title,
-        String body,
-        String deepLink,
-        Map<String, String> data
-    ) { }
+    record PushMessage(String title, String body, String deepLink, Map<String, String> data) {}
 
     record DeliveryResult(String status, String providerMessageId, String errorCode) {
         public boolean invalidToken() {

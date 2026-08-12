@@ -19,43 +19,33 @@ public interface TripTemplateUseCase {
     void delete(UUID templateId, UUID actorUserId, long baseVersion);
 
     TripManagementUseCase.TripResult createDraft(
-        UUID templateId,
-        UUID actorUserId,
-        DraftCommand command
-    );
+            UUID templateId, UUID actorUserId, DraftCommand command);
 
     record CreateCommand(
-        UUID requestId,
-        UUID sourceTripId,
-        String name,
-        String description,
-        Set<String> includeScopes
-    ) { }
+            UUID requestId,
+            UUID sourceTripId,
+            String name,
+            String description,
+            Set<String> includeScopes) {}
 
     record UpdateCommand(
-        String name,
-        String description,
-        Set<String> includeScopes,
-        long baseVersion
-    ) { }
+            String name, String description, Set<String> includeScopes, long baseVersion) {}
 
     record DraftCommand(
-        UUID requestId,
-        String title,
-        LocalDate startDate,
-        String timeZone,
-        String defaultCurrency
-    ) { }
+            UUID requestId,
+            String title,
+            LocalDate startDate,
+            String timeZone,
+            String defaultCurrency) {}
 
     record TemplateResult(
-        UUID templateId,
-        UUID sourceTripId,
-        String name,
-        String description,
-        Set<String> includeScopes,
-        int segmentCount,
-        Instant createdAt,
-        Instant updatedAt,
-        long version
-    ) { }
+            UUID templateId,
+            UUID sourceTripId,
+            String name,
+            String description,
+            Set<String> includeScopes,
+            int segmentCount,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {}
 }

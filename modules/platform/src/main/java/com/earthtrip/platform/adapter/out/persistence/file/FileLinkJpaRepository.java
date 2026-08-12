@@ -10,8 +10,5 @@ interface FileLinkJpaRepository extends JpaRepository<FileLinkJpaEntity, String>
     List<FileLinkJpaEntity> findAllByTripIdOrderByLinkedAtAsc(String tripId);
 
     List<FileLinkJpaEntity> findAllByTripIdAndResourceTypeAndResourceIdOrderByLinkedAtAsc(
-        String tripId,
-        String resourceType,
-        String resourceId
-    );
+            String tripId, String resourceType, String resourceId);
 }

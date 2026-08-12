@@ -30,30 +30,24 @@ class ResearchSourceBatchesController {
 
     @PostMapping
     PlanningCollectionUseCase.BatchResult create(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ResearchSourceBatchRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody ResearchSourceBatchRequest request) {
         return useCase.createResearchSourceBatch(
-            tripId,
-            actor.requireUserId(),
-            request.items().stream().map(ResearchSourceBatchItem::command).toList()
-        );
+                tripId,
+                actor.requireUserId(),
+                request.items().stream().map(ResearchSourceBatchItem::command).toList());
     }
 }
 
 record ResearchSourceBatchRequest(
-    @NotEmpty @Size(max = 100) List<@Valid ResearchSourceBatchItem> items
-) { }
+        @NotEmpty @Size(max = 100) List<@Valid ResearchSourceBatchItem> items) {}
 
 record ResearchSourceBatchItem(
-    @NotNull UUID requestId,
-    UUID categoryId,
-    @NotNull Map<String, Object> payload,
-    @PositiveOrZero Integer sortOrder
-) {
+        @NotNull UUID requestId,
+        UUID categoryId,
+        @NotNull Map<String, Object> payload,
+        @PositiveOrZero Integer sortOrder) {
     PlanningCollectionUseCase.ResearchSourceItem command() {
         return new PlanningCollectionUseCase.ResearchSourceItem(
-            requestId, categoryId, payload, sortOrder
-        );
+                requestId, categoryId, payload, sortOrder);
     }
 }

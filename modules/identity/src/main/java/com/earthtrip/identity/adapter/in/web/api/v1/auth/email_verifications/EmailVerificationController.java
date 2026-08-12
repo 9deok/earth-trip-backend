@@ -29,13 +29,10 @@ class EmailVerificationController {
     EmailVerificationResponse request(@Valid @RequestBody EmailVerificationRequest request) {
         EmailVerificationUseCase.RequestResult result = useCase.request(request.email());
         return new EmailVerificationResponse(
-            result.requestId(),
-            result.expiresAt(),
-            result.deliveryStatus()
-        );
+                result.requestId(), result.expiresAt(), result.deliveryStatus());
     }
 }
 
-record EmailVerificationRequest(@NotBlank @Email @Size(max = 320) String email) { }
+record EmailVerificationRequest(@NotBlank @Email @Size(max = 320) String email) {}
 
-record EmailVerificationResponse(UUID requestId, Instant expiresAt, String deliveryStatus) { }
+record EmailVerificationResponse(UUID requestId, Instant expiresAt, String deliveryStatus) {}

@@ -21,25 +21,25 @@ public interface PersonalSupportStorePort {
 
     Optional<SupportRecord> support(UUID supportRequestId);
 
+    List<SupportRecord> supports(UUID userId);
+
     SupportRecord saveSupport(SupportRecord record);
 
     record FavoriteRecord(
-        UUID id,
-        UUID userId,
-        UUID companionId,
-        String displayName,
-        String email,
-        Instant createdAt
-    ) { }
+            UUID id,
+            UUID userId,
+            UUID companionId,
+            String displayName,
+            String email,
+            Instant createdAt) {}
 
     record SupportRecord(
-        UUID id,
-        UUID userId,
-        String category,
-        String description,
-        String traceId,
-        String diagnosticsJson,
-        String status,
-        Instant createdAt
-    ) { }
+            UUID id,
+            UUID userId,
+            String category,
+            String description,
+            String traceId,
+            String diagnosticsJson,
+            String status,
+            Instant createdAt) {}
 }

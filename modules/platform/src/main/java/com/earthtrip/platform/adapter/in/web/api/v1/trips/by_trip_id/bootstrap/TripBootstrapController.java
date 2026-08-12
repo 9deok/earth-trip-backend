@@ -22,11 +22,9 @@ class TripBootstrapController {
 
     @GetMapping
     TripBootstrapResponse get(@PathVariable UUID tripId) {
-        TripBootstrapUseCase.BootstrapResult result = useCase.get(
-            tripId, actor.requireUserId()
-        );
+        TripBootstrapUseCase.BootstrapResult result = useCase.get(tripId, actor.requireUserId());
         return new TripBootstrapResponse(result);
     }
 }
 
-record TripBootstrapResponse(TripBootstrapUseCase.BootstrapResult data) { }
+record TripBootstrapResponse(TripBootstrapUseCase.BootstrapResult data) {}

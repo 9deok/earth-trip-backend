@@ -30,23 +30,22 @@ class ExpenseDuplicateQueriesController {
 
     @PostMapping
     List<ExpenseDuplicateUseCase.DuplicateResult> post(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ExpenseDuplicateQueryRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody ExpenseDuplicateQueryRequest request) {
         return useCase.query(
-            tripId, actor.requireUserId(),
-            new ExpenseDuplicateUseCase.DuplicateQuery(
-                request.sourceId(), request.title(), request.amountMinor(),
-                request.currency(), request.occurredAt()
-            )
-        );
+                tripId,
+                actor.requireUserId(),
+                new ExpenseDuplicateUseCase.DuplicateQuery(
+                        request.sourceId(),
+                        request.title(),
+                        request.amountMinor(),
+                        request.currency(),
+                        request.occurredAt()));
     }
 }
 
 record ExpenseDuplicateQueryRequest(
-    UUID sourceId,
-    @NotBlank @Size(max = 200) String title,
-    @Positive long amountMinor,
-    @NotBlank String currency,
-    @NotNull Instant occurredAt
-) { }
+        UUID sourceId,
+        @NotBlank @Size(max = 200) String title,
+        @Positive long amountMinor,
+        @NotBlank String currency,
+        @NotNull Instant occurredAt) {}

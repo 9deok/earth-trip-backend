@@ -26,10 +26,7 @@ class StatementImportConfirmationsController {
     private final StatementImportUseCase useCase;
     private final CurrentActor actor;
 
-    StatementImportConfirmationsController(
-        StatementImportUseCase useCase,
-        CurrentActor actor
-    ) {
+    StatementImportConfirmationsController(StatementImportUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
@@ -37,33 +34,34 @@ class StatementImportConfirmationsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     StatementImportUseCase.ConfirmationResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID importId,
-        @Valid @RequestBody StatementImportConfirmationRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID importId,
+            @Valid @RequestBody StatementImportConfirmationRequest request) {
         return useCase.confirm(
-            tripId, importId, actor.requireUserId(),
-            request.items().stream().map(StatementConfirmationItemRequest::toItem).toList()
-        );
+                tripId,
+                importId,
+                actor.requireUserId(),
+                request.items().stream().map(StatementConfirmationItemRequest::toItem).toList());
     }
 }
 
 record StatementImportConfirmationRequest(
-    @NotNull @Size(min = 1, max = 500) @Valid List<StatementConfirmationItemRequest> items
-) { }
+        @NotNull @Size(min = 1, max = 500) @Valid List<StatementConfirmationItemRequest> items) {}
 
 record StatementConfirmationItemRequest(
-    @NotNull UUID candidateId,
-    @NotNull UUID expenseRequestId,
-    @NotBlank String categoryCode,
-    @NotNull Map<UUID, @Positive Long> participantShares,
-    String visibility,
-    @PositiveOrZero long baseVersion
-) {
+        @NotNull UUID candidateId,
+        @NotNull UUID expenseRequestId,
+        @NotBlank String categoryCode,
+        @NotNull Map<UUID, @Positive Long> participantShares,
+        String visibility,
+        @PositiveOrZero long baseVersion) {
     StatementImportUseCase.ConfirmationItem toItem() {
         return new StatementImportUseCase.ConfirmationItem(
-            candidateId, expenseRequestId, categoryCode, participantShares,
-            visibility, baseVersion
-        );
+                candidateId,
+                expenseRequestId,
+                categoryCode,
+                participantShares,
+                visibility,
+                baseVersion);
     }
 }

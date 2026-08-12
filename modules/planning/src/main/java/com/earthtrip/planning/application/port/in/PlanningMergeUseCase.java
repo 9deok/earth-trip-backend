@@ -16,21 +16,19 @@ public interface PlanningMergeUseCase {
     MergeResult revertPlaceCandidateMerge(UUID tripId, UUID mergeId, UUID actorUserId);
 
     record MergeCommand(
-        UUID requestId,
-        UUID primaryId,
-        List<UUID> duplicateIds,
-        Map<String, Object> mergedPayload,
-        long primaryBaseVersion,
-        Map<UUID, Long> duplicateBaseVersions
-    ) { }
+            UUID requestId,
+            UUID primaryId,
+            List<UUID> duplicateIds,
+            Map<String, Object> mergedPayload,
+            long primaryBaseVersion,
+            Map<UUID, Long> duplicateBaseVersions) {}
 
     record MergeResult(
-        UUID mergeId,
-        String resourceType,
-        String status,
-        PlanningResourceUseCase.ResourceResult primary,
-        List<PlanningResourceUseCase.ResourceResult> duplicates,
-        Instant mergedAt,
-        Instant revertedAt
-    ) { }
+            UUID mergeId,
+            String resourceType,
+            String status,
+            PlanningResourceUseCase.ResourceResult primary,
+            List<PlanningResourceUseCase.ResourceResult> duplicates,
+            Instant mergedAt,
+            Instant revertedAt) {}
 }

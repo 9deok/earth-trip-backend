@@ -35,16 +35,10 @@ class ExpenseReviewService implements ExpenseReviewUseCase {
 
     @Override
     public ReviewDayResult complete(
-        UUID tripId,
-        LocalDate localDate,
-        UUID actorUserId,
-        String note,
-        long baseVersion
-    ) {
+            UUID tripId, LocalDate localDate, UUID actorUserId, String note, long baseVersion) {
         access.requireEditor(tripId, actorUserId);
         validateDate(tripId, localDate);
-        ExpenseReviewStorePort.ReviewRecord current = store.find(tripId, localDate)
-            .orElse(null);
+        ExpenseReviewStorePort.ReviewRecord current = store.find(tripId, localDate).orElse(null);
         if (current != null && current.version() != baseVersion) {
             throw versionConflict(current.version());
         }
@@ -54,25 +48,23 @@ class ExpenseReviewService implements ExpenseReviewUseCase {
         String normalizedNote = note == null || note.isBlank() ? null : note.strip();
         if (normalizedNote != null && normalizedNote.length() > 1_000) {
             throw EarthTripException.badRequest(
-                "EXPENSE_REVIEW_NOTE_TOO_LONG", "검토 메모는 1000자 이하여야 합니다."
-            );
+                    "EXPENSE_REVIEW_NOTE_TOO_LONG", "검토 메모는 1000자 이하여야 합니다.");
         }
-        return result(store.save(new ExpenseReviewStorePort.ReviewRecord(
-            tripId, localDate, actorUserId, normalizedNote, clock.instant(),
-            current == null ? 0 : current.version()
-        )));
+        return result(
+                store.save(
+                        new ExpenseReviewStorePort.ReviewRecord(
+                                tripId,
+                                localDate,
+                                actorUserId,
+                                normalizedNote,
+                                clock.instant(),
+                                current == null ? 0 : current.version())));
     }
 
     @Override
-    public void reopen(
-        UUID tripId,
-        LocalDate localDate,
-        UUID actorUserId,
-        long baseVersion
-    ) {
+    public void reopen(UUID tripId, LocalDate localDate, UUID actorUserId, long baseVersion) {
         access.requireEditor(tripId, actorUserId);
-        ExpenseReviewStorePort.ReviewRecord current = store.find(tripId, localDate)
-            .orElse(null);
+        ExpenseReviewStorePort.ReviewRecord current = store.find(tripId, localDate).orElse(null);
         if (current == null) {
             return;
         }
@@ -84,30 +76,31 @@ class ExpenseReviewService implements ExpenseReviewUseCase {
 
     private void validateDate(UUID tripId, LocalDate localDate) {
         if (localDate == null) {
-            throw EarthTripException.badRequest(
-                "REVIEW_DATE_REQUIRED", "검토할 날짜가 필요합니다."
-            );
+            throw EarthTripException.badRequest("REVIEW_DATE_REQUIRED", "검토할 날짜가 필요합니다.");
         }
         TripAccess.PublicTripResult trip = access.publicInfo(tripId);
-        if (trip.startDate() != null && trip.endDate() != null
-            && (localDate.isBefore(trip.startDate()) || localDate.isAfter(trip.endDate()))) {
+        if (trip.startDate() != null
+                && trip.endDate() != null
+                && (localDate.isBefore(trip.startDate()) || localDate.isAfter(trip.endDate()))) {
             throw EarthTripException.badRequest(
-                "REVIEW_DATE_OUTSIDE_TRIP", "여행 날짜 안에서만 지출 검토를 완료할 수 있습니다."
-            );
+                    "REVIEW_DATE_OUTSIDE_TRIP", "여행 날짜 안에서만 지출 검토를 완료할 수 있습니다.");
         }
     }
 
     private static ReviewDayResult result(ExpenseReviewStorePort.ReviewRecord record) {
         return new ReviewDayResult(
-            record.localDate(), record.completedBy(), record.note(),
-            record.completedAt(), record.version()
-        );
+                record.localDate(),
+                record.completedBy(),
+                record.note(),
+                record.completedAt(),
+                record.version());
     }
 
     private static EarthTripException versionConflict(long serverVersion) {
         return new EarthTripException(
-            "VERSION_CONFLICT", 409, "다른 지출 검토 변경이 먼저 저장되었습니다.",
-            Map.of("serverVersion", serverVersion)
-        );
+                "VERSION_CONFLICT",
+                409,
+                "다른 지출 검토 변경이 먼저 저장되었습니다.",
+                Map.of("serverVersion", serverVersion));
     }
 }

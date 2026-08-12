@@ -12,20 +12,26 @@ import java.util.UUID;
 @Table(name = "favorite_companions")
 class FavoriteCompanionJpaEntity {
 
-    @Id @Column(name = "id", nullable = false, length = 36)
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
     private String id;
+
     @Column(name = "user_id", nullable = false, length = 36)
     private String userId;
+
     @Column(name = "companion_id", length = 36)
     private String companionId;
+
     @Column(name = "display_name", nullable = false, length = 80)
     private String displayName;
+
     @Column(name = "email", length = 320)
     private String email;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected FavoriteCompanionJpaEntity() { }
+    protected FavoriteCompanionJpaEntity() {}
 
     FavoriteCompanionJpaEntity(PersonalSupportStorePort.FavoriteRecord record) {
         id = record.id().toString();
@@ -38,9 +44,11 @@ class FavoriteCompanionJpaEntity {
 
     PersonalSupportStorePort.FavoriteRecord toRecord() {
         return new PersonalSupportStorePort.FavoriteRecord(
-            UUID.fromString(id), UUID.fromString(userId),
-            companionId == null ? null : UUID.fromString(companionId),
-            displayName, email, createdAt
-        );
+                UUID.fromString(id),
+                UUID.fromString(userId),
+                companionId == null ? null : UUID.fromString(companionId),
+                displayName,
+                email,
+                createdAt);
     }
 }

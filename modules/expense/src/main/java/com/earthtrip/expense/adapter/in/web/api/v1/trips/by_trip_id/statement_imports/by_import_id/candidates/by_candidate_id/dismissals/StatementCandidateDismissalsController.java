@@ -16,17 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(
-    "/api/v1/trips/{tripId}/statement-imports/{importId}/candidates/{candidateId}/dismissals"
-)
+        "/api/v1/trips/{tripId}/statement-imports/{importId}/candidates/{candidateId}/dismissals")
 class StatementCandidateDismissalsController {
 
     private final StatementImportUseCase useCase;
     private final CurrentActor actor;
 
-    StatementCandidateDismissalsController(
-        StatementImportUseCase useCase,
-        CurrentActor actor
-    ) {
+    StatementCandidateDismissalsController(StatementImportUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
@@ -34,19 +30,19 @@ class StatementCandidateDismissalsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     StatementImportUseCase.CandidateResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID importId,
-        @PathVariable UUID candidateId,
-        @Valid @RequestBody StatementCandidateDismissalRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID importId,
+            @PathVariable UUID candidateId,
+            @Valid @RequestBody StatementCandidateDismissalRequest request) {
         return useCase.dismiss(
-            tripId, importId, candidateId, actor.requireUserId(),
-            request.reason(), request.baseVersion()
-        );
+                tripId,
+                importId,
+                candidateId,
+                actor.requireUserId(),
+                request.reason(),
+                request.baseVersion());
     }
 }
 
 record StatementCandidateDismissalRequest(
-    @Size(max = 500) String reason,
-    @PositiveOrZero long baseVersion
-) { }
+        @Size(max = 500) String reason, @PositiveOrZero long baseVersion) {}

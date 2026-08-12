@@ -22,9 +22,7 @@ class ConflictByIdController {
 
     @GetMapping
     SyncConflictUseCase.ConflictResult get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID conflictId
-    ) {
+            @PathVariable UUID tripId, @PathVariable UUID conflictId) {
         return useCase.get(tripId, conflictId, actor.requireUserId());
     }
 }

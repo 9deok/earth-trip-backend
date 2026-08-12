@@ -33,29 +33,24 @@ class RoutePreferencesController {
 
     @PatchMapping
     RoutePreferenceUseCase.PreferenceResult patch(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody RoutePreferenceRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody RoutePreferenceRequest request) {
         return useCase.update(
-            tripId,
-            actor.requireUserId(),
-            new RoutePreferenceUseCase.PreferenceCommand(
-                request.allowedModes(), request.maximumWalkingMinutes(),
-                request.defaultBufferMinutes(), request.startAtAccommodation(),
-                request.endAtAccommodation(), request.avoidTolls(),
-                request.accessibilityRequired(), request.baseVersion()
-            )
-        );
+                tripId,
+                actor.requireUserId(),
+                new RoutePreferenceUseCase.PreferenceCommand(
+                        request.allowedModes(), request.maximumWalkingMinutes(),
+                        request.defaultBufferMinutes(), request.startAtAccommodation(),
+                        request.endAtAccommodation(), request.avoidTolls(),
+                        request.accessibilityRequired(), request.baseVersion()));
     }
 }
 
 record RoutePreferenceRequest(
-    @Size(min = 1, max = 4) List<String> allowedModes,
-    @PositiveOrZero Integer maximumWalkingMinutes,
-    @PositiveOrZero Integer defaultBufferMinutes,
-    Boolean startAtAccommodation,
-    Boolean endAtAccommodation,
-    Boolean avoidTolls,
-    Boolean accessibilityRequired,
-    @PositiveOrZero long baseVersion
-) { }
+        @Size(min = 1, max = 4) List<String> allowedModes,
+        @PositiveOrZero Integer maximumWalkingMinutes,
+        @PositiveOrZero Integer defaultBufferMinutes,
+        Boolean startAtAccommodation,
+        Boolean endAtAccommodation,
+        Boolean avoidTolls,
+        Boolean accessibilityRequired,
+        @PositiveOrZero long baseVersion) {}

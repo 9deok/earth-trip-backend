@@ -23,24 +23,27 @@ class PolicyConsentsController {
     @GetMapping
     List<PolicyConsentResponse> get() {
         return useCase.consents(currentUser.requireUserId()).stream()
-            .map(PolicyConsentsController::response)
-            .toList();
+                .map(PolicyConsentsController::response)
+                .toList();
     }
 
     private static PolicyConsentResponse response(PolicyUseCase.ConsentResult result) {
         return new PolicyConsentResponse(
-            result.policyId(), result.policyType(), result.policyVersion(), result.required(),
-            result.decision(), result.decidedAt(), result.source()
-        );
+                result.policyId(),
+                result.policyType(),
+                result.policyVersion(),
+                result.required(),
+                result.decision(),
+                result.decidedAt(),
+                result.source());
     }
 }
 
 record PolicyConsentResponse(
-    String policyId,
-    String policyType,
-    String policyVersion,
-    boolean required,
-    String decision,
-    Instant decidedAt,
-    String source
-) { }
+        String policyId,
+        String policyType,
+        String policyVersion,
+        boolean required,
+        String decision,
+        Instant decidedAt,
+        String source) {}

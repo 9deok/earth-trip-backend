@@ -2,8 +2,8 @@ package com.earthtrip.identity.application.port.out;
 
 import com.earthtrip.identity.domain.UserId;
 import java.time.Instant;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface AccountDeletionStorePort {
 
@@ -13,5 +13,5 @@ public interface AccountDeletionStorePort {
 
     void cancel(UserId userId, Instant cancelledAt);
 
-    record DeletionRecord(UUID id, Instant requestedAt, Instant scheduledAt, String status) { }
+    record DeletionRecord(UUID id, Instant requestedAt, Instant scheduledAt, String status) {}
 }

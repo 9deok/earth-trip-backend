@@ -13,23 +13,18 @@ public interface PolicyStorePort {
 
     List<ConsentRecord> findConsents(UUID userId);
 
-    ConsentRecord saveConsent(UUID userId, PolicyRecord policy, String decision, String source, Instant now);
+    ConsentRecord saveConsent(
+            UUID userId, PolicyRecord policy, String decision, String source, Instant now);
 
     record PolicyRecord(
-        String id,
-        String type,
-        String version,
-        boolean required,
-        String title,
-        String summary,
-        String contentUrl,
-        Instant publishedAt
-    ) { }
+            String id,
+            String type,
+            String version,
+            boolean required,
+            String title,
+            String summary,
+            String contentUrl,
+            Instant publishedAt) {}
 
-    record ConsentRecord(
-        PolicyRecord policy,
-        String decision,
-        Instant decidedAt,
-        String source
-    ) { }
+    record ConsentRecord(PolicyRecord policy, String decision, Instant decidedAt, String source) {}
 }

@@ -32,7 +32,7 @@ class DeletionRequestController {
     @PostMapping
     ResponseEntity<DeletionRequestResponse> request() {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(response(useCase.requestDeletion(currentUser.requireUserId())));
+                .body(response(useCase.requestDeletion(currentUser.requireUserId())));
     }
 
     @DeleteMapping
@@ -43,17 +43,12 @@ class DeletionRequestController {
 
     private static DeletionRequestResponse response(CurrentAccountUseCase.DeletionResult result) {
         return new DeletionRequestResponse(
-            result.requestId(),
-            result.requestedAt(),
-            result.scheduledDeletionAt(),
-            result.status()
-        );
+                result.requestId(),
+                result.requestedAt(),
+                result.scheduledDeletionAt(),
+                result.status());
     }
 }
 
 record DeletionRequestResponse(
-    UUID requestId,
-    Instant requestedAt,
-    Instant scheduledDeletionAt,
-    String status
-) { }
+        UUID requestId, Instant requestedAt, Instant scheduledDeletionAt, String status) {}

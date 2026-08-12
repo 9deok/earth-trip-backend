@@ -41,36 +41,33 @@ class EcbExchangeRateProviderAdapter implements ExchangeRateProviderPort {
 
     @Override
     public ProviderProxyUseCase.ExchangeRateResult rates(
-        String baseCurrency,
-        List<String> quoteCurrencies,
-        Instant observedAt
-    ) {
+            String baseCurrency, List<String> quoteCurrencies, Instant observedAt) {
         Set<String> requested = new LinkedHashSet<>();
         if (!EUR.equals(baseCurrency)) {
             requested.add(baseCurrency);
         }
         quoteCurrencies.stream().filter(currency -> !EUR.equals(currency)).forEach(requested::add);
         Map<String, Observation> euroRates = fetch(requested, observedAt);
-        BigDecimal euroToBase = EUR.equals(baseCurrency)
-            ? BigDecimal.ONE
-            : requireRate(euroRates, baseCurrency).value();
+        BigDecimal euroToBase =
+                EUR.equals(baseCurrency)
+                        ? BigDecimal.ONE
+                        : requireRate(euroRates, baseCurrency).value();
         Map<String, BigDecimal> result = new LinkedHashMap<>();
         for (String quote : quoteCurrencies) {
-            BigDecimal euroToQuote = EUR.equals(quote)
-                ? BigDecimal.ONE
-                : requireRate(euroRates, quote).value();
+            BigDecimal euroToQuote =
+                    EUR.equals(quote) ? BigDecimal.ONE : requireRate(euroRates, quote).value();
             result.put(quote, euroToQuote.divide(euroToBase, RATE_CONTEXT));
         }
-        LocalDate latestDate = euroRates.values().stream()
-            .map(Observation::date)
-            .max(Comparator.naturalOrder())
-            .orElseGet(() -> LocalDate.now(ZoneOffset.UTC));
+        LocalDate latestDate =
+                euroRates.values().stream()
+                        .map(Observation::date)
+                        .max(Comparator.naturalOrder())
+                        .orElseGet(() -> LocalDate.now(ZoneOffset.UTC));
         return new ProviderProxyUseCase.ExchangeRateResult(
-            baseCurrency,
-            Map.copyOf(result),
-            "ECB_REFERENCE_RATE",
-            latestDate.atStartOfDay().toInstant(ZoneOffset.UTC)
-        );
+                baseCurrency,
+                Map.copyOf(result),
+                "ECB_REFERENCE_RATE",
+                latestDate.atStartOfDay().toInstant(ZoneOffset.UTC));
     }
 
     private Map<String, Observation> fetch(Set<String> currencies, Instant requestedAt) {
@@ -78,9 +75,10 @@ class EcbExchangeRateProviderAdapter implements ExchangeRateProviderPort {
             return Map.of();
         }
         String currencyPath = String.join("+", currencies);
-        StringBuilder url = new StringBuilder(
-            "https://data-api.ecb.europa.eu/service/data/EXR/D."
-        ).append(currencyPath).append(".EUR.SP00.A?format=csvdata&detail=dataonly");
+        StringBuilder url =
+                new StringBuilder("https://data-api.ecb.europa.eu/service/data/EXR/D.")
+                        .append(currencyPath)
+                        .append(".EUR.SP00.A?format=csvdata&detail=dataonly");
         if (requestedAt == null) {
             url.append("&lastNObservations=1");
         } else {
@@ -90,16 +88,16 @@ class EcbExchangeRateProviderAdapter implements ExchangeRateProviderPort {
         }
         String csv;
         try {
-            csv = restClient.get()
-                .uri(URI.create(url.toString()))
-                .accept(MediaType.parseMediaType("text/csv"))
-                .retrieve()
-                .body(String.class);
+            csv =
+                    restClient
+                            .get()
+                            .uri(URI.create(url.toString()))
+                            .accept(MediaType.parseMediaType("text/csv"))
+                            .retrieve()
+                            .body(String.class);
         } catch (RestClientException exception) {
             throw EarthTripException.unavailable(
-                "EXCHANGE_RATE_PROVIDER_UNAVAILABLE",
-                "ECB 환율 제공자에 연결할 수 없습니다."
-            );
+                    "EXCHANGE_RATE_PROVIDER_UNAVAILABLE", "ECB 환율 제공자에 연결할 수 없습니다.");
         }
         return parse(csv);
     }
@@ -127,13 +125,15 @@ class EcbExchangeRateProviderAdapter implements ExchangeRateProviderPort {
             }
             try {
                 String currency = columns.get(currencyIndex);
-                Observation candidate = new Observation(
-                    LocalDate.parse(columns.get(dateIndex)),
-                    new BigDecimal(columns.get(valueIndex))
-                );
-                observations.merge(currency, candidate, (oldValue, newValue) ->
-                    newValue.date().isAfter(oldValue.date()) ? newValue : oldValue
-                );
+                Observation candidate =
+                        new Observation(
+                                LocalDate.parse(columns.get(dateIndex)),
+                                new BigDecimal(columns.get(valueIndex)));
+                observations.merge(
+                        currency,
+                        candidate,
+                        (oldValue, newValue) ->
+                                newValue.date().isAfter(oldValue.date()) ? newValue : oldValue);
             } catch (java.time.DateTimeException | NumberFormatException ignored) {
                 // 손상된 행은 제외하고 필요한 통화가 남지 않으면 아래에서 fail closed 한다.
             }
@@ -169,22 +169,18 @@ class EcbExchangeRateProviderAdapter implements ExchangeRateProviderPort {
         Observation result = rates.get(currency);
         if (result == null) {
             throw new EarthTripException(
-                "EXCHANGE_RATE_NOT_AVAILABLE",
-                502,
-                "ECB에서 요청한 통화의 기준 환율을 제공하지 않습니다.",
-                Map.of("currency", currency)
-            );
+                    "EXCHANGE_RATE_NOT_AVAILABLE",
+                    502,
+                    "ECB에서 요청한 통화의 기준 환율을 제공하지 않습니다.",
+                    Map.of("currency", currency));
         }
         return result;
     }
 
     private static EarthTripException invalidResponse() {
         return new EarthTripException(
-            "INVALID_EXCHANGE_RATE_PROVIDER_RESPONSE",
-            502,
-            "ECB 환율 응답을 해석할 수 없습니다."
-        );
+                "INVALID_EXCHANGE_RATE_PROVIDER_RESPONSE", 502, "ECB 환율 응답을 해석할 수 없습니다.");
     }
 
-    private record Observation(LocalDate date, BigDecimal value) { }
+    private record Observation(LocalDate date, BigDecimal value) {}
 }

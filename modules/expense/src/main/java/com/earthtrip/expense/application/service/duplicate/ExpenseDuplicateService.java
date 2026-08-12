@@ -25,26 +25,19 @@ class ExpenseDuplicateService implements ExpenseDuplicateUseCase {
     }
 
     @Override
-    public List<DuplicateResult> query(
-        UUID tripId,
-        UUID actorUserId,
-        DuplicateQuery query
-    ) {
+    public List<DuplicateResult> query(UUID tripId, UUID actorUserId, DuplicateQuery query) {
         validate(query);
         String currency = currency(query.currency());
         return expenses.list(tripId, actorUserId).stream()
-            .map(expense -> score(expense, query, currency))
-            .filter(result -> result.score() >= 0.5)
-            .sorted(Comparator.comparingDouble(DuplicateResult::score).reversed())
-            .limit(20)
-            .toList();
+                .map(expense -> score(expense, query, currency))
+                .filter(result -> result.score() >= 0.5)
+                .sorted(Comparator.comparingDouble(DuplicateResult::score).reversed())
+                .limit(20)
+                .toList();
     }
 
     private static DuplicateResult score(
-        ExpenseUseCase.ExpenseResult expense,
-        DuplicateQuery query,
-        String currency
-    ) {
+            ExpenseUseCase.ExpenseResult expense, DuplicateQuery query, String currency) {
         double score = 0;
         List<String> reasons = new ArrayList<>();
         if (expense.amountMinor() == query.amountMinor()) {
@@ -55,9 +48,8 @@ class ExpenseDuplicateService implements ExpenseDuplicateUseCase {
             score += 0.15;
             reasons.add("SAME_CURRENCY");
         }
-        long minutes = Math.abs(Duration.between(
-            expense.occurredAt(), query.occurredAt()
-        ).toMinutes());
+        long minutes =
+                Math.abs(Duration.between(expense.occurredAt(), query.occurredAt()).toMinutes());
         if (minutes <= 5) {
             score += 0.2;
             reasons.add("NEAR_SAME_TIME");
@@ -75,17 +67,18 @@ class ExpenseDuplicateService implements ExpenseDuplicateUseCase {
             reasons.add("SIMILAR_TITLE");
         }
         return new DuplicateResult(
-            expense.expenseId(), Math.min(1, score), List.copyOf(reasons), expense
-        );
+                expense.expenseId(), Math.min(1, score), List.copyOf(reasons), expense);
     }
 
     private static void validate(DuplicateQuery query) {
-        if (query == null || query.title() == null || query.title().isBlank()
-            || query.title().strip().length() > 200 || query.amountMinor() <= 0
-            || query.occurredAt() == null) {
+        if (query == null
+                || query.title() == null
+                || query.title().isBlank()
+                || query.title().strip().length() > 200
+                || query.amountMinor() <= 0
+                || query.occurredAt() == null) {
             throw EarthTripException.badRequest(
-                "INVALID_EXPENSE_DUPLICATE_QUERY", "중복을 찾을 지출 정보를 확인해 주세요."
-            );
+                    "INVALID_EXPENSE_DUPLICATE_QUERY", "중복을 찾을 지출 정보를 확인해 주세요.");
         }
     }
 
@@ -93,15 +86,13 @@ class ExpenseDuplicateService implements ExpenseDuplicateUseCase {
         try {
             return Currency.getInstance(value.strip().toUpperCase(Locale.ROOT)).getCurrencyCode();
         } catch (RuntimeException exception) {
-            throw EarthTripException.badRequest(
-                "INVALID_CURRENCY", "유효한 ISO 4217 통화 코드가 아닙니다."
-            );
+            throw EarthTripException.badRequest("INVALID_CURRENCY", "유효한 ISO 4217 통화 코드가 아닙니다.");
         }
     }
 
     private static String normalize(String value) {
         return Normalizer.normalize(value, Normalizer.Form.NFKC)
-            .toLowerCase(Locale.ROOT)
-            .replaceAll("[^\\p{L}\\p{N}]", "");
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^\\p{L}\\p{N}]", "");
     }
 }

@@ -28,14 +28,11 @@ class StructureChangeSetRevertsController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     TripStructureUseCase.ChangeSetResult post(
-        @PathVariable UUID tripId,
-        @PathVariable UUID changeSetId,
-        @Valid @RequestBody StructureChangeSetRevertRequest request
-    ) {
-        return useCase.revert(
-            tripId, changeSetId, actor.requireUserId(), request.baseVersion()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID changeSetId,
+            @Valid @RequestBody StructureChangeSetRevertRequest request) {
+        return useCase.revert(tripId, changeSetId, actor.requireUserId(), request.baseVersion());
     }
 }
 
-record StructureChangeSetRevertRequest(@PositiveOrZero long baseVersion) { }
+record StructureChangeSetRevertRequest(@PositiveOrZero long baseVersion) {}

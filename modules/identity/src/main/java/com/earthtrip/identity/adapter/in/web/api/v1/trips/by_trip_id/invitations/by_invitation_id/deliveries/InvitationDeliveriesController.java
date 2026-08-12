@@ -17,27 +17,42 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/trips/{tripId}/invitations/{invitationId}/deliveries")
 class InvitationDeliveriesController {
-    private final InvitationUseCase useCase; private final CurrentUserProvider currentUser;
+    private final InvitationUseCase useCase;
+    private final CurrentUserProvider currentUser;
+
     InvitationDeliveriesController(InvitationUseCase useCase, CurrentUserProvider currentUser) {
-        this.useCase = useCase; this.currentUser = currentUser;
+        this.useCase = useCase;
+        this.currentUser = currentUser;
     }
-    @PostMapping @ResponseStatus(HttpStatus.CREATED)
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     InvitationDeliveryResponse post(
-        @PathVariable UUID tripId, @PathVariable UUID invitationId,
-        @Valid @RequestBody InvitationDeliveryRequest request
-    ) {
-        InvitationUseCase.CreatedInvitation created = useCase.redeliver(
-            tripId, invitationId, currentUser.requireUserId(), request.baseVersion()
-        );
+            @PathVariable UUID tripId,
+            @PathVariable UUID invitationId,
+            @Valid @RequestBody InvitationDeliveryRequest request) {
+        InvitationUseCase.CreatedInvitation created =
+                useCase.redeliver(
+                        tripId, invitationId, currentUser.requireUserId(), request.baseVersion());
         InvitationUseCase.InvitationResult i = created.invitation();
         return new InvitationDeliveryResponse(
-            i.invitationId(), i.deliveryStatus(), i.lastDeliveredAt(), i.expiresAt(),
-            i.version(), created.token(), created.invitationUrl()
-        );
+                i.invitationId(),
+                i.deliveryStatus(),
+                i.lastDeliveredAt(),
+                i.expiresAt(),
+                i.version(),
+                created.token(),
+                created.invitationUrl());
     }
 }
-record InvitationDeliveryRequest(@Min(0) long baseVersion) { }
+
+record InvitationDeliveryRequest(@Min(0) long baseVersion) {}
+
 record InvitationDeliveryResponse(
-    UUID invitationId, String deliveryStatus, Instant deliveredAt, Instant expiresAt,
-    long version, String token, String invitationUrl
-) { }
+        UUID invitationId,
+        String deliveryStatus,
+        Instant deliveredAt,
+        Instant expiresAt,
+        long version,
+        String token,
+        String invitationUrl) {}

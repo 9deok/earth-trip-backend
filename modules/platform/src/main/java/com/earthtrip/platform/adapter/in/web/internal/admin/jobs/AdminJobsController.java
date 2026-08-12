@@ -19,10 +19,9 @@ class AdminJobsController {
 
     @GetMapping
     List<InternalOperationsUseCase.JobResult> get(
-        @RequestParam(required = false) String status,
-        @RequestParam(required = false) String jobType,
-        @RequestParam(defaultValue = "50") int limit
-    ) {
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String jobType,
+            @RequestParam(defaultValue = "50") int limit) {
         return useCase.jobs(status, jobType, limit);
     }
 }

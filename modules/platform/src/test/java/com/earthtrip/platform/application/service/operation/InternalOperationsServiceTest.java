@@ -10,8 +10,8 @@ import com.earthtrip.notification.api.PushDeliveryEvents;
 import com.earthtrip.platform.application.port.out.FileStorePort;
 import com.earthtrip.platform.application.port.out.IntegrationStorePort;
 import com.earthtrip.platform.application.port.out.OperationalStorePort;
+import com.earthtrip.platform.application.port.out.StructuredJsonPort;
 import com.earthtrip.platform.application.port.out.WebhookSecurityPort;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -31,6 +31,7 @@ class InternalOperationsServiceTest {
     private final FileStorePort files = mock(FileStorePort.class);
     private final IntegrationStorePort integrations = mock(IntegrationStorePort.class);
     private final PushDeliveryEvents pushEvents = mock(PushDeliveryEvents.class);
+    private final StructuredJsonPort structuredJson = mock(StructuredJsonPort.class);
     private InternalOperationsService service;
 
     @BeforeEach
@@ -39,40 +40,46 @@ class InternalOperationsServiceTest {
         when(store.saveWebhookReceipt(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(store.saveDeadLetter(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(store.saveAudit(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(structuredJson.deserializeObject(any()))
+                .thenAnswer(
+                        invocation -> {
+                            String body = invocation.getArgument(0);
+                            String fileId = field(body, "fileId");
+                            String result = field(body, "result");
+                            return Map.of("fileId", fileId, "result", result);
+                        });
         Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
-        service = new InternalOperationsService(
-            store,
-            security,
-            new InternalWebhookProcessor(files, integrations, pushEvents, clock),
-            new ObjectMapper().findAndRegisterModules(),
-            clock
-        );
+        service =
+                new InternalOperationsService(
+                        store,
+                        security,
+                        new InternalWebhookProcessor(files, integrations, pushEvents, clock),
+                        structuredJson,
+                        clock);
     }
 
     @Test
     void 악성코드_검사_성공을_READY로_반영한다() {
         UUID fileId = UUID.randomUUID();
-        when(security.verify(any(), any(), any(), any(), any())).thenReturn(
-            new WebhookSecurityPort.VerifiedWebhook(
-                "malware-scan", "scan-1", "a".repeat(64)
-            )
-        );
+        when(security.verify(any(), any(), any(), any(), any()))
+                .thenReturn(
+                        new WebhookSecurityPort.VerifiedWebhook(
+                                "malware-scan", "scan-1", "a".repeat(64)));
         when(store.webhookReceipt("malware-scan", "scan-1")).thenReturn(Optional.empty());
         when(files.file(fileId)).thenReturn(Optional.of(file(fileId, "SCANNING")));
         when(files.saveFile(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        var result = service.acceptWebhook(
-            "malware-scan",
-            "scan-1",
-            "unused-by-mock",
-            "unused-by-mock",
-            "{\"fileId\":\"" + fileId + "\",\"result\":\"SAFE\"}"
-        );
+        var result =
+                service.acceptWebhook(
+                        "malware-scan",
+                        "scan-1",
+                        "unused-by-mock",
+                        "unused-by-mock",
+                        "{\"fileId\":\"" + fileId + "\",\"result\":\"SAFE\"}");
 
         assertThat(result.status()).isEqualTo("SUCCEEDED");
-        ArgumentCaptor<FileStorePort.FileRecord> saved = ArgumentCaptor.forClass(
-            FileStorePort.FileRecord.class
-        );
+        ArgumentCaptor<FileStorePort.FileRecord> saved =
+                ArgumentCaptor.forClass(FileStorePort.FileRecord.class);
         verify(files).saveFile(saved.capture());
         assertThat(saved.getValue().status()).isEqualTo("READY");
     }
@@ -80,26 +87,25 @@ class InternalOperationsServiceTest {
     @Test
     void 처리_실패를_작업과_데드레터에_남긴다() {
         UUID missingFileId = UUID.randomUUID();
-        when(security.verify(any(), any(), any(), any(), any())).thenReturn(
-            new WebhookSecurityPort.VerifiedWebhook(
-                "malware-scan", "scan-2", "b".repeat(64)
-            )
-        );
+        when(security.verify(any(), any(), any(), any(), any()))
+                .thenReturn(
+                        new WebhookSecurityPort.VerifiedWebhook(
+                                "malware-scan", "scan-2", "b".repeat(64)));
         when(store.webhookReceipt("malware-scan", "scan-2")).thenReturn(Optional.empty());
         when(files.file(missingFileId)).thenReturn(Optional.empty());
         when(store.openDeadLetterForJob(any())).thenReturn(Optional.empty());
 
-        var result = service.acceptWebhook(
-            "malware-scan",
-            "scan-2",
-            "unused-by-mock",
-            "unused-by-mock",
-            "{\"fileId\":\"" + missingFileId + "\",\"result\":\"SAFE\"}"
-        );
+        var result =
+                service.acceptWebhook(
+                        "malware-scan",
+                        "scan-2",
+                        "unused-by-mock",
+                        "unused-by-mock",
+                        "{\"fileId\":\"" + missingFileId + "\",\"result\":\"SAFE\"}");
 
         assertThat(result.status()).isEqualTo("FAILED");
         ArgumentCaptor<OperationalStorePort.DeadLetterRecord> deadLetter =
-            ArgumentCaptor.forClass(OperationalStorePort.DeadLetterRecord.class);
+                ArgumentCaptor.forClass(OperationalStorePort.DeadLetterRecord.class);
         verify(store).saveDeadLetter(deadLetter.capture());
         assertThat(deadLetter.getValue().errorCode()).isEqualTo("FILE_NOT_FOUND");
         assertThat(deadLetter.getValue().status()).isEqualTo("OPEN");
@@ -107,18 +113,24 @@ class InternalOperationsServiceTest {
 
     private static FileStorePort.FileRecord file(UUID id, String status) {
         return new FileStorePort.FileRecord(
-            id,
-            UUID.randomUUID(),
-            "ticket.pdf",
-            "application/pdf",
-            10,
-            "c".repeat(64),
-            "files/" + id,
-            status,
-            NOW.minusSeconds(60),
-            NOW.minusSeconds(30),
-            null,
-            1
-        );
+                id,
+                UUID.randomUUID(),
+                "ticket.pdf",
+                "application/pdf",
+                10,
+                "c".repeat(64),
+                "files/" + id,
+                status,
+                NOW.minusSeconds(60),
+                NOW.minusSeconds(30),
+                null,
+                1);
+    }
+
+    private static String field(String json, String name) {
+        String marker = "\"" + name + "\":\"";
+        int start = json.indexOf(marker) + marker.length();
+        int end = json.indexOf('"', start);
+        return json.substring(start, end);
     }
 }

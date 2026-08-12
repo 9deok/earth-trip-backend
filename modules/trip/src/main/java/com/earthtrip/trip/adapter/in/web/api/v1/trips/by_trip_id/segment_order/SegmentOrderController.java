@@ -21,26 +21,39 @@ class SegmentOrderController {
     private final CurrentActor currentActor;
 
     SegmentOrderController(TripSegmentUseCase useCase, CurrentActor currentActor) {
-        this.useCase = useCase; this.currentActor = currentActor;
+        this.useCase = useCase;
+        this.currentActor = currentActor;
     }
 
     @PutMapping
     List<SegmentOrderResponse> put(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody SegmentOrderRequest request
-    ) {
-        return useCase.reorder(
-            tripId,
-            currentActor.requireUserId(),
-            request.items().stream().map(item ->
-                new TripSegmentUseCase.OrderItem(item.segmentId(), item.sortOrder(), item.baseVersion())
-            ).toList()
-        ).stream().map(segment -> new SegmentOrderResponse(
-            segment.segmentId(), segment.sortOrder(), segment.version()
-        )).toList();
+            @PathVariable UUID tripId, @Valid @RequestBody SegmentOrderRequest request) {
+        return useCase
+                .reorder(
+                        tripId,
+                        currentActor.requireUserId(),
+                        request.items().stream()
+                                .map(
+                                        item ->
+                                                new TripSegmentUseCase.OrderItem(
+                                                        item.segmentId(),
+                                                        item.sortOrder(),
+                                                        item.baseVersion()))
+                                .toList())
+                .stream()
+                .map(
+                        segment ->
+                                new SegmentOrderResponse(
+                                        segment.segmentId(),
+                                        segment.sortOrder(),
+                                        segment.version()))
+                .toList();
     }
 }
 
-record SegmentOrderRequest(@NotEmpty List<@Valid SegmentOrderItemRequest> items) { }
-record SegmentOrderItemRequest(@NotNull UUID segmentId, @Min(0) int sortOrder, @Min(0) long baseVersion) { }
-record SegmentOrderResponse(UUID segmentId, int sortOrder, long version) { }
+record SegmentOrderRequest(@NotEmpty List<@Valid SegmentOrderItemRequest> items) {}
+
+record SegmentOrderItemRequest(
+        @NotNull UUID segmentId, @Min(0) int sortOrder, @Min(0) long baseVersion) {}
+
+record SegmentOrderResponse(UUID segmentId, int sortOrder, long version) {}

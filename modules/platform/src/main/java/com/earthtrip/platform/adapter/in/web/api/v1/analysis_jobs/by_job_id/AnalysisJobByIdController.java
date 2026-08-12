@@ -13,10 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 class AnalysisJobByIdController {
     private final AnalysisJobUseCase useCase;
     private final CurrentActor actor;
+
     AnalysisJobByIdController(AnalysisJobUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @GetMapping AnalysisJobUseCase.JobResult get(@PathVariable UUID jobId) {
+
+    @GetMapping
+    AnalysisJobUseCase.JobResult get(@PathVariable UUID jobId) {
         return useCase.get(jobId, actor.requireUserId());
     }
 }

@@ -12,18 +12,23 @@ import java.util.UUID;
 @Table(name = "trip_template_drafts")
 class TripTemplateDraftJpaEntity {
 
-    @Id @Column(name = "request_id", nullable = false, length = 36)
+    @Id
+    @Column(name = "request_id", nullable = false, length = 36)
     private String requestId;
+
     @Column(name = "template_id", nullable = false, length = 36)
     private String templateId;
+
     @Column(name = "trip_id", nullable = false, length = 36)
     private String tripId;
+
     @Column(name = "created_by", nullable = false, length = 36)
     private String createdBy;
+
     @Column(name = "created_at", nullable = false)
     private Instant createdAt;
 
-    protected TripTemplateDraftJpaEntity() { }
+    protected TripTemplateDraftJpaEntity() {}
 
     TripTemplateDraftJpaEntity(TripTemplateStorePort.DraftRecord record) {
         requestId = record.requestId().toString();
@@ -35,8 +40,10 @@ class TripTemplateDraftJpaEntity {
 
     TripTemplateStorePort.DraftRecord toRecord() {
         return new TripTemplateStorePort.DraftRecord(
-            UUID.fromString(requestId), UUID.fromString(templateId), UUID.fromString(tripId),
-            UUID.fromString(createdBy), createdAt
-        );
+                UUID.fromString(requestId),
+                UUID.fromString(templateId),
+                UUID.fromString(tripId),
+                UUID.fromString(createdBy),
+                createdAt);
     }
 }

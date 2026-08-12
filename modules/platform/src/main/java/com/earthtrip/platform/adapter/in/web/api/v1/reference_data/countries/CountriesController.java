@@ -19,11 +19,14 @@ class CountriesController {
     @GetMapping
     List<CountryResponse> get() {
         return useCase.countries().stream()
-            .map(country -> new CountryResponse(
-                country.code(), country.displayName(), country.currencyCode()
-            ))
-            .toList();
+                .map(
+                        country ->
+                                new CountryResponse(
+                                        country.code(),
+                                        country.displayName(),
+                                        country.currencyCode()))
+                .toList();
     }
 }
 
-record CountryResponse(String code, String displayName, String currencyCode) { }
+record CountryResponse(String code, String displayName, String currencyCode) {}

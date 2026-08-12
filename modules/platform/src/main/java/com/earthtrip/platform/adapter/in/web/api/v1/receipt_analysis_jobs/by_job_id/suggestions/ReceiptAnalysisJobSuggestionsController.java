@@ -15,10 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 class ReceiptAnalysisJobSuggestionsController {
     private final AnalysisJobUseCase useCase;
     private final CurrentActor actor;
+
     ReceiptAnalysisJobSuggestionsController(AnalysisJobUseCase useCase, CurrentActor actor) {
-        this.useCase = useCase; this.actor = actor;
+        this.useCase = useCase;
+        this.actor = actor;
     }
-    @GetMapping List<AnalysisJobUseCase.SuggestionResult> get(@PathVariable UUID jobId) {
+
+    @GetMapping
+    List<AnalysisJobUseCase.SuggestionResult> get(@PathVariable UUID jobId) {
         AnalysisJobUseCase.JobResult job = useCase.get(jobId, actor.requireUserId());
         if (!job.targetType().equals("EXPENSE_RECEIPT")) {
             throw EarthTripException.notFound("RECEIPT_ANALYSIS_NOT_FOUND", "영수증 분석을 찾을 수 없습니다.");

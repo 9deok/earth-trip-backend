@@ -9,7 +9,11 @@ import java.util.UUID;
 
 public final class TripSegment {
 
-    public enum Type { STAY, TRANSFER, OVERNIGHT_TRANSFER }
+    public enum Type {
+        STAY,
+        TRANSFER,
+        OVERNIGHT_TRANSFER
+    }
 
     private final UUID id;
     private final TripId tripId;
@@ -36,60 +40,190 @@ public final class TripSegment {
     private final long version;
 
     private TripSegment(
-        UUID id, TripId tripId, Type type, String cityName, String countryCode, String placeId,
-        BigDecimal latitude, BigDecimal longitude, LocalDate startDate, LocalDate endDate,
-        String accommodationName, String accommodationPlaceId, Instant checkInAt, Instant checkOutAt,
-        String transportMode, Instant departureAt, Instant arrivalAt, int sortOrder,
-        UUID createdBy, UUID updatedBy, Instant createdAt, Instant updatedAt, long version
-    ) {
+            UUID id,
+            TripId tripId,
+            Type type,
+            String cityName,
+            String countryCode,
+            String placeId,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            LocalDate startDate,
+            LocalDate endDate,
+            String accommodationName,
+            String accommodationPlaceId,
+            Instant checkInAt,
+            Instant checkOutAt,
+            String transportMode,
+            Instant departureAt,
+            Instant arrivalAt,
+            int sortOrder,
+            UUID createdBy,
+            UUID updatedBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {
         this.id = Objects.requireNonNull(id);
         this.tripId = Objects.requireNonNull(tripId);
-        apply(type, cityName, countryCode, placeId, latitude, longitude, startDate, endDate,
-            accommodationName, accommodationPlaceId, checkInAt, checkOutAt, transportMode,
-            departureAt, arrivalAt, sortOrder, updatedBy, updatedAt);
+        apply(
+                type,
+                cityName,
+                countryCode,
+                placeId,
+                latitude,
+                longitude,
+                startDate,
+                endDate,
+                accommodationName,
+                accommodationPlaceId,
+                checkInAt,
+                checkOutAt,
+                transportMode,
+                departureAt,
+                arrivalAt,
+                sortOrder,
+                updatedBy,
+                updatedAt);
         this.createdBy = Objects.requireNonNull(createdBy);
         this.createdAt = Objects.requireNonNull(createdAt);
         this.version = version;
     }
 
     public static TripSegment create(
-        UUID id, TripId tripId, Type type, String cityName, String countryCode, String placeId,
-        BigDecimal latitude, BigDecimal longitude, LocalDate startDate, LocalDate endDate,
-        String accommodationName, String accommodationPlaceId, Instant checkInAt, Instant checkOutAt,
-        String transportMode, Instant departureAt, Instant arrivalAt, int sortOrder,
-        UUID actorUserId, Instant now
-    ) {
+            UUID id,
+            TripId tripId,
+            Type type,
+            String cityName,
+            String countryCode,
+            String placeId,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            LocalDate startDate,
+            LocalDate endDate,
+            String accommodationName,
+            String accommodationPlaceId,
+            Instant checkInAt,
+            Instant checkOutAt,
+            String transportMode,
+            Instant departureAt,
+            Instant arrivalAt,
+            int sortOrder,
+            UUID actorUserId,
+            Instant now) {
         return new TripSegment(
-            id, tripId, type, cityName, countryCode, placeId, latitude, longitude, startDate, endDate,
-            accommodationName, accommodationPlaceId, checkInAt, checkOutAt, transportMode,
-            departureAt, arrivalAt, sortOrder, actorUserId, actorUserId, now, now, 0
-        );
+                id,
+                tripId,
+                type,
+                cityName,
+                countryCode,
+                placeId,
+                latitude,
+                longitude,
+                startDate,
+                endDate,
+                accommodationName,
+                accommodationPlaceId,
+                checkInAt,
+                checkOutAt,
+                transportMode,
+                departureAt,
+                arrivalAt,
+                sortOrder,
+                actorUserId,
+                actorUserId,
+                now,
+                now,
+                0);
     }
 
     public static TripSegment restore(
-        UUID id, TripId tripId, Type type, String cityName, String countryCode, String placeId,
-        BigDecimal latitude, BigDecimal longitude, LocalDate startDate, LocalDate endDate,
-        String accommodationName, String accommodationPlaceId, Instant checkInAt, Instant checkOutAt,
-        String transportMode, Instant departureAt, Instant arrivalAt, int sortOrder,
-        UUID createdBy, UUID updatedBy, Instant createdAt, Instant updatedAt, long version
-    ) {
+            UUID id,
+            TripId tripId,
+            Type type,
+            String cityName,
+            String countryCode,
+            String placeId,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            LocalDate startDate,
+            LocalDate endDate,
+            String accommodationName,
+            String accommodationPlaceId,
+            Instant checkInAt,
+            Instant checkOutAt,
+            String transportMode,
+            Instant departureAt,
+            Instant arrivalAt,
+            int sortOrder,
+            UUID createdBy,
+            UUID updatedBy,
+            Instant createdAt,
+            Instant updatedAt,
+            long version) {
         return new TripSegment(
-            id, tripId, type, cityName, countryCode, placeId, latitude, longitude, startDate, endDate,
-            accommodationName, accommodationPlaceId, checkInAt, checkOutAt, transportMode,
-            departureAt, arrivalAt, sortOrder, createdBy, updatedBy, createdAt, updatedAt, version
-        );
+                id,
+                tripId,
+                type,
+                cityName,
+                countryCode,
+                placeId,
+                latitude,
+                longitude,
+                startDate,
+                endDate,
+                accommodationName,
+                accommodationPlaceId,
+                checkInAt,
+                checkOutAt,
+                transportMode,
+                departureAt,
+                arrivalAt,
+                sortOrder,
+                createdBy,
+                updatedBy,
+                createdAt,
+                updatedAt,
+                version);
     }
 
     public void update(
-        Type type, String cityName, String countryCode, String placeId,
-        BigDecimal latitude, BigDecimal longitude, LocalDate startDate, LocalDate endDate,
-        String accommodationName, String accommodationPlaceId, Instant checkInAt, Instant checkOutAt,
-        String transportMode, Instant departureAt, Instant arrivalAt, int sortOrder,
-        UUID actorUserId, Instant now
-    ) {
-        apply(type, cityName, countryCode, placeId, latitude, longitude, startDate, endDate,
-            accommodationName, accommodationPlaceId, checkInAt, checkOutAt, transportMode,
-            departureAt, arrivalAt, sortOrder, actorUserId, now);
+            Type type,
+            String cityName,
+            String countryCode,
+            String placeId,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            LocalDate startDate,
+            LocalDate endDate,
+            String accommodationName,
+            String accommodationPlaceId,
+            Instant checkInAt,
+            Instant checkOutAt,
+            String transportMode,
+            Instant departureAt,
+            Instant arrivalAt,
+            int sortOrder,
+            UUID actorUserId,
+            Instant now) {
+        apply(
+                type,
+                cityName,
+                countryCode,
+                placeId,
+                latitude,
+                longitude,
+                startDate,
+                endDate,
+                accommodationName,
+                accommodationPlaceId,
+                checkInAt,
+                checkOutAt,
+                transportMode,
+                departureAt,
+                arrivalAt,
+                sortOrder,
+                actorUserId,
+                now);
     }
 
     public void moveTo(int newSortOrder, UUID actorUserId, Instant now) {
@@ -100,12 +234,24 @@ public final class TripSegment {
     }
 
     private void apply(
-        Type type, String cityName, String countryCode, String placeId,
-        BigDecimal latitude, BigDecimal longitude, LocalDate startDate, LocalDate endDate,
-        String accommodationName, String accommodationPlaceId, Instant checkInAt, Instant checkOutAt,
-        String transportMode, Instant departureAt, Instant arrivalAt, int sortOrder,
-        UUID actorUserId, Instant now
-    ) {
+            Type type,
+            String cityName,
+            String countryCode,
+            String placeId,
+            BigDecimal latitude,
+            BigDecimal longitude,
+            LocalDate startDate,
+            LocalDate endDate,
+            String accommodationName,
+            String accommodationPlaceId,
+            Instant checkInAt,
+            Instant checkOutAt,
+            String transportMode,
+            Instant departureAt,
+            Instant arrivalAt,
+            int sortOrder,
+            UUID actorUserId,
+            Instant now) {
         this.type = Objects.requireNonNull(type);
         if (type == Type.STAY && (cityName == null || cityName.isBlank())) {
             throw new IllegalArgumentException("체류 구간에는 도시 이름이 필요합니다.");
@@ -121,7 +267,8 @@ public final class TripSegment {
         }
         if (sortOrder < 0) throw new IllegalArgumentException("정렬 순서는 0 이상이어야 합니다.");
         this.cityName = normalize(cityName, 160);
-        this.countryCode = countryCode == null ? null : countryCode.strip().toUpperCase(Locale.ROOT);
+        this.countryCode =
+                countryCode == null ? null : countryCode.strip().toUpperCase(Locale.ROOT);
         this.placeId = normalize(placeId, 255);
         this.latitude = latitude;
         this.longitude = longitude;
@@ -147,27 +294,95 @@ public final class TripSegment {
         return normalized;
     }
 
-    public UUID id() { return id; }
-    public TripId tripId() { return tripId; }
-    public Type type() { return type; }
-    public String cityName() { return cityName; }
-    public String countryCode() { return countryCode; }
-    public String placeId() { return placeId; }
-    public BigDecimal latitude() { return latitude; }
-    public BigDecimal longitude() { return longitude; }
-    public LocalDate startDate() { return startDate; }
-    public LocalDate endDate() { return endDate; }
-    public String accommodationName() { return accommodationName; }
-    public String accommodationPlaceId() { return accommodationPlaceId; }
-    public Instant checkInAt() { return checkInAt; }
-    public Instant checkOutAt() { return checkOutAt; }
-    public String transportMode() { return transportMode; }
-    public Instant departureAt() { return departureAt; }
-    public Instant arrivalAt() { return arrivalAt; }
-    public int sortOrder() { return sortOrder; }
-    public UUID createdBy() { return createdBy; }
-    public UUID updatedBy() { return updatedBy; }
-    public Instant createdAt() { return createdAt; }
-    public Instant updatedAt() { return updatedAt; }
-    public long version() { return version; }
+    public UUID id() {
+        return id;
+    }
+
+    public TripId tripId() {
+        return tripId;
+    }
+
+    public Type type() {
+        return type;
+    }
+
+    public String cityName() {
+        return cityName;
+    }
+
+    public String countryCode() {
+        return countryCode;
+    }
+
+    public String placeId() {
+        return placeId;
+    }
+
+    public BigDecimal latitude() {
+        return latitude;
+    }
+
+    public BigDecimal longitude() {
+        return longitude;
+    }
+
+    public LocalDate startDate() {
+        return startDate;
+    }
+
+    public LocalDate endDate() {
+        return endDate;
+    }
+
+    public String accommodationName() {
+        return accommodationName;
+    }
+
+    public String accommodationPlaceId() {
+        return accommodationPlaceId;
+    }
+
+    public Instant checkInAt() {
+        return checkInAt;
+    }
+
+    public Instant checkOutAt() {
+        return checkOutAt;
+    }
+
+    public String transportMode() {
+        return transportMode;
+    }
+
+    public Instant departureAt() {
+        return departureAt;
+    }
+
+    public Instant arrivalAt() {
+        return arrivalAt;
+    }
+
+    public int sortOrder() {
+        return sortOrder;
+    }
+
+    public UUID createdBy() {
+        return createdBy;
+    }
+
+    public UUID updatedBy() {
+        return updatedBy;
+    }
+
+    public Instant createdAt() {
+        return createdAt;
+    }
+
+    public Instant updatedAt() {
+        return updatedAt;
+    }
+
+    public long version() {
+        return version;
+    }
 }

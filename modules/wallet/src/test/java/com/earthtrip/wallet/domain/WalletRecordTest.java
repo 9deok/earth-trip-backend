@@ -18,23 +18,23 @@ class WalletRecordTest {
         payload.put("dueAt", null);
         payload.put("relatedReservationId", null);
 
-        WalletRecord record = WalletRecord.create(
-            UUID.randomUUID(),
-            UUID.randomUUID(),
-            "PREPARATION_TASK",
-            null,
-            payload,
-            "OPEN",
-            "TRIP",
-            0,
-            UUID.randomUUID(),
-            Instant.parse("2026-08-05T14:32:00Z")
-        );
+        WalletRecord record =
+                WalletRecord.create(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        "PREPARATION_TASK",
+                        null,
+                        payload,
+                        "OPEN",
+                        "TRIP",
+                        0,
+                        UUID.randomUUID(),
+                        Instant.parse("2026-08-05T14:32:00Z"));
 
         assertThat(record.payload())
-            .containsEntry("title", "여행자 보험 확인")
-            .doesNotContainKeys("dueAt", "relatedReservationId");
+                .containsEntry("title", "여행자 보험 확인")
+                .doesNotContainKeys("dueAt", "relatedReservationId");
         assertThatThrownBy(() -> record.payload().put("title", "변경"))
-            .isInstanceOf(UnsupportedOperationException.class);
+                .isInstanceOf(UnsupportedOperationException.class);
     }
 }

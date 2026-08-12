@@ -1,2 +1,79 @@
-package com.earthtrip.expense.adapter.out.persistence.settlement;import com.earthtrip.expense.application.port.out.SettlementStorePort;import jakarta.persistence.*;import java.time.Instant;import java.util.UUID;
-@Entity @Table(name="settlement_payments") class SettlementPaymentJpaEntity{@Id @Column(name="id",nullable=false,length=36)private String id;@Column(name="settlement_id",nullable=false,length=36)private String settlementId;@Column(name="from_user_id",nullable=false,length=36)private String fromUserId;@Column(name="to_user_id",nullable=false,length=36)private String toUserId;@Column(name="amount_minor",nullable=false)private long amountMinor;@Column(name="currency",nullable=false,length=3)private String currency;@Column(name="paid_at")private Instant paidAt;@Column(name="note",length=500)private String note;@Column(name="created_at",nullable=false)private Instant createdAt;@Column(name="updated_at",nullable=false)private Instant updatedAt;@Version @Column(name="version",nullable=false)private long version;protected SettlementPaymentJpaEntity(){}SettlementPaymentJpaEntity(SettlementStorePort.PaymentRecord r){id=r.id().toString();apply(r);}void apply(SettlementStorePort.PaymentRecord r){settlementId=r.settlementId().toString();fromUserId=r.fromUserId().toString();toUserId=r.toUserId().toString();amountMinor=r.amountMinor();currency=r.currency();paidAt=r.paidAt();note=r.note();createdAt=r.createdAt();updatedAt=r.updatedAt();}SettlementStorePort.PaymentRecord record(){return new SettlementStorePort.PaymentRecord(UUID.fromString(id),UUID.fromString(settlementId),UUID.fromString(fromUserId),UUID.fromString(toUserId),amountMinor,currency,paidAt,note,version,createdAt,updatedAt);}}
+package com.earthtrip.expense.adapter.out.persistence.settlement;
+
+import com.earthtrip.expense.application.port.out.SettlementStorePort;
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "settlement_payments")
+class SettlementPaymentJpaEntity {
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
+
+    @Column(name = "settlement_id", nullable = false, length = 36)
+    private String settlementId;
+
+    @Column(name = "from_user_id", nullable = false, length = 36)
+    private String fromUserId;
+
+    @Column(name = "to_user_id", nullable = false, length = 36)
+    private String toUserId;
+
+    @Column(name = "amount_minor", nullable = false)
+    private long amountMinor;
+
+    @Column(name = "currency", nullable = false, length = 3)
+    private String currency;
+
+    @Column(name = "paid_at")
+    private Instant paidAt;
+
+    @Column(name = "note", length = 500)
+    private String note;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected SettlementPaymentJpaEntity() {}
+
+    SettlementPaymentJpaEntity(SettlementStorePort.PaymentRecord r) {
+        id = r.id().toString();
+        apply(r);
+    }
+
+    void apply(SettlementStorePort.PaymentRecord r) {
+        settlementId = r.settlementId().toString();
+        fromUserId = r.fromUserId().toString();
+        toUserId = r.toUserId().toString();
+        amountMinor = r.amountMinor();
+        currency = r.currency();
+        paidAt = r.paidAt();
+        note = r.note();
+        createdAt = r.createdAt();
+        updatedAt = r.updatedAt();
+    }
+
+    SettlementStorePort.PaymentRecord record() {
+        return new SettlementStorePort.PaymentRecord(
+                UUID.fromString(id),
+                UUID.fromString(settlementId),
+                UUID.fromString(fromUserId),
+                UUID.fromString(toUserId),
+                amountMinor,
+                currency,
+                paidAt,
+                note,
+                version,
+                createdAt,
+                updatedAt);
+    }
+}

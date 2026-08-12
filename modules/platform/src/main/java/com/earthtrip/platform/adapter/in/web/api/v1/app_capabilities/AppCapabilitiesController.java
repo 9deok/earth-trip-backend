@@ -20,25 +20,30 @@ class AppCapabilitiesController {
     AppCapabilitiesResponse get() {
         PlatformInfoUseCase.AppCapabilities result = useCase.appCapabilities();
         return new AppCapabilitiesResponse(
-            result.apiVersion(), result.minimumAndroidBuild(), result.minimumIosBuild(),
-            result.maintenanceMode(), result.maintenanceMessage(), result.readOnlyAvailable(),
-            result.providers().stream()
-                .map(provider -> new ProviderCapabilityResponse(
-                    provider.provider(), provider.available(), provider.status()
-                ))
-                .toList()
-        );
+                result.apiVersion(),
+                result.minimumAndroidBuild(),
+                result.minimumIosBuild(),
+                result.maintenanceMode(),
+                result.maintenanceMessage(),
+                result.readOnlyAvailable(),
+                result.providers().stream()
+                        .map(
+                                provider ->
+                                        new ProviderCapabilityResponse(
+                                                provider.provider(),
+                                                provider.available(),
+                                                provider.status()))
+                        .toList());
     }
 }
 
 record AppCapabilitiesResponse(
-    String apiVersion,
-    int minimumAndroidBuild,
-    int minimumIosBuild,
-    boolean maintenanceMode,
-    String maintenanceMessage,
-    boolean readOnlyAvailable,
-    List<ProviderCapabilityResponse> providers
-) { }
+        String apiVersion,
+        int minimumAndroidBuild,
+        int minimumIosBuild,
+        boolean maintenanceMode,
+        String maintenanceMessage,
+        boolean readOnlyAvailable,
+        List<ProviderCapabilityResponse> providers) {}
 
-record ProviderCapabilityResponse(String provider, boolean available, String status) { }
+record ProviderCapabilityResponse(String provider, boolean available, String status) {}

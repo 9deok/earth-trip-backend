@@ -1,2 +1,79 @@
-package com.earthtrip.expense.adapter.out.persistence.settlement;import com.earthtrip.expense.application.port.out.SettlementStorePort;import jakarta.persistence.*;import java.time.Instant;import java.util.UUID;
-@Entity @Table(name="settlements") class SettlementJpaEntity{@Id @Column(name="id",nullable=false,length=36)private String id;@Column(name="trip_id",nullable=false,length=36)private String tripId;@Column(name="base_currency",nullable=false,length=3)private String baseCurrency;@Column(name="status",nullable=false,length=30)private String status;@Column(name="snapshot_json",nullable=false,columnDefinition="JSON")private String snapshot;@Column(name="created_by",nullable=false,length=36)private String createdBy;@Column(name="created_at",nullable=false)private Instant createdAt;@Column(name="updated_at",nullable=false)private Instant updatedAt;@Column(name="closed_at")private Instant closedAt;@Version @Column(name="version",nullable=false)private long version;protected SettlementJpaEntity(){}SettlementJpaEntity(SettlementStorePort.SettlementRecord r,String json){id=r.id().toString();apply(r,json);}void apply(SettlementStorePort.SettlementRecord r,String json){tripId=r.tripId().toString();baseCurrency=r.baseCurrency();status=r.status();snapshot=json;createdBy=r.createdBy().toString();createdAt=r.createdAt();updatedAt=r.updatedAt();closedAt=r.closedAt();}String snapshot(){return snapshot;}SettlementStorePort.SettlementRecord record(com.earthtrip.expense.application.port.in.SettlementUseCase.PreviewResult p){return new SettlementStorePort.SettlementRecord(UUID.fromString(id),UUID.fromString(tripId),baseCurrency,status,p,version,UUID.fromString(createdBy),createdAt,updatedAt,closedAt);}}
+package com.earthtrip.expense.adapter.out.persistence.settlement;
+
+import com.earthtrip.expense.application.port.out.SettlementStorePort;
+import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "settlements")
+class SettlementJpaEntity {
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
+
+    @Column(name = "trip_id", nullable = false, length = 36)
+    private String tripId;
+
+    @Column(name = "base_currency", nullable = false, length = 3)
+    private String baseCurrency;
+
+    @Column(name = "status", nullable = false, length = 30)
+    private String status;
+
+    @Column(name = "snapshot_json", nullable = false, columnDefinition = "JSON")
+    private String snapshot;
+
+    @Column(name = "created_by", nullable = false, length = 36)
+    private String createdBy;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected SettlementJpaEntity() {}
+
+    SettlementJpaEntity(SettlementStorePort.SettlementRecord r, String json) {
+        id = r.id().toString();
+        apply(r, json);
+    }
+
+    void apply(SettlementStorePort.SettlementRecord r, String json) {
+        tripId = r.tripId().toString();
+        baseCurrency = r.baseCurrency();
+        status = r.status();
+        snapshot = json;
+        createdBy = r.createdBy().toString();
+        createdAt = r.createdAt();
+        updatedAt = r.updatedAt();
+        closedAt = r.closedAt();
+    }
+
+    String snapshot() {
+        return snapshot;
+    }
+
+    SettlementStorePort.SettlementRecord record(
+            com.earthtrip.expense.application.port.in.SettlementUseCase.PreviewResult p) {
+        return new SettlementStorePort.SettlementRecord(
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                baseCurrency,
+                status,
+                p,
+                version,
+                UUID.fromString(createdBy),
+                createdAt,
+                updatedAt,
+                closedAt);
+    }
+}

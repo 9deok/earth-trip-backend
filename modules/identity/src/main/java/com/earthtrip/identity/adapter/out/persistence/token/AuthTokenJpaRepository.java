@@ -7,12 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 interface AuthTokenJpaRepository extends JpaRepository<AuthTokenJpaEntity, String> {
 
     Optional<AuthTokenJpaEntity> findByTokenHashAndPurposeAndConsumedAtIsNull(
-        String tokenHash,
-        String purpose
-    );
+            String tokenHash, String purpose);
 
     List<AuthTokenJpaEntity> findAllByUserIdAndPurposeAndConsumedAtIsNull(
-        String userId,
-        String purpose
-    );
+            String userId, String purpose);
 }

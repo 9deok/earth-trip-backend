@@ -1,9 +1,9 @@
 package com.earthtrip.wallet.adapter.out.persistence.record;
 
+import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.wallet.application.port.out.SensitiveWalletDataPort;
 import com.earthtrip.wallet.application.port.out.WalletRecordStorePort;
 import com.earthtrip.wallet.domain.WalletRecord;
-import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,25 +19,24 @@ import org.springframework.stereotype.Component;
 @Component
 class WalletRecordPersistenceAdapter implements WalletRecordStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
-    private static final Set<String> SENSITIVE_FIELDS = Set.of(
-        "confirmationNumber",
-        "confirmationCode",
-        "bookingReference",
-        "reservationNumber",
-        "passengerNames",
-        "personalNote"
-    );
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
+    private static final Set<String> SENSITIVE_FIELDS =
+            Set.of(
+                    "confirmationNumber",
+                    "confirmationCode",
+                    "bookingReference",
+                    "reservationNumber",
+                    "passengerNames",
+                    "personalNote");
 
     private final WalletRecordJpaRepository repository;
     private final SensitiveWalletDataPort sensitiveData;
     private final ObjectMapper json;
 
     WalletRecordPersistenceAdapter(
-        WalletRecordJpaRepository repository,
-        SensitiveWalletDataPort sensitiveData,
-        ObjectMapper json
-    ) {
+            WalletRecordJpaRepository repository,
+            SensitiveWalletDataPort sensitiveData,
+            ObjectMapper json) {
         this.repository = repository;
         this.sensitiveData = sensitiveData;
         this.json = json;
@@ -45,33 +44,37 @@ class WalletRecordPersistenceAdapter implements WalletRecordStorePort {
 
     @Override
     public List<WalletRecord> findAll(UUID tripId, String type, UUID parentId) {
-        List<WalletRecordJpaEntity> rows = parentId == null
-            ? repository.findAllByTripIdAndTypeAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(
-                tripId.toString(), type
-            )
-            : repository
-                .findAllByTripIdAndTypeAndParentIdAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(
-                    tripId.toString(), type, parentId.toString()
-                );
+        List<WalletRecordJpaEntity> rows =
+                parentId == null
+                        ? repository
+                                .findAllByTripIdAndTypeAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(
+                                        tripId.toString(), type)
+                        : repository
+                                .findAllByTripIdAndTypeAndParentIdAndDeletedAtIsNullOrderBySortOrderAscCreatedAtAsc(
+                                        tripId.toString(), type, parentId.toString());
         return rows.stream().map(this::domain).toList();
     }
 
     @Override
     public Optional<WalletRecord> findById(UUID id) {
-        return repository.findById(id.toString())
-            .map(this::domain)
-            .filter(record -> record.deletedAt() == null);
+        return repository
+                .findById(id.toString())
+                .map(this::domain)
+                .filter(record -> record.deletedAt() == null);
     }
 
     @Override
     public WalletRecord save(WalletRecord record) {
         String payload = write(protectMap(record.payload()));
-        WalletRecordJpaEntity entity = repository.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record, payload);
-                return existing;
-            })
-            .orElseGet(() -> new WalletRecordJpaEntity(record, payload));
+        WalletRecordJpaEntity entity =
+                repository
+                        .findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, payload);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new WalletRecordJpaEntity(record, payload));
         return domain(repository.saveAndFlush(entity));
     }
 
@@ -85,21 +88,20 @@ class WalletRecordPersistenceAdapter implements WalletRecordStorePort {
 
     private Map<String, Object> protectMap(Map<String, Object> source) {
         Map<String, Object> protectedValues = new LinkedHashMap<>();
-        source.forEach((key, value) -> protectedValues.put(
-            key,
-            SENSITIVE_FIELDS.contains(key)
-                ? sensitiveData.protect(key, value)
-                : protectNested(value)
-        ));
+        source.forEach(
+                (key, value) ->
+                        protectedValues.put(
+                                key,
+                                SENSITIVE_FIELDS.contains(key)
+                                        ? sensitiveData.protect(key, value)
+                                        : protectNested(value)));
         return protectedValues;
     }
 
     private Object protectNested(Object value) {
         if (sensitiveData.isProtected(value)) {
             throw EarthTripException.badRequest(
-                "SENSITIVE_VALUE_ALREADY_PROTECTED",
-                "암호화 envelope를 API 값으로 직접 저장할 수 없습니다."
-            );
+                    "SENSITIVE_VALUE_ALREADY_PROTECTED", "암호화 envelope를 API 값으로 직접 저장할 수 없습니다.");
         }
         if (value instanceof Map<?, ?> map) {
             Map<String, Object> normalized = new LinkedHashMap<>();
@@ -126,10 +128,11 @@ class WalletRecordPersistenceAdapter implements WalletRecordStorePort {
         }
         if (value instanceof Map<?, ?> map) {
             Map<String, Object> normalized = new LinkedHashMap<>();
-            map.forEach((key, nested) -> normalized.put(
-                String.valueOf(key),
-                revealNested(String.valueOf(key), nested)
-            ));
+            map.forEach(
+                    (key, nested) ->
+                            normalized.put(
+                                    String.valueOf(key),
+                                    revealNested(String.valueOf(key), nested)));
             return normalized;
         }
         if (value instanceof List<?> list) {

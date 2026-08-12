@@ -9,7 +9,7 @@ final class PolicyConsentId implements Serializable {
     private String userId;
     private String policyId;
 
-    protected PolicyConsentId() { }
+    protected PolicyConsentId() {}
 
     PolicyConsentId(String userId, String policyId) {
         this.userId = userId;

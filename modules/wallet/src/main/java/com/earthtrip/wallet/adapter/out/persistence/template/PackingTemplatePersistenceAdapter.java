@@ -14,8 +14,8 @@ import org.springframework.stereotype.Component;
 class PackingTemplatePersistenceAdapter implements PackingTemplateStorePort {
 
     private static final TypeReference<List<PackingTemplateUseCase.TemplateItem>> ITEMS =
-        new TypeReference<>() { };
-    private static final TypeReference<List<UUID>> IDS = new TypeReference<>() { };
+            new TypeReference<>() {};
+    private static final TypeReference<List<UUID>> IDS = new TypeReference<>() {};
 
     private final PackingTemplateJpaRepository templates;
     private final PackingTemplateApplicationJpaRepository applications;
@@ -23,11 +23,10 @@ class PackingTemplatePersistenceAdapter implements PackingTemplateStorePort {
     private final ObjectMapper json;
 
     PackingTemplatePersistenceAdapter(
-        PackingTemplateJpaRepository templates,
-        PackingTemplateApplicationJpaRepository applications,
-        PreparationSuggestionDismissalJpaRepository dismissals,
-        ObjectMapper json
-    ) {
+            PackingTemplateJpaRepository templates,
+            PackingTemplateApplicationJpaRepository applications,
+            PreparationSuggestionDismissalJpaRepository dismissals,
+            ObjectMapper json) {
         this.templates = templates;
         this.applications = applications;
         this.dismissals = dismissals;
@@ -41,20 +40,24 @@ class PackingTemplatePersistenceAdapter implements PackingTemplateStorePort {
 
     @Override
     public Optional<TemplateRecord> findById(UUID templateId) {
-        return templates.findById(templateId.toString())
-            .map(this::template)
-            .filter(record -> record.deletedAt() == null);
+        return templates
+                .findById(templateId.toString())
+                .map(this::template)
+                .filter(record -> record.deletedAt() == null);
     }
 
     @Override
     public TemplateRecord save(TemplateRecord record) {
         String items = write(record.items());
-        PackingTemplateJpaEntity entity = templates.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record, items);
-                return existing;
-            })
-            .orElseGet(() -> new PackingTemplateJpaEntity(record, items));
+        PackingTemplateJpaEntity entity =
+                templates
+                        .findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, items);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new PackingTemplateJpaEntity(record, items));
         return template(templates.saveAndFlush(entity));
     }
 
@@ -65,16 +68,15 @@ class PackingTemplatePersistenceAdapter implements PackingTemplateStorePort {
 
     @Override
     public ApplicationRecord saveApplication(ApplicationRecord record) {
-        return application(applications.save(new PackingTemplateApplicationJpaEntity(
-            record, write(record.itemIds())
-        )));
+        return application(
+                applications.save(
+                        new PackingTemplateApplicationJpaEntity(record, write(record.itemIds()))));
     }
 
     @Override
     public boolean isDismissed(UUID tripId, UUID userId, UUID suggestionId) {
-        return dismissals.existsById(new PreparationSuggestionDismissalId(
-            suggestionId.toString(), userId.toString()
-        ));
+        return dismissals.existsById(
+                new PreparationSuggestionDismissalId(suggestionId.toString(), userId.toString()));
     }
 
     @Override
@@ -84,17 +86,25 @@ class PackingTemplatePersistenceAdapter implements PackingTemplateStorePort {
 
     private TemplateRecord template(PackingTemplateJpaEntity entity) {
         return new TemplateRecord(
-            entity.id(), entity.userId(), entity.name(), entity.visibility(),
-            read(entity.items(), ITEMS), entity.createdAt(), entity.updatedAt(),
-            entity.deletedAt(), entity.version()
-        );
+                entity.id(),
+                entity.userId(),
+                entity.name(),
+                entity.visibility(),
+                read(entity.items(), ITEMS),
+                entity.createdAt(),
+                entity.updatedAt(),
+                entity.deletedAt(),
+                entity.version());
     }
 
     private ApplicationRecord application(PackingTemplateApplicationJpaEntity entity) {
         return new ApplicationRecord(
-            entity.id(), entity.tripId(), entity.templateId(), entity.appliedBy(),
-            entity.appliedAt(), read(entity.itemIds(), IDS)
-        );
+                entity.id(),
+                entity.tripId(),
+                entity.templateId(),
+                entity.appliedBy(),
+                entity.appliedAt(),
+                read(entity.itemIds(), IDS));
     }
 
     private String write(Object value) {

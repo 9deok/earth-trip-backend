@@ -1,2 +1,23 @@
-package com.earthtrip.planning.adapter.in.web.api.v1.trips.by_trip_id.today;import com.earthtrip.planning.application.port.in.ExecutionPlanningUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import java.util.UUID;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/v1/trips/{tripId}/today") class TodayController{private final ExecutionPlanningUseCase useCase;private final CurrentActor actor;TodayController(ExecutionPlanningUseCase u,CurrentActor a){useCase=u;actor=a;}@GetMapping ExecutionPlanningUseCase.TodayResult get(@PathVariable UUID tripId){return useCase.today(tripId,actor.requireUserId());}}
+package com.earthtrip.planning.adapter.in.web.api.v1.trips.by_trip_id.today;
+
+import com.earthtrip.planning.application.port.in.TodayExecutionUseCase;
+import com.earthtrip.sharedkernel.security.CurrentActor;
+import java.util.UUID;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/today")
+class TodayController {
+    private final TodayExecutionUseCase useCase;
+    private final CurrentActor actor;
+
+    TodayController(TodayExecutionUseCase u, CurrentActor a) {
+        useCase = u;
+        actor = a;
+    }
+
+    @GetMapping
+    TodayExecutionUseCase.TodayResult get(@PathVariable UUID tripId) {
+        return useCase.today(tripId, actor.requireUserId());
+    }
+}

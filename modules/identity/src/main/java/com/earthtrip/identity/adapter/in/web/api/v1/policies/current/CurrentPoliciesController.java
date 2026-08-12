@@ -24,19 +24,23 @@ class CurrentPoliciesController {
 
     private static CurrentPolicyResponse response(PolicyUseCase.PolicyResult result) {
         return new CurrentPolicyResponse(
-            result.policyId(), result.type(), result.version(), result.required(), result.title(),
-            result.summary(), result.contentUrl(), result.publishedAt()
-        );
+                result.policyId(),
+                result.type(),
+                result.version(),
+                result.required(),
+                result.title(),
+                result.summary(),
+                result.contentUrl(),
+                result.publishedAt());
     }
 }
 
 record CurrentPolicyResponse(
-    String policyId,
-    String type,
-    String version,
-    boolean required,
-    String title,
-    String summary,
-    String contentUrl,
-    Instant publishedAt
-) { }
+        String policyId,
+        String type,
+        String version,
+        boolean required,
+        String title,
+        String summary,
+        String contentUrl,
+        Instant publishedAt) {}

@@ -22,9 +22,7 @@ class OperationByIdController {
 
     @GetMapping
     OfflineOperationUseCase.OperationResult get(
-        @PathVariable UUID tripId,
-        @PathVariable UUID operationId
-    ) {
+            @PathVariable UUID tripId, @PathVariable UUID operationId) {
         return useCase.get(tripId, operationId, actor.requireUserId());
     }
 }

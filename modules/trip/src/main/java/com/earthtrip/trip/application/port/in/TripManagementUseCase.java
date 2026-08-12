@@ -9,6 +9,8 @@ public interface TripManagementUseCase {
 
     List<TripResult> list(UUID actorUserId);
 
+    List<TripResult> listDeletionPending(UUID actorUserId);
+
     TripResult get(UUID tripId, UUID actorUserId);
 
     TripResult update(UUID tripId, UUID actorUserId, UpdateTripCommand command);
@@ -20,69 +22,90 @@ public interface TripManagementUseCase {
     TripResult copy(UUID tripId, UUID actorUserId, UUID requestId, String title);
 
     record UpdateTripCommand(
-        String title,
-        String status,
-        LocalDate startDate,
-        LocalDate endDate,
-        String timeZone,
-        String defaultCurrency,
-        String planningMode,
-        String pace,
-        Integer companionCount,
-        List<String> companionNames,
-        String dateMode,
-        String travelMode,
-        String departurePoint,
-        String returnPoint,
-        Integer firstDayStartMinutes,
-        Integer lastDayEndMinutes,
-        Integer overnightTravelNights,
-        Boolean reduceStairs,
-        Boolean frequentBreaks,
-        Integer walkingLimitMinutes,
-        String dietaryNotes,
-        long baseVersion
-    ) {
+            String title,
+            String status,
+            LocalDate startDate,
+            LocalDate endDate,
+            String timeZone,
+            String defaultCurrency,
+            String planningMode,
+            String pace,
+            Integer companionCount,
+            List<String> companionNames,
+            String dateMode,
+            String travelMode,
+            String departurePoint,
+            String returnPoint,
+            Integer firstDayStartMinutes,
+            Integer lastDayEndMinutes,
+            Integer overnightTravelNights,
+            Boolean reduceStairs,
+            Boolean frequentBreaks,
+            Integer walkingLimitMinutes,
+            String dietaryNotes,
+            long baseVersion) {
         public UpdateTripCommand(
-            String title, String status, LocalDate startDate, LocalDate endDate,
-            String timeZone, String defaultCurrency, String planningMode,
-            String pace, long baseVersion
-        ) {
+                String title,
+                String status,
+                LocalDate startDate,
+                LocalDate endDate,
+                String timeZone,
+                String defaultCurrency,
+                String planningMode,
+                String pace,
+                long baseVersion) {
             this(
-                title, status, startDate, endDate, timeZone, defaultCurrency,
-                planningMode, pace, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, baseVersion
-            );
+                    title,
+                    status,
+                    startDate,
+                    endDate,
+                    timeZone,
+                    defaultCurrency,
+                    planningMode,
+                    pace,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    baseVersion);
         }
     }
 
     record TripResult(
-        UUID tripId,
-        UUID ownerUserId,
-        String title,
-        String status,
-        LocalDate startDate,
-        LocalDate endDate,
-        String timeZone,
-        String defaultCurrency,
-        String planningMode,
-        String pace,
-        int companionCount,
-        List<String> companionNames,
-        String dateMode,
-        String travelMode,
-        String departurePoint,
-        String returnPoint,
-        int firstDayStartMinutes,
-        int lastDayEndMinutes,
-        int overnightTravelNights,
-        boolean reduceStairs,
-        boolean frequentBreaks,
-        int walkingLimitMinutes,
-        String dietaryNotes,
-        long version,
-        Instant createdAt,
-        Instant updatedAt,
-        Instant scheduledDeletionAt
-    ) { }
+            UUID tripId,
+            UUID ownerUserId,
+            String title,
+            String status,
+            LocalDate startDate,
+            LocalDate endDate,
+            String timeZone,
+            String defaultCurrency,
+            String planningMode,
+            String pace,
+            int companionCount,
+            List<String> companionNames,
+            String dateMode,
+            String travelMode,
+            String departurePoint,
+            String returnPoint,
+            int firstDayStartMinutes,
+            int lastDayEndMinutes,
+            int overnightTravelNights,
+            boolean reduceStairs,
+            boolean frequentBreaks,
+            int walkingLimitMinutes,
+            String dietaryNotes,
+            long version,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant scheduledDeletionAt) {}
 }

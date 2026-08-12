@@ -37,31 +37,26 @@ class TripTemplateByIdController {
 
     @PatchMapping
     TripTemplateUseCase.TemplateResult update(
-        @PathVariable UUID templateId,
-        @Valid @RequestBody TripTemplateUpdateRequest request
-    ) {
+            @PathVariable UUID templateId, @Valid @RequestBody TripTemplateUpdateRequest request) {
         return useCase.update(
-            templateId, actor.requireUserId(),
-            new TripTemplateUseCase.UpdateCommand(
-                request.name(), request.description(), request.includeScopes(),
-                request.baseVersion()
-            )
-        );
+                templateId,
+                actor.requireUserId(),
+                new TripTemplateUseCase.UpdateCommand(
+                        request.name(),
+                        request.description(),
+                        request.includeScopes(),
+                        request.baseVersion()));
     }
 
     @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void delete(
-        @PathVariable UUID templateId,
-        @RequestParam @PositiveOrZero long baseVersion
-    ) {
+    void delete(@PathVariable UUID templateId, @RequestParam @PositiveOrZero long baseVersion) {
         useCase.delete(templateId, actor.requireUserId(), baseVersion);
     }
 }
 
 record TripTemplateUpdateRequest(
-    @Size(min = 1, max = 120) String name,
-    @Size(max = 500) String description,
-    Set<String> includeScopes,
-    @PositiveOrZero long baseVersion
-) { }
+        @Size(min = 1, max = 120) String name,
+        @Size(max = 500) String description,
+        Set<String> includeScopes,
+        @PositiveOrZero long baseVersion) {}

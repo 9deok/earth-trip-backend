@@ -31,17 +31,17 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
     private final Clock clock;
 
     LocalFileObjectStorageAdapter(
-        @Value("${earthtrip.storage.local.root:}") String root,
-        @Value("${earthtrip.backend-public-base-url:http://localhost:8080}") String backendBaseUrl,
-        @Value("${earthtrip.storage.local.signing-key:}") String signingKey,
-        Clock clock
-    ) {
-        this.root = root == null || root.isBlank()
-            ? null
-            : Path.of(root).toAbsolutePath().normalize();
-        this.backendBaseUrl = backendBaseUrl == null
-            ? "http://localhost:8080"
-            : backendBaseUrl.strip().replaceAll("/+$", "");
+            @Value("${earthtrip.storage.local.root:}") String root,
+            @Value("${earthtrip.backend-public-base-url:http://localhost:8080}")
+                    String backendBaseUrl,
+            @Value("${earthtrip.storage.local.signing-key:}") String signingKey,
+            Clock clock) {
+        this.root =
+                root == null || root.isBlank() ? null : Path.of(root).toAbsolutePath().normalize();
+        this.backendBaseUrl =
+                backendBaseUrl == null
+                        ? "http://localhost:8080"
+                        : backendBaseUrl.strip().replaceAll("/+$", "");
         this.signingKey = decodeKey(signingKey);
         this.clock = clock;
     }
@@ -53,32 +53,28 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
             throw EarthTripException.badRequest("INVALID_FILE_SIZE", "파일 크기를 확인해 주세요.");
         }
         Instant expiresAt = clock.instant().plus(SIGNED_URL_TTL);
-        String token = sign(new Claim(
-            "UPLOAD", expiresAt.getEpochSecond(), storageKey, mimeType, sizeBytes, checksum
-        ));
-        return new SignedUrl(
-            backendBaseUrl + "/api/v1/storage/uploads/" + token,
-            expiresAt
-        );
+        String token =
+                sign(
+                        new Claim(
+                                "UPLOAD",
+                                expiresAt.getEpochSecond(),
+                                storageKey,
+                                mimeType,
+                                sizeBytes,
+                                checksum));
+        return new SignedUrl(backendBaseUrl + "/api/v1/storage/uploads/" + token, expiresAt);
     }
 
     @Override
-    public void verifyUpload(
-        String storageKey,
-        String mimeType,
-        long sizeBytes,
-        String checksum
-    ) {
+    public void verifyUpload(String storageKey, String mimeType, long sizeBytes, String checksum) {
         requireConfigured();
         Path file = path(storageKey);
         try {
             if (!Files.isRegularFile(file)
-                || Files.size(file) != sizeBytes
-                || !checksum.equalsIgnoreCase(sha256(file))) {
+                    || Files.size(file) != sizeBytes
+                    || !checksum.equalsIgnoreCase(sha256(file))) {
                 throw EarthTripException.conflict(
-                    "UPLOADED_FILE_MISMATCH",
-                    "업로드된 파일의 크기 또는 체크섬이 요청과 일치하지 않습니다."
-                );
+                        "UPLOADED_FILE_MISMATCH", "업로드된 파일의 크기 또는 체크섬이 요청과 일치하지 않습니다.");
             }
         } catch (IOException exception) {
             throw storageUnavailable();
@@ -94,15 +90,16 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
         }
         Instant expiresAt = clock.instant().plus(SIGNED_URL_TTL);
         String contentType = storedContentType(file);
-        String token = sign(new Claim(
-            "DOWNLOAD", expiresAt.getEpochSecond(), storageKey,
-            contentType == null ? "application/octet-stream" : contentType,
-            -1, ""
-        ));
-        return new SignedUrl(
-            backendBaseUrl + "/api/v1/storage/downloads/" + token,
-            expiresAt
-        );
+        String token =
+                sign(
+                        new Claim(
+                                "DOWNLOAD",
+                                expiresAt.getEpochSecond(),
+                                storageKey,
+                                contentType == null ? "application/octet-stream" : contentType,
+                                -1,
+                                ""));
+        return new SignedUrl(backendBaseUrl + "/api/v1/storage/downloads/" + token, expiresAt);
     }
 
     @Override
@@ -123,25 +120,20 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
         String normalizedContentType = normalizeContentType(contentType);
         if (!claim.contentType().equalsIgnoreCase(normalizedContentType)) {
             throw EarthTripException.badRequest(
-                "UPLOAD_CONTENT_TYPE_MISMATCH",
-                "업로드 Content-Type이 발급된 세션과 일치하지 않습니다."
-            );
+                    "UPLOAD_CONTENT_TYPE_MISMATCH", "업로드 Content-Type이 발급된 세션과 일치하지 않습니다.");
         }
         if (content.length != claim.sizeBytes()) {
             throw EarthTripException.badRequest(
-                "UPLOAD_SIZE_MISMATCH",
-                "업로드 크기가 발급된 세션과 일치하지 않습니다."
-            );
+                    "UPLOAD_SIZE_MISMATCH", "업로드 크기가 발급된 세션과 일치하지 않습니다.");
         }
         String digest = sha256(content);
         if (!MessageDigest.isEqual(
-            digest.getBytes(StandardCharsets.US_ASCII),
-            claim.checksum().toLowerCase(java.util.Locale.ROOT).getBytes(StandardCharsets.US_ASCII)
-        )) {
+                digest.getBytes(StandardCharsets.US_ASCII),
+                claim.checksum()
+                        .toLowerCase(java.util.Locale.ROOT)
+                        .getBytes(StandardCharsets.US_ASCII))) {
             throw EarthTripException.badRequest(
-                "UPLOAD_CHECKSUM_MISMATCH",
-                "업로드 체크섬이 발급된 세션과 일치하지 않습니다."
-            );
+                    "UPLOAD_CHECKSUM_MISMATCH", "업로드 체크섬이 발급된 세션과 일치하지 않습니다.");
         }
         Path target = path(claim.storageKey());
         Path temporary = null;
@@ -151,19 +143,14 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
             Files.write(temporary, content);
             try {
                 Files.move(
-                    temporary,
-                    target,
-                    StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING
-                );
+                        temporary,
+                        target,
+                        StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
             } catch (java.nio.file.AtomicMoveNotSupportedException exception) {
                 Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING);
             }
-            Files.writeString(
-                metadataPath(target),
-                claim.contentType(),
-                StandardCharsets.UTF_8
-            );
+            Files.writeString(metadataPath(target), claim.contentType(), StandardCharsets.UTF_8);
         } catch (IOException exception) {
             if (temporary != null) {
                 try {
@@ -182,10 +169,7 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
         Path file = path(claim.storageKey());
         try {
             if (!Files.isRegularFile(file)) {
-                throw EarthTripException.notFound(
-                    "STORED_FILE_NOT_FOUND",
-                    "저장된 파일을 찾을 수 없습니다."
-                );
+                throw EarthTripException.notFound("STORED_FILE_NOT_FOUND", "저장된 파일을 찾을 수 없습니다.");
             }
             return new StoredContent(Files.readAllBytes(file), claim.contentType());
         } catch (IOException exception) {
@@ -194,10 +178,13 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
     }
 
     private String sign(Claim claim) {
-        String payload = Base64.getUrlEncoder().withoutPadding().encodeToString(
-            claim.serialize().getBytes(StandardCharsets.UTF_8)
-        );
-        return payload + "." + Base64.getUrlEncoder().withoutPadding().encodeToString(hmac(payload));
+        String payload =
+                Base64.getUrlEncoder()
+                        .withoutPadding()
+                        .encodeToString(claim.serialize().getBytes(StandardCharsets.UTF_8));
+        return payload
+                + "."
+                + Base64.getUrlEncoder().withoutPadding().encodeToString(hmac(payload));
     }
 
     private Claim verify(String token, String action) {
@@ -213,10 +200,8 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
         String serialized;
         try {
             supplied = Base64.getUrlDecoder().decode(parts[1]);
-            serialized = new String(
-                Base64.getUrlDecoder().decode(parts[0]),
-                StandardCharsets.UTF_8
-            );
+            serialized =
+                    new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8);
         } catch (IllegalArgumentException exception) {
             throw invalidToken();
         }
@@ -224,7 +209,8 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
             throw invalidToken();
         }
         Claim claim = Claim.parse(serialized);
-        if (!action.equals(claim.action()) || claim.expiresAtEpoch() < clock.instant().getEpochSecond()) {
+        if (!action.equals(claim.action())
+                || claim.expiresAtEpoch() < clock.instant().getEpochSecond()) {
             throw invalidToken();
         }
         return claim;
@@ -259,7 +245,8 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
         try {
             Path metadata = metadataPath(file);
             if (Files.isRegularFile(metadata)) {
-                String value = normalizeContentType(Files.readString(metadata, StandardCharsets.UTF_8));
+                String value =
+                        normalizeContentType(Files.readString(metadata, StandardCharsets.UTF_8));
                 if (!value.isBlank()) {
                     return value;
                 }
@@ -274,9 +261,7 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
     private void requireConfigured() {
         if (root == null || signingKey.length < 32) {
             throw EarthTripException.unavailable(
-                "OBJECT_STORAGE_NOT_CONFIGURED",
-                "로컬 파일 루트와 서명 키가 설정되지 않았습니다."
-            );
+                    "OBJECT_STORAGE_NOT_CONFIGURED", "로컬 파일 루트와 서명 키가 설정되지 않았습니다.");
         }
     }
 
@@ -290,8 +275,8 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
     private static byte[] decodeKey(String value) {
         try {
             return value == null || value.isBlank()
-                ? new byte[0]
-                : Base64.getDecoder().decode(value.strip());
+                    ? new byte[0]
+                    : Base64.getDecoder().decode(value.strip());
         } catch (IllegalArgumentException exception) {
             return new byte[0];
         }
@@ -321,39 +306,38 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
 
     private static EarthTripException invalidToken() {
         return EarthTripException.unauthorized(
-            "INVALID_STORAGE_TOKEN",
-            "파일 전송 토큰이 만료되었거나 올바르지 않습니다."
-        );
+                "INVALID_STORAGE_TOKEN", "파일 전송 토큰이 만료되었거나 올바르지 않습니다.");
     }
 
     private static EarthTripException invalidStorageKey() {
-        return EarthTripException.badRequest(
-            "INVALID_STORAGE_KEY",
-            "파일 저장 경로가 올바르지 않습니다."
-        );
+        return EarthTripException.badRequest("INVALID_STORAGE_KEY", "파일 저장 경로가 올바르지 않습니다.");
     }
 
     private static EarthTripException storageUnavailable() {
         return EarthTripException.unavailable(
-            "OBJECT_STORAGE_UNAVAILABLE",
-            "로컬 파일 저장소를 사용할 수 없습니다."
-        );
+                "OBJECT_STORAGE_UNAVAILABLE", "로컬 파일 저장소를 사용할 수 없습니다.");
     }
 
     private record Claim(
-        String action,
-        long expiresAtEpoch,
-        String storageKey,
-        String contentType,
-        long sizeBytes,
-        String checksum
-    ) {
+            String action,
+            long expiresAtEpoch,
+            String storageKey,
+            String contentType,
+            long sizeBytes,
+            String checksum) {
         String serialize() {
             Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
-            return action + ":" + expiresAtEpoch + ":"
-                + encode(encoder, storageKey) + ":"
-                + encode(encoder, contentType) + ":"
-                + sizeBytes + ":" + checksum;
+            return action
+                    + ":"
+                    + expiresAtEpoch
+                    + ":"
+                    + encode(encoder, storageKey)
+                    + ":"
+                    + encode(encoder, contentType)
+                    + ":"
+                    + sizeBytes
+                    + ":"
+                    + checksum;
         }
 
         static Claim parse(String value) {
@@ -364,13 +348,12 @@ class LocalFileObjectStorageAdapter implements ObjectStoragePort, ObjectContentP
             try {
                 Base64.Decoder decoder = Base64.getUrlDecoder();
                 return new Claim(
-                    parts[0],
-                    Long.parseLong(parts[1]),
-                    decode(decoder, parts[2]),
-                    decode(decoder, parts[3]),
-                    Long.parseLong(parts[4]),
-                    parts[5]
-                );
+                        parts[0],
+                        Long.parseLong(parts[1]),
+                        decode(decoder, parts[2]),
+                        decode(decoder, parts[3]),
+                        Long.parseLong(parts[4]),
+                        parts[5]);
             } catch (IllegalArgumentException exception) {
                 throw invalidToken();
             }

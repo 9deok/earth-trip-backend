@@ -30,15 +30,13 @@ class SesMailClient {
 
     @Autowired
     SesMailClient(
-        @Value("${earthtrip.providers.ses.region:ap-northeast-2}") String region,
-        @Value("${earthtrip.providers.ses.from-email:}") String fromEmail,
-        @Value("${earthtrip.providers.ses.configuration-set:}") String configurationSet
-    ) {
+            @Value("${earthtrip.providers.ses.region:ap-northeast-2}") String region,
+            @Value("${earthtrip.providers.ses.from-email:}") String fromEmail,
+            @Value("${earthtrip.providers.ses.configuration-set:}") String configurationSet) {
         this(
-            SesV2Client.builder().region(Region.of(region(region))).build(),
-            fromEmail,
-            configurationSet
-        );
+                SesV2Client.builder().region(Region.of(region(region))).build(),
+                fromEmail,
+                configurationSet);
     }
 
     SesMailClient(SesV2Client ses, String fromEmail, String configurationSet) {
@@ -51,28 +49,30 @@ class SesMailClient {
         return !fromEmail.isBlank();
     }
 
-    void send(
-        String to,
-        String subject,
-        String textBody,
-        String htmlBody,
-        String purpose
-    ) {
+    void send(String to, String subject, String textBody, String htmlBody, String purpose) {
         requireConfigured();
-        SendEmailRequest.Builder request = SendEmailRequest.builder()
-            .fromEmailAddress(fromEmail)
-            .destination(Destination.builder().toAddresses(to).build())
-            .content(EmailContent.builder().simple(Message.builder()
-                .subject(content(subject))
-                .body(Body.builder()
-                    .text(content(textBody))
-                    .html(content(htmlBody))
-                    .build())
-                .build()).build())
-            .emailTags(List.of(MessageTag.builder()
-                .name("earthtrip-purpose")
-                .value(tagValue(purpose))
-                .build()));
+        SendEmailRequest.Builder request =
+                SendEmailRequest.builder()
+                        .fromEmailAddress(fromEmail)
+                        .destination(Destination.builder().toAddresses(to).build())
+                        .content(
+                                EmailContent.builder()
+                                        .simple(
+                                                Message.builder()
+                                                        .subject(content(subject))
+                                                        .body(
+                                                                Body.builder()
+                                                                        .text(content(textBody))
+                                                                        .html(content(htmlBody))
+                                                                        .build())
+                                                        .build())
+                                        .build())
+                        .emailTags(
+                                List.of(
+                                        MessageTag.builder()
+                                                .name("earthtrip-purpose")
+                                                .value(tagValue(purpose))
+                                                .build()));
         if (!configurationSet.isBlank()) {
             request.configurationSetName(configurationSet);
         }
@@ -84,41 +84,36 @@ class SesMailClient {
             }
         } catch (SesV2Exception exception) {
             int status = exception.statusCode();
-            String providerCode = exception.awsErrorDetails() == null
-                ? exception.getClass().getSimpleName()
-                : normalize(exception.awsErrorDetails().errorCode());
+            String providerCode =
+                    exception.awsErrorDetails() == null
+                            ? exception.getClass().getSimpleName()
+                            : normalize(exception.awsErrorDetails().errorCode());
             if (status == 429 || status >= 500) {
                 throw new EarthTripException(
-                    "SES_PROVIDER_UNAVAILABLE",
-                    503,
-                    "AWS SES 메일 제공자가 일시적으로 요청을 처리할 수 없습니다.",
-                    Map.of("providerStatus", status, "providerCode", providerCode)
-                );
+                        "SES_PROVIDER_UNAVAILABLE",
+                        503,
+                        "AWS SES 메일 제공자가 일시적으로 요청을 처리할 수 없습니다.",
+                        Map.of("providerStatus", status, "providerCode", providerCode));
             }
             throw rejected(status, providerCode);
         } catch (SdkClientException exception) {
             throw EarthTripException.unavailable(
-                "SES_PROVIDER_UNAVAILABLE",
-                "AWS SES 메일 제공자에 연결할 수 없습니다."
-            );
+                    "SES_PROVIDER_UNAVAILABLE", "AWS SES 메일 제공자에 연결할 수 없습니다.");
         }
     }
 
     private EarthTripException rejected(int status, String providerCode) {
         return new EarthTripException(
-            "SES_DELIVERY_REJECTED",
-            502,
-            "AWS SES가 메일 발송 요청을 거절했습니다.",
-            Map.of("providerStatus", status, "providerCode", providerCode)
-        );
+                "SES_DELIVERY_REJECTED",
+                502,
+                "AWS SES가 메일 발송 요청을 거절했습니다.",
+                Map.of("providerStatus", status, "providerCode", providerCode));
     }
 
     private void requireConfigured() {
         if (!configured()) {
             throw EarthTripException.unavailable(
-                "EMAIL_PROVIDER_NOT_CONFIGURED",
-                "AWS SES 발신 주소가 설정되지 않았습니다."
-            );
+                    "EMAIL_PROVIDER_NOT_CONFIGURED", "AWS SES 발신 주소가 설정되지 않았습니다.");
         }
     }
 

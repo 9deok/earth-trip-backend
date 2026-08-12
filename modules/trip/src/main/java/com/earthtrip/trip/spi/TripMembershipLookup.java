@@ -6,5 +6,6 @@ import java.util.UUID;
 
 public interface TripMembershipLookup {
     Optional<String> activeRole(UUID tripId, UUID userId);
+
     List<UUID> activeTripIds(UUID userId);
 }

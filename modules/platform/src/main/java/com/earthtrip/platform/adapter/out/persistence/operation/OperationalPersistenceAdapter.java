@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 @Component
 class OperationalPersistenceAdapter implements OperationalStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
     private final OperationalJobJpaRepository jobs;
     private final WebhookReceiptJpaRepository receipts;
     private final DeadLetterJpaRepository deadLetters;
@@ -22,12 +22,11 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
     private final ObjectMapper json;
 
     OperationalPersistenceAdapter(
-        OperationalJobJpaRepository jobs,
-        WebhookReceiptJpaRepository receipts,
-        DeadLetterJpaRepository deadLetters,
-        AdminAuditJpaRepository audits,
-        ObjectMapper json
-    ) {
+            OperationalJobJpaRepository jobs,
+            WebhookReceiptJpaRepository receipts,
+            DeadLetterJpaRepository deadLetters,
+            AdminAuditJpaRepository audits,
+            ObjectMapper json) {
         this.jobs = jobs;
         this.receipts = receipts;
         this.deadLetters = deadLetters;
@@ -36,12 +35,9 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
     }
 
     @Override
-    public Optional<WebhookReceiptRecord> webhookReceipt(
-        String provider,
-        String sourceEventId
-    ) {
+    public Optional<WebhookReceiptRecord> webhookReceipt(String provider, String sourceEventId) {
         return receipts.findByProviderAndSourceEventId(provider, sourceEventId)
-            .map(WebhookReceiptJpaEntity::record);
+                .map(WebhookReceiptJpaEntity::record);
     }
 
     @Override
@@ -57,19 +53,21 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
     @Override
     public List<JobRecord> jobs(String status, String jobType, int limit) {
         return jobs.search(status, jobType, PageRequest.of(0, limit)).stream()
-            .map(this::job)
-            .toList();
+                .map(this::job)
+                .toList();
     }
 
     @Override
     public JobRecord saveJob(JobRecord record) {
         String payload = write(record.payload());
-        OperationalJobJpaEntity entity = jobs.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record, payload);
-                return existing;
-            })
-            .orElseGet(() -> new OperationalJobJpaEntity(record, payload));
+        OperationalJobJpaEntity entity =
+                jobs.findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, payload);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new OperationalJobJpaEntity(record, payload));
         return job(jobs.saveAndFlush(entity));
     }
 
@@ -80,49 +78,45 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
 
     @Override
     public Optional<DeadLetterRecord> openDeadLetterForJob(UUID jobId) {
-        return deadLetters.findFirstByJobIdAndStatusOrderByCreatedAtDesc(
-            jobId.toString(),
-            "OPEN"
-        ).map(this::deadLetter);
+        return deadLetters
+                .findFirstByJobIdAndStatusOrderByCreatedAtDesc(jobId.toString(), "OPEN")
+                .map(this::deadLetter);
     }
 
     @Override
     public List<DeadLetterRecord> deadLetters(String status, int limit) {
         return deadLetters.search(status, PageRequest.of(0, limit)).stream()
-            .map(this::deadLetter)
-            .toList();
+                .map(this::deadLetter)
+                .toList();
     }
 
     @Override
     public DeadLetterRecord saveDeadLetter(DeadLetterRecord record) {
         String payload = write(record.payload());
-        DeadLetterJpaEntity entity = deadLetters.findById(record.id().toString())
-            .map(existing -> {
-                existing.apply(record, payload);
-                return existing;
-            })
-            .orElseGet(() -> new DeadLetterJpaEntity(record, payload));
+        DeadLetterJpaEntity entity =
+                deadLetters
+                        .findById(record.id().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, payload);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new DeadLetterJpaEntity(record, payload));
         return deadLetter(deadLetters.saveAndFlush(entity));
     }
 
     @Override
     public AuditRecord saveAudit(AuditRecord record) {
-        return audit(audits.saveAndFlush(new AdminAuditJpaEntity(
-            record,
-            write(record.metadata())
-        )));
+        return audit(
+                audits.saveAndFlush(new AdminAuditJpaEntity(record, write(record.metadata()))));
     }
 
     @Override
     public List<AuditRecord> auditEvents(
-        String action,
-        String targetType,
-        String targetId,
-        int limit
-    ) {
+            String action, String targetType, String targetId, int limit) {
         return audits.search(action, targetType, targetId, PageRequest.of(0, limit)).stream()
-            .map(this::audit)
-            .toList();
+                .map(this::audit)
+                .toList();
     }
 
     private JobRecord job(OperationalJobJpaEntity entity) {

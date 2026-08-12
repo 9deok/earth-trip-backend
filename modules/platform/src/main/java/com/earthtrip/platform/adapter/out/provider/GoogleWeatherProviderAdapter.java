@@ -27,27 +27,24 @@ class GoogleWeatherProviderAdapter implements WeatherProviderPort {
     }
 
     @Override
-    public List<ProviderProxyUseCase.WeatherDay> forecast(
-        ProviderProxyUseCase.WeatherQuery query
-    ) {
+    public List<ProviderProxyUseCase.WeatherDay> forecast(ProviderProxyUseCase.WeatherQuery query) {
         LocalDate today = LocalDate.now(clock.withZone(java.time.ZoneId.of(query.timeZone())));
-        if (query.startDate().isBefore(today)
-            || query.endDate().isAfter(today.plusDays(9))) {
+        if (query.startDate().isBefore(today) || query.endDate().isAfter(today.plusDays(9))) {
             throw EarthTripException.badRequest(
-                "WEATHER_DATE_OUT_OF_FORECAST_RANGE",
-                "Google Weather 예보는 현지 오늘부터 최대 10일까지 조회할 수 있습니다."
-            );
+                    "WEATHER_DATE_OUT_OF_FORECAST_RANGE",
+                    "Google Weather 예보는 현지 오늘부터 최대 10일까지 조회할 수 있습니다.");
         }
         int days = Math.toIntExact(ChronoUnit.DAYS.between(today, query.endDate())) + 1;
-        URI uri = UriComponentsBuilder
-            .fromUriString("https://weather.googleapis.com/v1/forecast/days:lookup")
-            .queryParam("location.latitude", query.latitude())
-            .queryParam("location.longitude", query.longitude())
-            .queryParam("days", days)
-            .queryParam("unitsSystem", "METRIC")
-            .queryParam("languageCode", "ko")
-            .build(true)
-            .toUri();
+        URI uri =
+                UriComponentsBuilder.fromUriString(
+                                "https://weather.googleapis.com/v1/forecast/days:lookup")
+                        .queryParam("location.latitude", query.latitude())
+                        .queryParam("location.longitude", query.longitude())
+                        .queryParam("days", days)
+                        .queryParam("unitsSystem", "METRIC")
+                        .queryParam("languageCode", "ko")
+                        .build(true)
+                        .toUri();
         JsonNode response = client.get(uri, null, "WEATHER_PROVIDER");
         List<ProviderProxyUseCase.WeatherDay> result = new ArrayList<>();
         for (JsonNode day : response.path("forecastDays")) {
@@ -57,18 +54,17 @@ class GoogleWeatherProviderAdapter implements WeatherProviderPort {
             }
             JsonNode daytime = day.path("daytimeForecast");
             JsonNode nighttime = day.path("nighttimeForecast");
-            result.add(new ProviderProxyUseCase.WeatherDay(
-                date,
-                maximum(
-                    percent(daytime.path("precipitation").path("probability")),
-                    percent(nighttime.path("precipitation").path("probability"))
-                ),
-                degrees(day.path("minTemperature")),
-                degrees(day.path("maxTemperature")),
-                daytime.path("weatherCondition").path("type").asText("UNKNOWN"),
-                "GOOGLE_WEATHER",
-                clock.instant()
-            ));
+            result.add(
+                    new ProviderProxyUseCase.WeatherDay(
+                            date,
+                            maximum(
+                                    percent(daytime.path("precipitation").path("probability")),
+                                    percent(nighttime.path("precipitation").path("probability"))),
+                            degrees(day.path("minTemperature")),
+                            degrees(day.path("maxTemperature")),
+                            daytime.path("weatherCondition").path("type").asText("UNKNOWN"),
+                            "GOOGLE_WEATHER",
+                            clock.instant()));
         }
         result.sort(Comparator.comparing(ProviderProxyUseCase.WeatherDay::localDate));
         return List.copyOf(result);
@@ -87,14 +83,14 @@ class GoogleWeatherProviderAdapter implements WeatherProviderPort {
 
     private static BigDecimal degrees(JsonNode node) {
         return node.has("degrees") && node.get("degrees").isNumber()
-            ? node.get("degrees").decimalValue()
-            : null;
+                ? node.get("degrees").decimalValue()
+                : null;
     }
 
     private static BigDecimal percent(JsonNode node) {
         return node.has("percent") && node.get("percent").isNumber()
-            ? node.get("percent").decimalValue().movePointLeft(2)
-            : BigDecimal.ZERO;
+                ? node.get("percent").decimalValue().movePointLeft(2)
+                : BigDecimal.ZERO;
     }
 
     private static BigDecimal maximum(BigDecimal first, BigDecimal second) {

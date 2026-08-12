@@ -16,48 +16,42 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping(
-    "/api/v1/trips/{tripId}/statement-imports/{importId}/candidates/{candidateId}/expense-link"
-)
+        "/api/v1/trips/{tripId}/statement-imports/{importId}/candidates/{candidateId}/expense-link")
 class StatementCandidateExpenseLinkController {
 
     private final StatementImportUseCase useCase;
     private final CurrentActor actor;
 
-    StatementCandidateExpenseLinkController(
-        StatementImportUseCase useCase,
-        CurrentActor actor
-    ) {
+    StatementCandidateExpenseLinkController(StatementImportUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PutMapping
     StatementImportUseCase.CandidateResult put(
-        @PathVariable UUID tripId,
-        @PathVariable UUID importId,
-        @PathVariable UUID candidateId,
-        @Valid @RequestBody StatementCandidateExpenseLinkRequest request
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID importId,
+            @PathVariable UUID candidateId,
+            @Valid @RequestBody StatementCandidateExpenseLinkRequest request) {
         return useCase.linkExpense(
-            tripId, importId, candidateId, actor.requireUserId(),
-            request.expenseId(), request.baseVersion()
-        );
+                tripId,
+                importId,
+                candidateId,
+                actor.requireUserId(),
+                request.expenseId(),
+                request.baseVersion());
     }
 
     @DeleteMapping
     StatementImportUseCase.CandidateResult delete(
-        @PathVariable UUID tripId,
-        @PathVariable UUID importId,
-        @PathVariable UUID candidateId,
-        @RequestParam @PositiveOrZero long baseVersion
-    ) {
+            @PathVariable UUID tripId,
+            @PathVariable UUID importId,
+            @PathVariable UUID candidateId,
+            @RequestParam @PositiveOrZero long baseVersion) {
         return useCase.unlinkExpense(
-            tripId, importId, candidateId, actor.requireUserId(), baseVersion
-        );
+                tripId, importId, candidateId, actor.requireUserId(), baseVersion);
     }
 }
 
 record StatementCandidateExpenseLinkRequest(
-    @NotNull UUID expenseId,
-    @PositiveOrZero long baseVersion
-) { }
+        @NotNull UUID expenseId, @PositiveOrZero long baseVersion) {}

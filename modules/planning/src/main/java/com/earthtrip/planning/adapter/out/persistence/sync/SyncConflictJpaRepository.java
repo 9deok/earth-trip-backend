@@ -6,7 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 interface SyncConflictJpaRepository extends JpaRepository<SyncConflictJpaEntity, String> {
 
     List<SyncConflictJpaEntity> findAllByTripIdAndStatusOrderByCreatedAtAsc(
-        String tripId,
-        String status
-    );
+            String tripId, String status);
 }

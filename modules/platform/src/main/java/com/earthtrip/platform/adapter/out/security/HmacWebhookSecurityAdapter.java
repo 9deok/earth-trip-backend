@@ -19,13 +19,13 @@ import org.springframework.stereotype.Component;
 @Component
 class HmacWebhookSecurityAdapter implements WebhookSecurityPort {
 
-    private static final Set<String> PROVIDERS = Set.of(
-        "object-storage",
-        "malware-scan",
-        "calendar",
-        "push-delivery",
-        "financial-provider"
-    );
+    private static final Set<String> PROVIDERS =
+            Set.of(
+                    "object-storage",
+                    "malware-scan",
+                    "calendar",
+                    "push-delivery",
+                    "financial-provider");
 
     private final Environment environment;
     private final Clock clock;
@@ -37,70 +37,46 @@ class HmacWebhookSecurityAdapter implements WebhookSecurityPort {
 
     @Override
     public VerifiedWebhook verify(
-        String provider,
-        String eventId,
-        String timestamp,
-        String signature,
-        String rawBody
-    ) {
+            String provider, String eventId, String timestamp, String signature, String rawBody) {
         String normalizedProvider = normalizeProvider(provider);
         String normalizedEventId = requireHeader(eventId, "WEBHOOK_EVENT_ID_REQUIRED");
         if (normalizedEventId.length() > 160) {
-            throw EarthTripException.badRequest(
-                "WEBHOOK_EVENT_ID_TOO_LONG",
-                "웹훅 이벤트 ID가 너무 깁니다."
-            );
+            throw EarthTripException.badRequest("WEBHOOK_EVENT_ID_TOO_LONG", "웹훅 이벤트 ID가 너무 깁니다.");
         }
         String normalizedTimestamp = requireHeader(timestamp, "WEBHOOK_TIMESTAMP_REQUIRED");
         Instant occurredAt = parseTimestamp(normalizedTimestamp);
-        long maxAgeSeconds = environment.getProperty(
-            "earthtrip.internal.webhook-max-age-seconds",
-            Long.class,
-            300L
-        );
+        long maxAgeSeconds =
+                environment.getProperty(
+                        "earthtrip.internal.webhook-max-age-seconds", Long.class, 300L);
         if (Duration.between(occurredAt, clock.instant()).abs().getSeconds() > maxAgeSeconds) {
             throw EarthTripException.unauthorized(
-                "WEBHOOK_TIMESTAMP_EXPIRED",
-                "웹훅 timestamp가 허용 시간 범위를 벗어났습니다."
-            );
+                    "WEBHOOK_TIMESTAMP_EXPIRED", "웹훅 timestamp가 허용 시간 범위를 벗어났습니다.");
         }
-        String secret = environment.getProperty(
-            "earthtrip.internal.webhooks." + normalizedProvider + ".secret",
-            ""
-        );
+        String secret =
+                environment.getProperty(
+                        "earthtrip.internal.webhooks." + normalizedProvider + ".secret", "");
         if (secret.isBlank()) {
             throw EarthTripException.unavailable(
-                "WEBHOOK_SECRET_NOT_CONFIGURED",
-                normalizedProvider + " 웹훅 서명 키가 설정되지 않았습니다."
-            );
+                    "WEBHOOK_SECRET_NOT_CONFIGURED", normalizedProvider + " 웹훅 서명 키가 설정되지 않았습니다.");
         }
         String normalizedBody = rawBody == null ? "" : rawBody;
-        byte[] expected = hmac(
-            secret,
-            normalizedTimestamp + "." + normalizedEventId + "." + normalizedBody
-        );
+        byte[] expected =
+                hmac(secret, normalizedTimestamp + "." + normalizedEventId + "." + normalizedBody);
         byte[] supplied = decodeSignature(signature);
         if (!MessageDigest.isEqual(expected, supplied)) {
-            throw EarthTripException.unauthorized(
-                "INVALID_WEBHOOK_SIGNATURE",
-                "웹훅 서명이 올바르지 않습니다."
-            );
+            throw EarthTripException.unauthorized("INVALID_WEBHOOK_SIGNATURE", "웹훅 서명이 올바르지 않습니다.");
         }
         return new VerifiedWebhook(
-            normalizedProvider,
-            normalizedEventId,
-            HexFormat.of().formatHex(sha256(normalizedBody))
-        );
+                normalizedProvider,
+                normalizedEventId,
+                HexFormat.of().formatHex(sha256(normalizedBody)));
     }
 
     private static String normalizeProvider(String provider) {
-        String normalized = requireHeader(provider, "WEBHOOK_PROVIDER_REQUIRED")
-            .toLowerCase(Locale.ROOT);
+        String normalized =
+                requireHeader(provider, "WEBHOOK_PROVIDER_REQUIRED").toLowerCase(Locale.ROOT);
         if (!PROVIDERS.contains(normalized)) {
-            throw EarthTripException.notFound(
-                "WEBHOOK_PROVIDER_NOT_FOUND",
-                "지원하지 않는 웹훅 제공자입니다."
-            );
+            throw EarthTripException.notFound("WEBHOOK_PROVIDER_NOT_FOUND", "지원하지 않는 웹훅 제공자입니다.");
         }
         return normalized;
     }
@@ -113,9 +89,8 @@ class HmacWebhookSecurityAdapter implements WebhookSecurityPort {
             return Instant.parse(value);
         } catch (DateTimeParseException | ArithmeticException | NumberFormatException exception) {
             throw EarthTripException.badRequest(
-                "INVALID_WEBHOOK_TIMESTAMP",
-                "웹훅 timestamp는 epoch seconds 또는 ISO-8601 형식이어야 합니다."
-            );
+                    "INVALID_WEBHOOK_TIMESTAMP",
+                    "웹훅 timestamp는 epoch seconds 또는 ISO-8601 형식이어야 합니다.");
         }
     }
 
@@ -128,9 +103,7 @@ class HmacWebhookSecurityAdapter implements WebhookSecurityPort {
             return HexFormat.of().parseHex(signature);
         } catch (IllegalArgumentException exception) {
             throw EarthTripException.unauthorized(
-                "INVALID_WEBHOOK_SIGNATURE",
-                "웹훅 서명 형식이 올바르지 않습니다."
-            );
+                    "INVALID_WEBHOOK_SIGNATURE", "웹훅 서명 형식이 올바르지 않습니다.");
         }
     }
 
@@ -147,7 +120,7 @@ class HmacWebhookSecurityAdapter implements WebhookSecurityPort {
     private static byte[] sha256(String value) {
         try {
             return MessageDigest.getInstance("SHA-256")
-                .digest(value.getBytes(StandardCharsets.UTF_8));
+                    .digest(value.getBytes(StandardCharsets.UTF_8));
         } catch (java.security.NoSuchAlgorithmException exception) {
             throw new IllegalStateException("SHA-256을 초기화할 수 없습니다.", exception);
         }

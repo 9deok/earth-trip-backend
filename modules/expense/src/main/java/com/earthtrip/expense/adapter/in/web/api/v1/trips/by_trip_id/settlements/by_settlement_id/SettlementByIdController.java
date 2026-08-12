@@ -1,3 +1,46 @@
-package com.earthtrip.expense.adapter.in.web.api.v1.trips.by_trip_id.settlements.by_settlement_id;import com.earthtrip.expense.application.port.in.SettlementUseCase;import com.earthtrip.sharedkernel.security.CurrentActor;import jakarta.validation.Valid;import jakarta.validation.constraints.PositiveOrZero;import java.math.BigDecimal;import java.util.*;import org.springframework.web.bind.annotation.*;
-@RestController @RequestMapping("/api/v1/trips/{tripId}/settlements/{settlementId}") class SettlementByIdController{private final SettlementUseCase useCase;private final CurrentActor actor;SettlementByIdController(SettlementUseCase u,CurrentActor a){useCase=u;actor=a;}@GetMapping SettlementUseCase.SettlementResult get(@PathVariable UUID tripId,@PathVariable UUID settlementId){return useCase.get(tripId,settlementId,actor.requireUserId());}@PatchMapping SettlementUseCase.SettlementResult patch(@PathVariable UUID tripId,@PathVariable UUID settlementId,@Valid @RequestBody SettlementUpdate r){return useCase.update(tripId,settlementId,actor.requireUserId(),r.baseCurrency(),r.minorUnitRates(),r.baseVersion());}}
-record SettlementUpdate(String baseCurrency,Map<String,BigDecimal>minorUnitRates,@PositiveOrZero long baseVersion){}
+package com.earthtrip.expense.adapter.in.web.api.v1.trips.by_trip_id.settlements.by_settlement_id;
+
+import com.earthtrip.expense.application.port.in.SettlementUseCase;
+import com.earthtrip.sharedkernel.security.CurrentActor;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.PositiveOrZero;
+import java.math.BigDecimal;
+import java.util.*;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/trips/{tripId}/settlements/{settlementId}")
+class SettlementByIdController {
+    private final SettlementUseCase useCase;
+    private final CurrentActor actor;
+
+    SettlementByIdController(SettlementUseCase u, CurrentActor a) {
+        useCase = u;
+        actor = a;
+    }
+
+    @GetMapping
+    SettlementUseCase.SettlementResult get(
+            @PathVariable UUID tripId, @PathVariable UUID settlementId) {
+        return useCase.get(tripId, settlementId, actor.requireUserId());
+    }
+
+    @PatchMapping
+    SettlementUseCase.SettlementResult patch(
+            @PathVariable UUID tripId,
+            @PathVariable UUID settlementId,
+            @Valid @RequestBody SettlementUpdate r) {
+        return useCase.update(
+                tripId,
+                settlementId,
+                actor.requireUserId(),
+                r.baseCurrency(),
+                r.minorUnitRates(),
+                r.baseVersion());
+    }
+}
+
+record SettlementUpdate(
+        String baseCurrency,
+        Map<String, BigDecimal> minorUnitRates,
+        @PositiveOrZero long baseVersion) {}

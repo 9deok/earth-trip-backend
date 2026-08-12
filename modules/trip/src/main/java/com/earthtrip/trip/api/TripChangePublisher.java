@@ -7,21 +7,15 @@ import java.util.UUID;
 public interface TripChangePublisher {
 
     void publish(
-        UUID tripId,
-        UUID actorUserId,
-        String action,
-        String resourceType,
-        UUID resourceId,
-        Map<String, Object> details
-    );
+            UUID tripId,
+            UUID actorUserId,
+            String action,
+            String resourceType,
+            UUID resourceId,
+            Map<String, Object> details);
 
     default void publish(
-        UUID tripId,
-        UUID actorUserId,
-        String action,
-        String resourceType,
-        UUID resourceId
-    ) {
+            UUID tripId, UUID actorUserId, String action, String resourceType, UUID resourceId) {
         publish(tripId, actorUserId, action, resourceType, resourceId, Map.of());
     }
 }

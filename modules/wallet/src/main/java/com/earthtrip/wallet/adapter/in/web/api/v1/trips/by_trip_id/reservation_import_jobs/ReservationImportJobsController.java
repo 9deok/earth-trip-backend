@@ -35,40 +35,36 @@ class ReservationImportJobsController {
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
     ReservationImportUseCase.ImportResult create(
-        @PathVariable UUID tripId,
-        @Valid @RequestBody ReservationImportJobRequest request
-    ) {
+            @PathVariable UUID tripId, @Valid @RequestBody ReservationImportJobRequest request) {
         return useCase.create(
-            tripId,
-            actor.requireUserId(),
-            new ReservationImportUseCase.ImportCommand(
-                request.requestId(), request.sourceType(), request.sourcePayload(),
-                request.candidates() == null
-                    ? List.of()
-                    : request.candidates().stream().map(ReservationImportCandidateRequest::command)
-                        .toList()
-            )
-        );
+                tripId,
+                actor.requireUserId(),
+                new ReservationImportUseCase.ImportCommand(
+                        request.requestId(),
+                        request.sourceType(),
+                        request.sourcePayload(),
+                        request.candidates() == null
+                                ? List.of()
+                                : request.candidates().stream()
+                                        .map(ReservationImportCandidateRequest::command)
+                                        .toList()));
     }
 }
 
 record ReservationImportJobRequest(
-    @NotNull UUID requestId,
-    @NotBlank String sourceType,
-    @NotNull Map<String, Object> sourcePayload,
-    @Size(max = 100) List<@Valid ReservationImportCandidateRequest> candidates
-) { }
+        @NotNull UUID requestId,
+        @NotBlank String sourceType,
+        @NotNull Map<String, Object> sourcePayload,
+        @Size(max = 100) List<@Valid ReservationImportCandidateRequest> candidates) {}
 
 record ReservationImportCandidateRequest(
-    @NotNull UUID candidateId,
-    @NotBlank @Size(max = 200) String title,
-    String candidateType,
-    @NotNull Map<String, Object> payload,
-    @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal confidence
-) {
+        @NotNull UUID candidateId,
+        @NotBlank @Size(max = 200) String title,
+        String candidateType,
+        @NotNull Map<String, Object> payload,
+        @DecimalMin("0.0") @DecimalMax("1.0") BigDecimal confidence) {
     ReservationImportUseCase.CandidateCommand command() {
         return new ReservationImportUseCase.CandidateCommand(
-            candidateId, title, candidateType, payload, confidence
-        );
+                candidateId, title, candidateType, payload, confidence);
     }
 }

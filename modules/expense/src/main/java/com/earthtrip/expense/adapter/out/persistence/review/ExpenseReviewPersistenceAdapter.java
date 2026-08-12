@@ -19,27 +19,30 @@ class ExpenseReviewPersistenceAdapter implements ExpenseReviewStorePort {
     @Override
     public List<ReviewRecord> findAll(UUID tripId) {
         return repository.findAllByTripIdOrderByLocalDateAsc(tripId.toString()).stream()
-            .map(ExpenseReviewDayJpaEntity::toRecord)
-            .toList();
+                .map(ExpenseReviewDayJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
     public Optional<ReviewRecord> find(UUID tripId, LocalDate localDate) {
-        return repository.findById(new ExpenseReviewDayId(tripId.toString(), localDate))
-            .map(ExpenseReviewDayJpaEntity::toRecord);
+        return repository
+                .findById(new ExpenseReviewDayId(tripId.toString(), localDate))
+                .map(ExpenseReviewDayJpaEntity::toRecord);
     }
 
     @Override
     public ReviewRecord save(ReviewRecord record) {
-        ExpenseReviewDayId id = new ExpenseReviewDayId(
-            record.tripId().toString(), record.localDate()
-        );
-        ExpenseReviewDayJpaEntity entity = repository.findById(id)
-            .map(existing -> {
-                existing.apply(record);
-                return existing;
-            })
-            .orElseGet(() -> new ExpenseReviewDayJpaEntity(record));
+        ExpenseReviewDayId id =
+                new ExpenseReviewDayId(record.tripId().toString(), record.localDate());
+        ExpenseReviewDayJpaEntity entity =
+                repository
+                        .findById(id)
+                        .map(
+                                existing -> {
+                                    existing.apply(record);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new ExpenseReviewDayJpaEntity(record));
         return repository.saveAndFlush(entity).toRecord();
     }
 

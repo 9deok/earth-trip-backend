@@ -28,61 +28,52 @@ public interface OperationalStorePort {
 
     AuditRecord saveAudit(AuditRecord record);
 
-    List<AuditRecord> auditEvents(
-        String action,
-        String targetType,
-        String targetId,
-        int limit
-    );
+    List<AuditRecord> auditEvents(String action, String targetType, String targetId, int limit);
 
     record WebhookReceiptRecord(
-        UUID id,
-        String provider,
-        String sourceEventId,
-        String payloadDigest,
-        UUID jobId,
-        Instant receivedAt
-    ) { }
+            UUID id,
+            String provider,
+            String sourceEventId,
+            String payloadDigest,
+            UUID jobId,
+            Instant receivedAt) {}
 
     record JobRecord(
-        UUID id,
-        String jobType,
-        String sourceEventId,
-        String status,
-        Map<String, Object> payload,
-        int attemptCount,
-        Instant availableAt,
-        Instant createdAt,
-        Instant updatedAt,
-        Instant completedAt,
-        String errorCode,
-        String errorMessage,
-        long version
-    ) { }
+            UUID id,
+            String jobType,
+            String sourceEventId,
+            String status,
+            Map<String, Object> payload,
+            int attemptCount,
+            Instant availableAt,
+            Instant createdAt,
+            Instant updatedAt,
+            Instant completedAt,
+            String errorCode,
+            String errorMessage,
+            long version) {}
 
     record DeadLetterRecord(
-        UUID id,
-        UUID jobId,
-        String eventType,
-        Map<String, Object> payload,
-        String errorCode,
-        String errorMessage,
-        String status,
-        Instant createdAt,
-        Instant replayedAt,
-        long version
-    ) { }
+            UUID id,
+            UUID jobId,
+            String eventType,
+            Map<String, Object> payload,
+            String errorCode,
+            String errorMessage,
+            String status,
+            Instant createdAt,
+            Instant replayedAt,
+            long version) {}
 
     record AuditRecord(
-        Long sequenceId,
-        UUID eventId,
-        String actorType,
-        String actorId,
-        String action,
-        String targetType,
-        String targetId,
-        String outcome,
-        Map<String, Object> metadata,
-        Instant occurredAt
-    ) { }
+            Long sequenceId,
+            UUID eventId,
+            String actorType,
+            String actorId,
+            String action,
+            String targetType,
+            String targetId,
+            String outcome,
+            Map<String, Object> metadata,
+            Instant occurredAt) {}
 }

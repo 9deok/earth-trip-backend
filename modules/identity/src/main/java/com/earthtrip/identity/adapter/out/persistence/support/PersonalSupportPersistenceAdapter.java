@@ -13,9 +13,7 @@ class PersonalSupportPersistenceAdapter implements PersonalSupportStorePort {
     private final SupportRequestJpaRepository supportRequests;
 
     PersonalSupportPersistenceAdapter(
-        FavoriteCompanionJpaRepository favorites,
-        SupportRequestJpaRepository supportRequests
-    ) {
+            FavoriteCompanionJpaRepository favorites, SupportRequestJpaRepository supportRequests) {
         this.favorites = favorites;
         this.supportRequests = supportRequests;
     }
@@ -23,26 +21,27 @@ class PersonalSupportPersistenceAdapter implements PersonalSupportStorePort {
     @Override
     public List<FavoriteRecord> favorites(UUID userId) {
         return favorites.findAllByUserIdOrderByCreatedAtDesc(userId.toString()).stream()
-            .map(FavoriteCompanionJpaEntity::toRecord)
-            .toList();
+                .map(FavoriteCompanionJpaEntity::toRecord)
+                .toList();
     }
 
     @Override
     public Optional<FavoriteRecord> favorite(UUID favoriteId) {
-        return favorites.findById(favoriteId.toString())
-            .map(FavoriteCompanionJpaEntity::toRecord);
+        return favorites.findById(favoriteId.toString()).map(FavoriteCompanionJpaEntity::toRecord);
     }
 
     @Override
     public Optional<FavoriteRecord> favoriteByCompanion(UUID userId, UUID companionId) {
-        return favorites.findByUserIdAndCompanionId(userId.toString(), companionId.toString())
-            .map(FavoriteCompanionJpaEntity::toRecord);
+        return favorites
+                .findByUserIdAndCompanionId(userId.toString(), companionId.toString())
+                .map(FavoriteCompanionJpaEntity::toRecord);
     }
 
     @Override
     public Optional<FavoriteRecord> favoriteByEmail(UUID userId, String email) {
-        return favorites.findByUserIdAndEmail(userId.toString(), email)
-            .map(FavoriteCompanionJpaEntity::toRecord);
+        return favorites
+                .findByUserIdAndEmail(userId.toString(), email)
+                .map(FavoriteCompanionJpaEntity::toRecord);
     }
 
     @Override
@@ -57,8 +56,16 @@ class PersonalSupportPersistenceAdapter implements PersonalSupportStorePort {
 
     @Override
     public Optional<SupportRecord> support(UUID supportRequestId) {
-        return supportRequests.findById(supportRequestId.toString())
-            .map(SupportRequestJpaEntity::toRecord);
+        return supportRequests
+                .findById(supportRequestId.toString())
+                .map(SupportRequestJpaEntity::toRecord);
+    }
+
+    @Override
+    public List<SupportRecord> supports(UUID userId) {
+        return supportRequests.findAllByUserIdOrderByCreatedAtDesc(userId.toString()).stream()
+                .map(SupportRequestJpaEntity::toRecord)
+                .toList();
     }
 
     @Override

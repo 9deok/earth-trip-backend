@@ -13,24 +13,51 @@ import java.util.UUID;
 @Table(name = "trip_share_links")
 class TripShareLinkJpaEntity {
 
-    @Id @Column(name = "id", nullable = false, length = 36) private String id;
-    @Column(name = "trip_id", nullable = false, length = 36) private String tripId;
-    @Column(name = "token_hash", nullable = false, length = 64) private String tokenHash;
-    @Column(name = "name", nullable = false, length = 120) private String name;
+    @Id
+    @Column(name = "id", nullable = false, length = 36)
+    private String id;
+
+    @Column(name = "trip_id", nullable = false, length = 36)
+    private String tripId;
+
+    @Column(name = "token_hash", nullable = false, length = 64)
+    private String tokenHash;
+
+    @Column(name = "name", nullable = false, length = 120)
+    private String name;
+
     @Column(name = "scopes_json", nullable = false, columnDefinition = "JSON")
     private String scopes;
-    @Column(name = "password_hash", length = 500) private String passwordHash;
+
+    @Column(name = "password_hash", length = 500)
+    private String passwordHash;
+
     @Column(name = "projection_user_id", nullable = false, length = 36)
     private String projectionUserId;
-    @Column(name = "expires_at") private Instant expiresAt;
-    @Column(name = "status", nullable = false, length = 30) private String status;
-    @Column(name = "created_by", nullable = false, length = 36) private String createdBy;
-    @Column(name = "created_at", nullable = false) private Instant createdAt;
-    @Column(name = "updated_at", nullable = false) private Instant updatedAt;
-    @Column(name = "revoked_at") private Instant revokedAt;
-    @Version @Column(name = "version", nullable = false) private long version;
 
-    protected TripShareLinkJpaEntity() { }
+    @Column(name = "expires_at")
+    private Instant expiresAt;
+
+    @Column(name = "status", nullable = false, length = 30)
+    private String status;
+
+    @Column(name = "created_by", nullable = false, length = 36)
+    private String createdBy;
+
+    @Column(name = "created_at", nullable = false)
+    private Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private Instant updatedAt;
+
+    @Column(name = "revoked_at")
+    private Instant revokedAt;
+
+    @Version
+    @Column(name = "version", nullable = false)
+    private long version;
+
+    protected TripShareLinkJpaEntity() {}
 
     TripShareLinkJpaEntity(TripShareStorePort.ShareRecord record, String scopes) {
         id = record.id().toString();
@@ -52,13 +79,25 @@ class TripShareLinkJpaEntity {
         revokedAt = record.revokedAt();
     }
 
-    String scopes() { return scopes; }
+    String scopes() {
+        return scopes;
+    }
 
     TripShareStorePort.ShareRecord toRecord(java.util.List<String> scopeList) {
         return new TripShareStorePort.ShareRecord(
-            UUID.fromString(id), UUID.fromString(tripId), tokenHash, name, scopeList,
-            passwordHash, UUID.fromString(projectionUserId), expiresAt, status,
-            UUID.fromString(createdBy), createdAt, updatedAt, revokedAt, version
-        );
+                UUID.fromString(id),
+                UUID.fromString(tripId),
+                tokenHash,
+                name,
+                scopeList,
+                passwordHash,
+                UUID.fromString(projectionUserId),
+                expiresAt,
+                status,
+                UUID.fromString(createdBy),
+                createdAt,
+                updatedAt,
+                revokedAt,
+                version);
     }
 }

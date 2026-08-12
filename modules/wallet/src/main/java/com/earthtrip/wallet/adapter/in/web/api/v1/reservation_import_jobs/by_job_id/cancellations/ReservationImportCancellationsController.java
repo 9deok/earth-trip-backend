@@ -18,21 +18,17 @@ class ReservationImportCancellationsController {
     private final ReservationImportUseCase useCase;
     private final CurrentActor actor;
 
-    ReservationImportCancellationsController(
-        ReservationImportUseCase useCase,
-        CurrentActor actor
-    ) {
+    ReservationImportCancellationsController(ReservationImportUseCase useCase, CurrentActor actor) {
         this.useCase = useCase;
         this.actor = actor;
     }
 
     @PostMapping
     ReservationImportUseCase.ImportResult cancel(
-        @PathVariable UUID jobId,
-        @Valid @RequestBody ReservationImportCancellationRequest request
-    ) {
+            @PathVariable UUID jobId,
+            @Valid @RequestBody ReservationImportCancellationRequest request) {
         return useCase.cancel(jobId, actor.requireUserId(), request.baseVersion());
     }
 }
 
-record ReservationImportCancellationRequest(@PositiveOrZero long baseVersion) { }
+record ReservationImportCancellationRequest(@PositiveOrZero long baseVersion) {}

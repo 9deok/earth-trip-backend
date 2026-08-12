@@ -26,21 +26,17 @@ class TripExportDownloadController {
     }
 
     @GetMapping
-    ResponseEntity<byte[]> download(
-        @PathVariable UUID tripId,
-        @PathVariable UUID exportId
-    ) {
-        TripExportUseCase.ArtifactResult artifact = useCase.artifact(
-            tripId, exportId, actor.requireUserId()
-        );
+    ResponseEntity<byte[]> download(@PathVariable UUID tripId, @PathVariable UUID exportId) {
+        TripExportUseCase.ArtifactResult artifact =
+                useCase.artifact(tripId, exportId, actor.requireUserId());
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(artifact.mimeType()))
-            .header(
-                HttpHeaders.CONTENT_DISPOSITION,
-                ContentDisposition.attachment()
-                    .filename(artifact.fileName(), StandardCharsets.UTF_8)
-                    .build().toString()
-            )
-            .body(artifact.content());
+                .contentType(MediaType.parseMediaType(artifact.mimeType()))
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(artifact.fileName(), StandardCharsets.UTF_8)
+                                .build()
+                                .toString())
+                .body(artifact.content());
     }
 }

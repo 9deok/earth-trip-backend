@@ -6,5 +6,5 @@ public interface PushTokenProtectorPort {
 
     String reveal(String protectedToken);
 
-    record ProtectedToken(String hash, String cipher) { }
+    record ProtectedToken(String hash, String cipher) {}
 }

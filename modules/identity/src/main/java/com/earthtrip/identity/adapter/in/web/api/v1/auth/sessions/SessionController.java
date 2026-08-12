@@ -27,38 +27,32 @@ class SessionController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     SessionResponse create(@Valid @RequestBody SessionRequest request) {
-        return SessionResponse.from(useCase.create(
-            request.email(),
-            request.password(),
-            request.deviceName()
-        ));
+        return SessionResponse.from(
+                useCase.create(request.email(), request.password(), request.deviceName()));
     }
 }
 
 record SessionRequest(
-    @NotBlank @Email @Size(max = 320) String email,
-    @NotBlank @Size(max = 128) String password,
-    @Size(max = 120) String deviceName
-) { }
+        @NotBlank @Email @Size(max = 320) String email,
+        @NotBlank @Size(max = 128) String password,
+        @Size(max = 120) String deviceName) {}
 
 record SessionResponse(
-    UUID sessionId,
-    UUID userId,
-    String tokenType,
-    String accessToken,
-    String refreshToken,
-    Instant accessExpiresAt,
-    Instant refreshExpiresAt
-) {
+        UUID sessionId,
+        UUID userId,
+        String tokenType,
+        String accessToken,
+        String refreshToken,
+        Instant accessExpiresAt,
+        Instant refreshExpiresAt) {
     static SessionResponse from(SessionUseCase.SessionResult result) {
         return new SessionResponse(
-            result.sessionId(),
-            result.userId(),
-            "Bearer",
-            result.accessToken(),
-            result.refreshToken(),
-            result.accessExpiresAt(),
-            result.refreshExpiresAt()
-        );
+                result.sessionId(),
+                result.userId(),
+                "Bearer",
+                result.accessToken(),
+                result.refreshToken(),
+                result.accessExpiresAt(),
+                result.refreshExpiresAt());
     }
 }

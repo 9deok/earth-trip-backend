@@ -23,10 +23,9 @@ class ChangesController {
 
     @GetMapping
     ActivityFeedUseCase.ChangePage get(
-        @PathVariable UUID tripId,
-        @RequestParam(required = false) Long after,
-        @RequestParam(required = false) Integer limit
-    ) {
+            @PathVariable UUID tripId,
+            @RequestParam(required = false) Long after,
+            @RequestParam(required = false) Integer limit) {
         return useCase.changes(tripId, actor.requireUserId(), after, limit);
     }
 }

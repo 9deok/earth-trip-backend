@@ -37,7 +37,7 @@ class FileLinkJpaEntity {
     @Column(name = "linked_at", nullable = false)
     private Instant linkedAt;
 
-    protected FileLinkJpaEntity() { }
+    protected FileLinkJpaEntity() {}
 
     FileLinkJpaEntity(FileStorePort.LinkRecord record) {
         id = record.id().toString();
@@ -52,9 +52,13 @@ class FileLinkJpaEntity {
 
     FileStorePort.LinkRecord toRecord() {
         return new FileStorePort.LinkRecord(
-            UUID.fromString(id), UUID.fromString(fileId), UUID.fromString(tripId),
-            resourceType, UUID.fromString(resourceId), visibility,
-            UUID.fromString(linkedBy), linkedAt
-        );
+                UUID.fromString(id),
+                UUID.fromString(fileId),
+                UUID.fromString(tripId),
+                resourceType,
+                UUID.fromString(resourceId),
+                visibility,
+                UUID.fromString(linkedBy),
+                linkedAt);
     }
 }

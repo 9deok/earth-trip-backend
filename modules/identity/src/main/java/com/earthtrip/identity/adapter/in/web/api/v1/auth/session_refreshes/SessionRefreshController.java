@@ -25,25 +25,23 @@ class SessionRefreshController {
     SessionRefreshResponse refresh(@Valid @RequestBody SessionRefreshRequest request) {
         SessionUseCase.SessionResult result = useCase.refresh(request.refreshToken());
         return new SessionRefreshResponse(
-            result.sessionId(),
-            result.userId(),
-            "Bearer",
-            result.accessToken(),
-            result.refreshToken(),
-            result.accessExpiresAt(),
-            result.refreshExpiresAt()
-        );
+                result.sessionId(),
+                result.userId(),
+                "Bearer",
+                result.accessToken(),
+                result.refreshToken(),
+                result.accessExpiresAt(),
+                result.refreshExpiresAt());
     }
 }
 
-record SessionRefreshRequest(@NotBlank @Size(max = 200) String refreshToken) { }
+record SessionRefreshRequest(@NotBlank @Size(max = 200) String refreshToken) {}
 
 record SessionRefreshResponse(
-    UUID sessionId,
-    UUID userId,
-    String tokenType,
-    String accessToken,
-    String refreshToken,
-    Instant accessExpiresAt,
-    Instant refreshExpiresAt
-) { }
+        UUID sessionId,
+        UUID userId,
+        String tokenType,
+        String accessToken,
+        String refreshToken,
+        Instant accessExpiresAt,
+        Instant refreshExpiresAt) {}

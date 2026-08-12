@@ -27,7 +27,7 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     private static final String REFRESH_TOKEN_PURPOSE = "google-calendar-refresh-token";
     private static final String REFRESH_TOKEN_KEY = "_earthTripGoogleRefreshToken";
     private static final String CALENDAR_SCOPE =
-        "https://www.googleapis.com/auth/calendar.app.created";
+            "https://www.googleapis.com/auth/calendar.app.created";
 
     private final RestClient restClient;
     private final IntegrationSecretProtectorPort protector;
@@ -36,12 +36,11 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     private final String configuredRedirectUri;
 
     GoogleCalendarProviderAdapter(
-        RestClient.Builder builder,
-        IntegrationSecretProtectorPort protector,
-        @Value("${earthtrip.providers.google-calendar.client-id:}") String clientId,
-        @Value("${earthtrip.providers.google-calendar.client-secret:}") String clientSecret,
-        @Value("${earthtrip.providers.google-calendar.callback-uri:}") String callbackUri
-    ) {
+            RestClient.Builder builder,
+            IntegrationSecretProtectorPort protector,
+            @Value("${earthtrip.providers.google-calendar.client-id:}") String clientId,
+            @Value("${earthtrip.providers.google-calendar.client-secret:}") String clientSecret,
+            @Value("${earthtrip.providers.google-calendar.callback-uri:}") String callbackUri) {
         this.restClient = builder.build();
         this.protector = protector;
         this.clientId = strip(clientId);
@@ -57,9 +56,9 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     @Override
     public boolean configured() {
         return !clientId.isBlank()
-            && !clientSecret.isBlank()
-            && !configuredRedirectUri.isBlank()
-            && protector.configured();
+                && !clientSecret.isBlank()
+                && !configuredRedirectUri.isBlank()
+                && protector.configured();
     }
 
     @Override
@@ -78,19 +77,16 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
         String refreshToken = token.path("refresh_token").asText("");
         if (refreshToken.isBlank()) {
             throw EarthTripException.badRequest(
-                "GOOGLE_CALENDAR_REFRESH_TOKEN_REQUIRED",
-                "오프라인 접근 권한이 없어 Google Calendar 연결을 저장할 수 없습니다. 동의 화면에서 다시 승인해 주세요."
-            );
+                    "GOOGLE_CALENDAR_REFRESH_TOKEN_REQUIRED",
+                    "오프라인 접근 권한이 없어 Google Calendar 연결을 저장할 수 없습니다. 동의 화면에서 다시 승인해 주세요.");
         }
         Set<String> scopes = new LinkedHashSet<>();
         String granted = token.path("scope").asText("");
-        boolean calendarGranted = java.util.Arrays.stream(granted.split("\\s+"))
-            .anyMatch(CALENDAR_SCOPE::equals);
+        boolean calendarGranted =
+                java.util.Arrays.stream(granted.split("\\s+")).anyMatch(CALENDAR_SCOPE::equals);
         if (!calendarGranted) {
             throw EarthTripException.forbidden(
-                "GOOGLE_CALENDAR_SCOPE_REQUIRED",
-                "Google Calendar 동기화 권한이 승인되지 않았습니다."
-            );
+                    "GOOGLE_CALENDAR_SCOPE_REQUIRED", "Google Calendar 동기화 권한이 승인되지 않았습니다.");
         }
         scopes.add("CALENDAR_APP_CREATED");
         if (!granted.isBlank()) {
@@ -99,12 +95,8 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
             }
         }
         return new AuthorizationResult(
-            Set.copyOf(scopes),
-            Map.of(
-                REFRESH_TOKEN_KEY,
-                protector.protect(REFRESH_TOKEN_PURPOSE, refreshToken)
-            )
-        );
+                Set.copyOf(scopes),
+                Map.of(REFRESH_TOKEN_KEY, protector.protect(REFRESH_TOKEN_PURPOSE, refreshToken)));
     }
 
     @Override
@@ -113,12 +105,13 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
         form.add("token", refreshToken);
         try {
-            restClient.post()
-                .uri("https://oauth2.googleapis.com/revoke")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .toBodilessEntity();
+            restClient
+                    .post()
+                    .uri("https://oauth2.googleapis.com/revoke")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .body(form)
+                    .retrieve()
+                    .toBodilessEntity();
         } catch (RestClientException ignored) {
             // 로컬 연결 해제를 막지 않는다. 만료된 토큰도 이미 해제된 것으로 취급한다.
         }
@@ -129,8 +122,7 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
         requireConfigured();
         refreshAccessToken(refreshToken(protectedMetadata));
         return new ConnectionCheckResult(
-            "ACTIVE", Map.of("provider", "GOOGLE_CALENDAR", "tokenRefresh", "SUCCEEDED")
-        );
+                "ACTIVE", Map.of("provider", "GOOGLE_CALENDAR", "tokenRefresh", "SUCCEEDED"));
     }
 
     @Override
@@ -140,7 +132,8 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
         Map<String, Object> config = new LinkedHashMap<>(command.scopeConfig());
         String calendarId = string(config.get("calendarId"));
         if (calendarId.isBlank()) {
-            calendarId = createCalendar(accessToken, command.tripTitle(), command.defaultTimeZone());
+            calendarId =
+                    createCalendar(accessToken, command.tripTitle(), command.defaultTimeZone());
             config.put("calendarId", calendarId);
             config.put("direction", "EARTH_TRIP_TO_GOOGLE");
         }
@@ -160,13 +153,21 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
                 created++;
             }
         }
-        int deleted = deleteRemovedEvents(
-            accessToken,
-            calendarId,
-            command.tripId().toString(),
-            currentEventIds
-        );
+        int deleted =
+                deleteRemovedEvents(
+                        accessToken, calendarId, command.tripId().toString(), currentEventIds);
         return new CalendarSyncResult(Map.copyOf(config), created, updated, deleted);
+    }
+
+    @Override
+    public void deleteCalendar(CalendarDeleteCommand command) {
+        requireConfigured();
+        String calendarId = string(command.scopeConfig().get("calendarId"));
+        if (calendarId.isBlank()) {
+            return;
+        }
+        String accessToken = refreshAccessToken(refreshToken(command.protectedMetadata()));
+        delete(calendarUri(calendarId), accessToken);
     }
 
     private String refreshAccessToken(String refreshToken) {
@@ -185,12 +186,14 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
 
     private JsonNode token(MultiValueMap<String, String> form, String errorCode) {
         try {
-            JsonNode response = restClient.post()
-                .uri("https://oauth2.googleapis.com/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(form)
-                .retrieve()
-                .body(JsonNode.class);
+            JsonNode response =
+                    restClient
+                            .post()
+                            .uri("https://oauth2.googleapis.com/token")
+                            .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                            .body(form)
+                            .retrieve()
+                            .body(JsonNode.class);
             if (response == null) {
                 throw providerFailure("GOOGLE_CALENDAR_INVALID_TOKEN_RESPONSE", 502);
             }
@@ -205,11 +208,11 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     }
 
     private String createCalendar(String accessToken, String title, String timeZone) {
-        JsonNode response = post(
-            URI.create("https://www.googleapis.com/calendar/v3/calendars"),
-            accessToken,
-            Map.of("summary", "Earth Trip - " + title, "timeZone", timeZone)
-        );
+        JsonNode response =
+                post(
+                        URI.create("https://www.googleapis.com/calendar/v3/calendars"),
+                        accessToken,
+                        Map.of("summary", "Earth Trip - " + title, "timeZone", timeZone));
         String id = response.path("id").asText("");
         if (id.isBlank()) {
             throw providerFailure("GOOGLE_CALENDAR_INVALID_RESPONSE", 502);
@@ -234,19 +237,16 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     }
 
     private void updateEvent(
-        String accessToken,
-        String calendarId,
-        String eventId,
-        Map<String, Object> body
-    ) {
+            String accessToken, String calendarId, String eventId, Map<String, Object> body) {
         try {
-            restClient.put()
-                .uri(eventUri(calendarId, eventId))
-                .headers(headers -> headers.setBearerAuth(accessToken))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .toBodilessEntity();
+            restClient
+                    .put()
+                    .uri(eventUri(calendarId, eventId))
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(body)
+                    .retrieve()
+                    .toBodilessEntity();
         } catch (RestClientResponseException exception) {
             throw calendarRequestFailure(exception);
         } catch (RestClientException exception) {
@@ -255,18 +255,15 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     }
 
     private int deleteRemovedEvents(
-        String accessToken,
-        String calendarId,
-        String tripId,
-        Set<String> currentEventIds
-    ) {
-        URI uri = UriComponentsBuilder.fromUriString("https://www.googleapis.com/calendar/v3")
-            .pathSegment("calendars", calendarId, "events")
-            .queryParam("privateExtendedProperty", "earthTripTripId=" + tripId)
-            .queryParam("maxResults", 2500)
-            .build()
-            .encode()
-            .toUri();
+            String accessToken, String calendarId, String tripId, Set<String> currentEventIds) {
+        URI uri =
+                UriComponentsBuilder.fromUriString("https://www.googleapis.com/calendar/v3")
+                        .pathSegment("calendars", calendarId, "events")
+                        .queryParam("privateExtendedProperty", "earthTripTripId=" + tripId)
+                        .queryParam("maxResults", 2500)
+                        .build()
+                        .encode()
+                        .toUri();
         JsonNode response;
         try {
             response = get(uri, accessToken);
@@ -286,16 +283,18 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
 
     private JsonNode post(URI uri, String accessToken, Object body) {
         try {
-            JsonNode response = restClient.post()
-                .uri(uri)
-                .headers(headers -> headers.setBearerAuth(accessToken))
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(body)
-                .retrieve()
-                .body(JsonNode.class);
+            JsonNode response =
+                    restClient
+                            .post()
+                            .uri(uri)
+                            .headers(headers -> headers.setBearerAuth(accessToken))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(body)
+                            .retrieve()
+                            .body(JsonNode.class);
             return response == null
-                ? com.fasterxml.jackson.databind.node.NullNode.instance
-                : response;
+                    ? com.fasterxml.jackson.databind.node.NullNode.instance
+                    : response;
         } catch (RestClientResponseException exception) {
             throw calendarRequestFailure(exception);
         } catch (RestClientException exception) {
@@ -304,20 +303,22 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     }
 
     private JsonNode get(URI uri, String accessToken) {
-        return restClient.get()
-            .uri(uri)
-            .headers(headers -> headers.setBearerAuth(accessToken))
-            .retrieve()
-            .body(JsonNode.class);
+        return restClient
+                .get()
+                .uri(uri)
+                .headers(headers -> headers.setBearerAuth(accessToken))
+                .retrieve()
+                .body(JsonNode.class);
     }
 
     private void delete(URI uri, String accessToken) {
         try {
-            restClient.delete()
-                .uri(uri)
-                .headers(headers -> headers.setBearerAuth(accessToken))
-                .retrieve()
-                .toBodilessEntity();
+            restClient
+                    .delete()
+                    .uri(uri)
+                    .headers(headers -> headers.setBearerAuth(accessToken))
+                    .retrieve()
+                    .toBodilessEntity();
         } catch (RestClientResponseException exception) {
             if (exception.getStatusCode().value() != 404) {
                 throw calendarRequestFailure(exception);
@@ -328,10 +329,7 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     }
 
     private static Map<String, Object> eventBody(
-        java.util.UUID tripId,
-        String eventId,
-        CalendarEvent event
-    ) {
+            java.util.UUID tripId, String eventId, CalendarEvent event) {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("id", eventId);
         body.put("summary", event.title());
@@ -341,18 +339,17 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
         if (!event.location().isBlank()) {
             body.put("location", event.location());
         }
-        body.put("extendedProperties", Map.of(
-            "private",
-            Map.of(
-                "earthTripTripId", tripId.toString(),
-                "earthTripSourceId", event.sourceId().toString()
-            )
-        ));
+        body.put(
+                "extendedProperties",
+                Map.of(
+                        "private",
+                        Map.of(
+                                "earthTripTripId", tripId.toString(),
+                                "earthTripSourceId", event.sourceId().toString())));
         if (!event.startDateTime().isBlank()) {
             body.put("start", dateTime(event.startDateTime(), event.timeZone()));
-            String end = event.endDateTime().isBlank()
-                ? event.startDateTime()
-                : event.endDateTime();
+            String end =
+                    event.endDateTime().isBlank() ? event.startDateTime() : event.endDateTime();
             body.put("end", dateTime(end, event.timeZone()));
         } else {
             LocalDate date = event.localDate();
@@ -368,18 +365,26 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
 
     private static URI eventsUri(String calendarId) {
         return UriComponentsBuilder.fromUriString("https://www.googleapis.com/calendar/v3")
-            .pathSegment("calendars", calendarId, "events")
-            .build()
-            .encode()
-            .toUri();
+                .pathSegment("calendars", calendarId, "events")
+                .build()
+                .encode()
+                .toUri();
+    }
+
+    private static URI calendarUri(String calendarId) {
+        return UriComponentsBuilder.fromUriString("https://www.googleapis.com/calendar/v3")
+                .pathSegment("calendars", calendarId)
+                .build()
+                .encode()
+                .toUri();
     }
 
     private static URI eventUri(String calendarId, String eventId) {
         return UriComponentsBuilder.fromUriString("https://www.googleapis.com/calendar/v3")
-            .pathSegment("calendars", calendarId, "events", eventId)
-            .build()
-            .encode()
-            .toUri();
+                .pathSegment("calendars", calendarId, "events", eventId)
+                .build()
+                .encode()
+                .toUri();
     }
 
     private String refreshToken(Map<String, Object> metadata) {
@@ -394,16 +399,14 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
         String normalized = strip(requested);
         if (!configuredRedirectUri.isBlank() && !configuredRedirectUri.equals(normalized)) {
             throw EarthTripException.badRequest(
-                "GOOGLE_CALENDAR_REDIRECT_URI_MISMATCH",
-                "등록된 Google Calendar callback URI와 요청 값이 일치하지 않습니다."
-            );
+                    "GOOGLE_CALENDAR_REDIRECT_URI_MISMATCH",
+                    "등록된 Google Calendar callback URI와 요청 값이 일치하지 않습니다.");
         }
         String result = configuredRedirectUri.isBlank() ? normalized : configuredRedirectUri;
         if (result.isBlank()) {
             throw EarthTripException.badRequest(
-                "GOOGLE_CALENDAR_REDIRECT_URI_REQUIRED",
-                "Google Calendar callback URI가 필요합니다."
-            );
+                    "GOOGLE_CALENDAR_REDIRECT_URI_REQUIRED",
+                    "Google Calendar callback URI가 필요합니다.");
         }
         return result;
     }
@@ -411,9 +414,7 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     private void requireConfigured() {
         if (!configured()) {
             throw EarthTripException.unavailable(
-                "GOOGLE_CALENDAR_NOT_CONFIGURED",
-                "Google Calendar OAuth 자격증명이 설정되지 않았습니다."
-            );
+                    "GOOGLE_CALENDAR_NOT_CONFIGURED", "Google Calendar OAuth 자격증명이 설정되지 않았습니다.");
         }
     }
 
@@ -422,8 +423,7 @@ class GoogleCalendarProviderAdapter implements ExternalAccountProviderPort {
     }
 
     private static EarthTripException calendarRequestFailure(
-        RestClientResponseException exception
-    ) {
+            RestClientResponseException exception) {
         int status = exception.getStatusCode().value();
         if (status == 401 || status == 403) {
             return providerFailure("GOOGLE_CALENDAR_REAUTHORIZATION_REQUIRED", 409);

@@ -5,6 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 interface TripTemplateJpaRepository extends JpaRepository<TripTemplateJpaEntity, String> {
     List<TripTemplateJpaEntity> findAllByOwnerUserIdAndDeletedAtIsNullOrderByUpdatedAtDesc(
-        String ownerUserId
-    );
+            String ownerUserId);
 }

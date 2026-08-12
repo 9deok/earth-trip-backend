@@ -24,10 +24,9 @@ class CurrentAccountService implements CurrentAccountUseCase {
     private final Clock clock;
 
     CurrentAccountService(
-        UserAccountStorePort accountStore,
-        AccountDeletionStorePort deletionStore,
-        Clock clock
-    ) {
+            UserAccountStorePort accountStore,
+            AccountDeletionStorePort deletionStore,
+            Clock clock) {
         this.accountStore = accountStore;
         this.deletionStore = deletionStore;
         this.clock = clock;
@@ -51,36 +50,28 @@ class CurrentAccountService implements CurrentAccountUseCase {
         UserAccount account = load(userId);
         Instant now = clock.instant();
         Instant scheduledAt = now.plus(DELETION_GRACE_PERIOD);
-        AccountDeletionStorePort.DeletionRecord record = deletionStore.createOrGet(
-            account.id(),
-            now,
-            scheduledAt
-        );
+        AccountDeletionStorePort.DeletionRecord record =
+                deletionStore.createOrGet(account.id(), now, scheduledAt);
         account.markDeletionPending(now);
         accountStore.save(account);
         return new DeletionResult(
-            record.id(),
-            record.requestedAt(),
-            record.scheduledAt(),
-            record.status()
-        );
+                record.id(), record.requestedAt(), record.scheduledAt(), record.status());
     }
 
     @Override
     @Transactional(readOnly = true)
     public DeletionResult currentDeletion(UUID userId) {
         UserAccount account = load(userId);
-        AccountDeletionStorePort.DeletionRecord record = deletionStore.findPending(account.id())
-            .orElseThrow(() -> EarthTripException.notFound(
-                "DELETION_REQUEST_NOT_FOUND",
-                "진행 중인 계정 삭제 요청이 없습니다."
-            ));
+        AccountDeletionStorePort.DeletionRecord record =
+                deletionStore
+                        .findPending(account.id())
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.notFound(
+                                                "DELETION_REQUEST_NOT_FOUND",
+                                                "진행 중인 계정 삭제 요청이 없습니다."));
         return new DeletionResult(
-            record.id(),
-            record.requestedAt(),
-            record.scheduledAt(),
-            record.status()
-        );
+                record.id(), record.requestedAt(), record.scheduledAt(), record.status());
     }
 
     @Override
@@ -88,9 +79,7 @@ class CurrentAccountService implements CurrentAccountUseCase {
         UserAccount account = load(userId);
         if (deletionStore.findPending(account.id()).isEmpty()) {
             throw EarthTripException.notFound(
-                "DELETION_REQUEST_NOT_FOUND",
-                "진행 중인 계정 삭제 요청이 없습니다."
-            );
+                    "DELETION_REQUEST_NOT_FOUND", "진행 중인 계정 삭제 요청이 없습니다.");
         }
         Instant now = clock.instant();
         deletionStore.cancel(account.id(), now);
@@ -99,19 +88,20 @@ class CurrentAccountService implements CurrentAccountUseCase {
     }
 
     private UserAccount load(UUID userId) {
-        return accountStore.findById(new UserId(userId))
-            .orElseThrow(() -> EarthTripException.notFound("ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다."));
+        return accountStore
+                .findById(new UserId(userId))
+                .orElseThrow(
+                        () -> EarthTripException.notFound("ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다."));
     }
 
     private static AccountResult result(UserAccount account) {
         return new AccountResult(
-            account.id().value(),
-            account.email().value(),
-            account.displayName(),
-            account.status().name(),
-            account.emailVerifiedAt(),
-            account.createdAt(),
-            account.updatedAt()
-        );
+                account.id().value(),
+                account.email().value(),
+                account.displayName(),
+                account.status().name(),
+                account.emailVerifiedAt(),
+                account.createdAt(),
+                account.updatedAt());
     }
 }

@@ -31,13 +31,12 @@ class PasswordResetService implements PasswordResetUseCase {
     private final Clock clock;
 
     PasswordResetService(
-        UserAccountStorePort accountStore,
-        AuthTokenStorePort tokenStore,
-        AuthSessionStorePort sessionStore,
-        CredentialPort credentialPort,
-        VerificationDeliveryPort deliveryPort,
-        Clock clock
-    ) {
+            UserAccountStorePort accountStore,
+            AuthTokenStorePort tokenStore,
+            AuthSessionStorePort sessionStore,
+            CredentialPort credentialPort,
+            VerificationDeliveryPort deliveryPort,
+            Clock clock) {
         this.accountStore = accountStore;
         this.tokenStore = tokenStore;
         this.sessionStore = sessionStore;
@@ -58,17 +57,16 @@ class PasswordResetService implements PasswordResetUseCase {
         }
         tokenStore.invalidateFor(account.id(), AuthToken.Purpose.PASSWORD_RESET, now);
         String rawToken = credentialPort.newToken();
-        tokenStore.save(AuthToken.create(
-            requestId,
-            account.id(),
-            AuthToken.Purpose.PASSWORD_RESET,
-            credentialPort.hashToken(rawToken),
-            expiresAt,
-            now
-        ));
-        VerificationDeliveryPort.DeliveryStatus delivery = deliveryPort.sendPasswordReset(
-            email, rawToken, expiresAt
-        );
+        tokenStore.save(
+                AuthToken.create(
+                        requestId,
+                        account.id(),
+                        AuthToken.Purpose.PASSWORD_RESET,
+                        credentialPort.hashToken(rawToken),
+                        expiresAt,
+                        now));
+        VerificationDeliveryPort.DeliveryStatus delivery =
+                deliveryPort.sendPasswordReset(email, rawToken, expiresAt);
         return new RequestResult(requestId, expiresAt, delivery.name());
     }
 
@@ -78,35 +76,49 @@ class PasswordResetService implements PasswordResetUseCase {
         if (rawToken == null || rawToken.isBlank()) {
             throw EarthTripException.badRequest("RESET_TOKEN_REQUIRED", "비밀번호 재설정 토큰이 필요합니다.");
         }
-        AuthToken token = tokenStore.findUsableByHash(
-            credentialPort.hashToken(rawToken), AuthToken.Purpose.PASSWORD_RESET
-        ).orElseThrow(() -> EarthTripException.badRequest(
-            "INVALID_RESET_TOKEN", "만료되었거나 올바르지 않은 재설정 토큰입니다."
-        ));
+        AuthToken token =
+                tokenStore
+                        .findUsableByHash(
+                                credentialPort.hashToken(rawToken),
+                                AuthToken.Purpose.PASSWORD_RESET)
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.badRequest(
+                                                "INVALID_RESET_TOKEN",
+                                                "만료되었거나 올바르지 않은 재설정 토큰입니다."));
         Instant now = clock.instant();
         try {
             token.consume(now);
         } catch (IllegalStateException exception) {
             throw EarthTripException.badRequest("INVALID_RESET_TOKEN", exception.getMessage());
         }
-        UserAccount account = accountStore.findById(token.userId())
-            .orElseThrow(() -> EarthTripException.notFound("ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다."));
+        UserAccount account =
+                accountStore
+                        .findById(token.userId())
+                        .orElseThrow(
+                                () ->
+                                        EarthTripException.notFound(
+                                                "ACCOUNT_NOT_FOUND", "계정을 찾을 수 없습니다."));
         account.changePassword(credentialPort.hashPassword(newPassword), now);
         tokenStore.save(token);
         accountStore.save(account);
-        sessionStore.findByUserId(account.id()).forEach(session -> {
-            session.revoke(now);
-            sessionStore.save(session);
-        });
+        sessionStore
+                .findByUserId(account.id())
+                .forEach(
+                        session -> {
+                            session.revoke(now);
+                            sessionStore.save(session);
+                        });
     }
 
     private static void validatePassword(String password) {
-        if (password == null || password.length() < 10 || password.length() > 128
-            || password.chars().noneMatch(Character::isLetter)
-            || password.chars().noneMatch(Character::isDigit)) {
+        if (password == null
+                || password.length() < 10
+                || password.length() > 128
+                || password.chars().noneMatch(Character::isLetter)
+                || password.chars().noneMatch(Character::isDigit)) {
             throw EarthTripException.badRequest(
-                "WEAK_PASSWORD", "비밀번호는 10~128자이며 문자와 숫자를 포함해야 합니다."
-            );
+                    "WEAK_PASSWORD", "비밀번호는 10~128자이며 문자와 숫자를 포함해야 합니다.");
         }
     }
 }

@@ -20,12 +20,11 @@ class PlacesSearchController {
 
     @GetMapping
     List<ProviderProxyUseCase.PlaceSummary> get(
-        @RequestParam String q,
-        @RequestParam(required = false) String language,
-        @RequestParam(required = false) BigDecimal nearLatitude,
-        @RequestParam(required = false) BigDecimal nearLongitude,
-        @RequestParam(required = false) Integer limit
-    ) {
+            @RequestParam String q,
+            @RequestParam(required = false) String language,
+            @RequestParam(required = false) BigDecimal nearLatitude,
+            @RequestParam(required = false) BigDecimal nearLongitude,
+            @RequestParam(required = false) Integer limit) {
         return useCase.searchPlaces(q, language, nearLatitude, nearLongitude, limit);
     }
 }

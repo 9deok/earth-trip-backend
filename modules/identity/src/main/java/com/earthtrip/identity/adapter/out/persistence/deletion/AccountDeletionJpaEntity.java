@@ -35,7 +35,7 @@ class AccountDeletionJpaEntity {
     @Column(name = "version", nullable = false)
     private long version;
 
-    protected AccountDeletionJpaEntity() { }
+    protected AccountDeletionJpaEntity() {}
 
     AccountDeletionJpaEntity(UUID id, String userId, Instant requestedAt, Instant scheduledAt) {
         this.id = id.toString();
@@ -44,11 +44,17 @@ class AccountDeletionJpaEntity {
         this.scheduledDeletionAt = scheduledAt;
     }
 
-    UUID id() { return UUID.fromString(id); }
+    UUID id() {
+        return UUID.fromString(id);
+    }
 
-    Instant requestedAt() { return requestedAt; }
+    Instant requestedAt() {
+        return requestedAt;
+    }
 
-    Instant scheduledDeletionAt() { return scheduledDeletionAt; }
+    Instant scheduledDeletionAt() {
+        return scheduledDeletionAt;
+    }
 
     String status() {
         if (completedAt != null) return "COMPLETED";

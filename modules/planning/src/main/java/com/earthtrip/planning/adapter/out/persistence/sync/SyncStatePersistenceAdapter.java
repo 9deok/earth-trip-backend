@@ -13,18 +13,17 @@ import org.springframework.stereotype.Component;
 @Component
 class SyncStatePersistenceAdapter implements SyncStateStorePort {
 
-    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() { };
-    private static final TypeReference<List<String>> STRINGS = new TypeReference<>() { };
+    private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
+    private static final TypeReference<List<String>> STRINGS = new TypeReference<>() {};
 
     private final ActivityReadCursorJpaRepository cursors;
     private final SyncConflictJpaRepository conflicts;
     private final ObjectMapper json;
 
     SyncStatePersistenceAdapter(
-        ActivityReadCursorJpaRepository cursors,
-        SyncConflictJpaRepository conflicts,
-        ObjectMapper json
-    ) {
+            ActivityReadCursorJpaRepository cursors,
+            SyncConflictJpaRepository conflicts,
+            ObjectMapper json) {
         this.cursors = cursors;
         this.conflicts = conflicts;
         this.json = json;
@@ -32,32 +31,34 @@ class SyncStatePersistenceAdapter implements SyncStateStorePort {
 
     @Override
     public long readCursor(UUID tripId, UUID userId) {
-        return cursors.findById(new ActivityReadCursorId(
-            tripId.toString(), userId.toString()
-        )).map(ActivityReadCursorJpaEntity::toRecord)
-            .map(ReadCursorRecord::sequenceId)
-            .orElse(0L);
+        return cursors.findById(new ActivityReadCursorId(tripId.toString(), userId.toString()))
+                .map(ActivityReadCursorJpaEntity::toRecord)
+                .map(ReadCursorRecord::sequenceId)
+                .orElse(0L);
     }
 
     @Override
     public ReadCursorRecord saveReadCursor(ReadCursorRecord record) {
-        ActivityReadCursorId id = new ActivityReadCursorId(
-            record.tripId().toString(), record.userId().toString()
-        );
-        ActivityReadCursorJpaEntity entity = cursors.findById(id)
-            .map(existing -> {
-                existing.apply(record);
-                return existing;
-            })
-            .orElseGet(() -> new ActivityReadCursorJpaEntity(record));
+        ActivityReadCursorId id =
+                new ActivityReadCursorId(record.tripId().toString(), record.userId().toString());
+        ActivityReadCursorJpaEntity entity =
+                cursors.findById(id)
+                        .map(
+                                existing -> {
+                                    existing.apply(record);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new ActivityReadCursorJpaEntity(record));
         return cursors.save(entity).toRecord();
     }
 
     @Override
     public List<ConflictRecord> findOpenConflicts(UUID tripId) {
-        return conflicts.findAllByTripIdAndStatusOrderByCreatedAtAsc(
-            tripId.toString(), "OPEN"
-        ).stream().map(this::conflict).toList();
+        return conflicts
+                .findAllByTripIdAndStatusOrderByCreatedAtAsc(tripId.toString(), "OPEN")
+                .stream()
+                .map(this::conflict)
+                .toList();
     }
 
     @Override
@@ -68,28 +69,37 @@ class SyncStatePersistenceAdapter implements SyncStateStorePort {
     @Override
     public ConflictRecord saveConflict(ConflictRecord record) {
         String device = write(record.deviceCommand());
-        String server = record.serverSnapshot() == null
-            ? null
-            : write(record.serverSnapshot());
+        String server = record.serverSnapshot() == null ? null : write(record.serverSnapshot());
         String fields = write(record.mergeableFields());
-        SyncConflictJpaEntity entity = conflicts.findById(record.conflictId().toString())
-            .map(existing -> {
-                existing.apply(record, device, server, fields);
-                return existing;
-            })
-            .orElseGet(() -> new SyncConflictJpaEntity(record, device, server, fields));
+        SyncConflictJpaEntity entity =
+                conflicts
+                        .findById(record.conflictId().toString())
+                        .map(
+                                existing -> {
+                                    existing.apply(record, device, server, fields);
+                                    return existing;
+                                })
+                        .orElseGet(() -> new SyncConflictJpaEntity(record, device, server, fields));
         return conflict(conflicts.saveAndFlush(entity));
     }
 
     private ConflictRecord conflict(SyncConflictJpaEntity entity) {
         return new ConflictRecord(
-            entity.id(), entity.operationId(), entity.tripId(), entity.actorId(),
-            entity.action(), entity.resourceType(), entity.resourceId(),
-            readMap(entity.deviceCommand()),
-            entity.serverSnapshot() == null ? null : readMap(entity.serverSnapshot()),
-            readStrings(entity.mergeableFields()), entity.status(), entity.resolution(),
-            entity.createdAt(), entity.resolvedAt(), entity.version()
-        );
+                entity.id(),
+                entity.operationId(),
+                entity.tripId(),
+                entity.actorId(),
+                entity.action(),
+                entity.resourceType(),
+                entity.resourceId(),
+                readMap(entity.deviceCommand()),
+                entity.serverSnapshot() == null ? null : readMap(entity.serverSnapshot()),
+                readStrings(entity.mergeableFields()),
+                entity.status(),
+                entity.resolution(),
+                entity.createdAt(),
+                entity.resolvedAt(),
+                entity.version());
     }
 
     private String write(Object value) {
