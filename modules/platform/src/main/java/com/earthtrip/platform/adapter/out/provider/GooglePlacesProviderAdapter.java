@@ -27,7 +27,13 @@ class GooglePlacesProviderAdapter implements PlacesProviderPort {
                     "places.formattedAddress",
                     "places.addressComponents",
                     "places.location",
-                    "places.types");
+                    "places.types",
+                    "places.photos",
+                    "places.rating",
+                    "places.userRatingCount",
+                    "places.priceLevel",
+                    "places.currentOpeningHours.openNow",
+                    "places.googleMapsUri");
     private static final String DETAIL_FIELDS =
             String.join(
                     ",",
@@ -37,6 +43,12 @@ class GooglePlacesProviderAdapter implements PlacesProviderPort {
                     "addressComponents",
                     "location",
                     "types",
+                    "photos",
+                    "rating",
+                    "userRatingCount",
+                    "priceLevel",
+                    "currentOpeningHours.openNow",
+                    "googleMapsUri",
                     "regularOpeningHours",
                     "websiteUri",
                     "internationalPhoneNumber");
@@ -103,6 +115,13 @@ class GooglePlacesProviderAdapter implements PlacesProviderPort {
                 summary.latitude(),
                 summary.longitude(),
                 summary.categories(),
+                summary.photoName(),
+                summary.photoAttributions(),
+                summary.rating(),
+                summary.userRatingCount(),
+                summary.priceLevel(),
+                summary.openNow(),
+                summary.googleMapsUrl(),
                 openingHours(place.path("regularOpeningHours").path("periods")),
                 textOrNull(place, "websiteUri"),
                 textOrNull(place, "internationalPhoneNumber"),
@@ -110,8 +129,34 @@ class GooglePlacesProviderAdapter implements PlacesProviderPort {
                 clock.instant());
     }
 
+    @Override
+    public ProviderProxyUseCase.PlacePhoto photo(
+            String photoName, Integer maxWidth, Integer maxHeight) {
+        UriComponentsBuilder builder =
+                UriComponentsBuilder.fromUriString(
+                                "https://places.googleapis.com/v1/{photoName}/media")
+                        .queryParam("skipHttpRedirect", true);
+        if (maxWidth != null) {
+            builder.queryParam("maxWidthPx", maxWidth);
+        }
+        if (maxHeight != null) {
+            builder.queryParam("maxHeightPx", maxHeight);
+        }
+        URI uri = builder.buildAndExpand(photoName).toUri();
+        JsonNode metadata = client.get(uri, null, "PLACES_PROVIDER");
+        String photoUri = textOrNull(metadata, "photoUri");
+        if (photoUri == null) {
+            throw EarthTripException.unavailable(
+                    "PLACE_PHOTO_URI_MISSING", "Google Places 사진 주소를 받지 못했습니다.");
+        }
+        GoogleMapsApiClient.BinaryResponse response =
+                client.download(URI.create(photoUri), "PLACES_PROVIDER");
+        return new ProviderProxyUseCase.PlacePhoto(response.bytes(), response.contentType());
+    }
+
     private static ProviderProxyUseCase.PlaceSummary summary(JsonNode place) {
         JsonNode location = place.path("location");
+        JsonNode photo = place.path("photos").path(0);
         return new ProviderProxyUseCase.PlaceSummary(
                 place.path("id").asText(),
                 place.path("displayName").path("text").asText(),
@@ -120,7 +165,27 @@ class GooglePlacesProviderAdapter implements PlacesProviderPort {
                 decimal(location, "latitude"),
                 decimal(location, "longitude"),
                 strings(place.path("types")),
+                textOrNull(photo, "name"),
+                photoAttributions(photo.path("authorAttributions")),
+                decimal(place, "rating"),
+                integerOrNull(place, "userRatingCount"),
+                textOrNull(place, "priceLevel"),
+                booleanOrNull(place.path("currentOpeningHours"), "openNow"),
+                textOrNull(place, "googleMapsUri"),
                 "GOOGLE_PLACES");
+    }
+
+    private static List<ProviderProxyUseCase.PlacePhotoAttribution> photoAttributions(
+            JsonNode attributions) {
+        List<ProviderProxyUseCase.PlacePhotoAttribution> values = new ArrayList<>();
+        for (JsonNode attribution : attributions) {
+            values.add(
+                    new ProviderProxyUseCase.PlacePhotoAttribution(
+                            textOrNull(attribution, "displayName"),
+                            textOrNull(attribution, "uri"),
+                            textOrNull(attribution, "photoUri")));
+        }
+        return List.copyOf(values);
     }
 
     private static Map<String, List<ProviderProxyUseCase.OpeningInterval>> openingHours(
@@ -159,6 +224,18 @@ class GooglePlacesProviderAdapter implements PlacesProviderPort {
     private static BigDecimal decimal(JsonNode node, String field) {
         return node.has(field) && node.get(field).isNumber()
                 ? node.get(field).decimalValue()
+                : null;
+    }
+
+    private static Integer integerOrNull(JsonNode node, String field) {
+        return node.has(field) && node.get(field).canConvertToInt()
+                ? node.get(field).intValue()
+                : null;
+    }
+
+    private static Boolean booleanOrNull(JsonNode node, String field) {
+        return node.has(field) && node.get(field).isBoolean()
+                ? node.get(field).booleanValue()
                 : null;
     }
 

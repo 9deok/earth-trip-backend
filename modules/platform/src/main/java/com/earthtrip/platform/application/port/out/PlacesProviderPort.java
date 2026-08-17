@@ -14,4 +14,6 @@ public interface PlacesProviderPort {
             int limit);
 
     ProviderProxyUseCase.PlaceDetail detail(String providerPlaceId, String language);
+
+    ProviderProxyUseCase.PlacePhoto photo(String photoName, Integer maxWidth, Integer maxHeight);
 }

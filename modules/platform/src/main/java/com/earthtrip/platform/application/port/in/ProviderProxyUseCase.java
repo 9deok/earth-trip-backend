@@ -17,6 +17,8 @@ public interface ProviderProxyUseCase {
 
     PlaceDetail place(String providerPlaceId, String language);
 
+    PlacePhoto placePhoto(String photoName, Integer maxWidth, Integer maxHeight);
+
     RouteResult route(RouteQuery query);
 
     MatrixResult routeMatrix(MatrixQuery query);
@@ -36,6 +38,13 @@ public interface ProviderProxyUseCase {
             BigDecimal latitude,
             BigDecimal longitude,
             List<String> categories,
+            String photoName,
+            List<PlacePhotoAttribution> photoAttributions,
+            BigDecimal rating,
+            Integer userRatingCount,
+            String priceLevel,
+            Boolean openNow,
+            String googleMapsUrl,
             String source) {}
 
     record PlaceDetail(
@@ -46,11 +55,22 @@ public interface ProviderProxyUseCase {
             BigDecimal latitude,
             BigDecimal longitude,
             List<String> categories,
+            String photoName,
+            List<PlacePhotoAttribution> photoAttributions,
+            BigDecimal rating,
+            Integer userRatingCount,
+            String priceLevel,
+            Boolean openNow,
+            String googleMapsUrl,
             Map<String, List<OpeningInterval>> openingHours,
             String websiteUrl,
             String phoneNumber,
             String source,
             Instant fetchedAt) {}
+
+    record PlacePhotoAttribution(String displayName, String uri, String photoUri) {}
+
+    record PlacePhoto(byte[] bytes, String contentType) {}
 
     record OpeningInterval(int openMinute, int closeMinute) {}
 

@@ -23,6 +23,8 @@ class ProviderProxyService implements ProviderProxyUseCase {
 
     private static final Set<String> ROUTE_MODES =
             Set.of("WALKING", "DRIVING", "TRANSIT", "BICYCLING");
+    private static final String PLACE_PHOTO_NAME_PATTERN =
+            "places/[A-Za-z0-9_-]+/photos/[A-Za-z0-9_-]+";
 
     private final PlacesProviderPort places;
     private final RoutesProviderPort routes;
@@ -66,6 +68,21 @@ class ProviderProxyService implements ProviderProxyUseCase {
         return places.detail(
                 text(providerPlaceId, "PLACE_ID_REQUIRED", "장소 ID가 필요합니다.", 500),
                 language(language));
+    }
+
+    @Override
+    public PlacePhoto placePhoto(String photoName, Integer maxWidth, Integer maxHeight) {
+        String safeName = text(photoName, "PLACE_PHOTO_NAME_REQUIRED", "장소 사진 이름이 필요합니다.", 500);
+        if (!safeName.matches(PLACE_PHOTO_NAME_PATTERN)) {
+            throw EarthTripException.badRequest(
+                    "INVALID_PLACE_PHOTO_NAME", "Google 장소 사진 이름 형식을 확인해 주세요.");
+        }
+        Integer safeWidth = photoDimension(maxWidth, "maxWidth");
+        Integer safeHeight = photoDimension(maxHeight, "maxHeight");
+        if (safeWidth == null && safeHeight == null) {
+            safeWidth = 960;
+        }
+        return places.photo(safeName, safeWidth, safeHeight);
     }
 
     @Override
@@ -215,6 +232,17 @@ class ProviderProxyService implements ProviderProxyUseCase {
         } catch (IllegalArgumentException | NullPointerException exception) {
             throw EarthTripException.badRequest("INVALID_CURRENCY", "유효한 ISO 4217 통화 코드가 아닙니다.");
         }
+    }
+
+    private static Integer photoDimension(Integer value, String field) {
+        if (value == null) {
+            return null;
+        }
+        if (value < 64 || value > 1_600) {
+            throw EarthTripException.badRequest(
+                    "INVALID_PLACE_PHOTO_DIMENSION", field + "는 64에서 1600 사이여야 합니다.");
+        }
+        return value;
     }
 
     private static String safeExternalUrl(String value) {

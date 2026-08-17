@@ -111,12 +111,66 @@ class GoogleMapsApiClient {
         }
     }
 
+    BinaryResponse download(URI uri, String providerCode) {
+        requireConfigured(providerCode);
+        requireTrustedMediaUri(uri);
+        try {
+            return restClient
+                    .get()
+                    .uri(uri)
+                    .accept(
+                            MediaType.IMAGE_JPEG,
+                            MediaType.IMAGE_PNG,
+                            MediaType.parseMediaType("image/webp"))
+                    .exchange(
+                            (request, response) -> {
+                                int status = response.getStatusCode().value();
+                                if (!response.getStatusCode().is2xxSuccessful()) {
+                                    throw rejected(providerCode, status);
+                                }
+                                byte[] bytes = response.getBody().readAllBytes();
+                                MediaType mediaType = response.getHeaders().getContentType();
+                                if (bytes.length == 0
+                                        || bytes.length > 8 * 1024 * 1024
+                                        || mediaType == null
+                                        || !"image".equalsIgnoreCase(mediaType.getType())) {
+                                    throw EarthTripException.unavailable(
+                                            providerCode + "_INVALID_MEDIA",
+                                            "Google Maps Platform 사진 응답이 올바르지 않습니다.");
+                                }
+                                return new BinaryResponse(bytes, mediaType.toString());
+                            });
+        } catch (RestClientResponseException exception) {
+            throw rejected(providerCode, exception.getStatusCode().value());
+        } catch (RestClientException exception) {
+            throw unavailable(providerCode);
+        }
+    }
+
     private void requireConfigured(String providerCode) {
         if (!configured()) {
             throw EarthTripException.unavailable(
                     providerCode + "_NOT_CONFIGURED", "Google Maps Platform API 키가 설정되지 않았습니다.");
         }
     }
+
+    private static void requireTrustedMediaUri(URI uri) {
+        String host = uri.getHost() == null ? "" : uri.getHost().toLowerCase();
+        boolean trustedHost =
+                host.equals("googleusercontent.com")
+                        || host.endsWith(".googleusercontent.com")
+                        || host.equals("ggpht.com")
+                        || host.endsWith(".ggpht.com");
+        if (!"https".equalsIgnoreCase(uri.getScheme())
+                || !trustedHost
+                || uri.getUserInfo() != null
+                || (uri.getPort() != -1 && uri.getPort() != 443)) {
+            throw EarthTripException.badRequest(
+                    "UNTRUSTED_PLACE_PHOTO_URI", "허용되지 않은 장소 사진 주소입니다.");
+        }
+    }
+
+    record BinaryResponse(byte[] bytes, String contentType) {}
 
     private static EarthTripException rejected(String providerCode, int status) {
         return new EarthTripException(
