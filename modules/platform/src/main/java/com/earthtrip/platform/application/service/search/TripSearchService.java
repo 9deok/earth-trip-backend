@@ -9,6 +9,7 @@ import com.earthtrip.wallet.api.TripWalletView;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -91,6 +92,9 @@ class TripSearchService implements TripSearchUseCase {
                 Map.of());
         for (TripStructureView.Segment segment : snapshot.segments()) {
             String title = segment.cityName() == null ? segment.type() : segment.cityName();
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            if (segment.startDate() != null) metadata.put("startDate", segment.startDate());
+            if (segment.endDate() != null) metadata.put("endDate", segment.endDate());
             add(
                     output,
                     segment.segmentId(),
@@ -99,7 +103,7 @@ class TripSearchService implements TripSearchUseCase {
                     title,
                     segment.accommodationName(),
                     query,
-                    Map.of("startDate", segment.startDate(), "endDate", segment.endDate()));
+                    metadata);
         }
     }
 

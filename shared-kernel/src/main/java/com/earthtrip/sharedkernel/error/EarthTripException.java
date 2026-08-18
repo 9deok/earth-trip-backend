@@ -11,12 +11,25 @@ public final class EarthTripException extends RuntimeException {
     private final Map<String, Object> properties;
 
     public EarthTripException(String code, int httpStatus, String message) {
-        this(code, httpStatus, message, Map.of());
+        this(code, httpStatus, message, Map.of(), null);
     }
 
     public EarthTripException(
             String code, int httpStatus, String message, Map<String, Object> properties) {
-        super(Objects.requireNonNull(message, "오류 메시지는 필수입니다."));
+        this(code, httpStatus, message, properties, null);
+    }
+
+    public EarthTripException(String code, int httpStatus, String message, Throwable cause) {
+        this(code, httpStatus, message, Map.of(), cause);
+    }
+
+    public EarthTripException(
+            String code,
+            int httpStatus,
+            String message,
+            Map<String, Object> properties,
+            Throwable cause) {
+        super(Objects.requireNonNull(message, "오류 메시지는 필수입니다."), cause);
         this.code = requireText(code, "오류 코드는 필수입니다.");
         if (httpStatus < 400 || httpStatus > 599) {
             throw new IllegalArgumentException("HTTP 오류 상태는 400에서 599 사이여야 합니다.");
@@ -59,6 +72,10 @@ public final class EarthTripException extends RuntimeException {
 
     public static EarthTripException unavailable(String code, String message) {
         return new EarthTripException(code, 503, message);
+    }
+
+    public static EarthTripException unavailable(String code, String message, Throwable cause) {
+        return new EarthTripException(code, 503, message, cause);
     }
 
     private static String requireText(String value, String message) {

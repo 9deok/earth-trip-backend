@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -96,6 +97,64 @@ class TripTest {
                                         null,
                                         now.plusSeconds(60)))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void 날짜_미정으로_변경하면_확정_날짜를_제거한다() {
+        Instant now = Instant.parse("2026-08-10T00:00:00Z");
+        Trip trip = trip(now);
+        trip.update(
+                null,
+                "PLANNING",
+                LocalDate.parse("2026-10-02"),
+                LocalDate.parse("2026-10-06"),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "EXACT",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                now.plusSeconds(30));
+
+        trip.update(
+                null,
+                "DRAFT",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "UNDECIDED",
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                now.plusSeconds(60));
+
+        assertThat(trip.startDate()).isNull();
+        assertThat(trip.endDate()).isNull();
+        assertThat(trip.dateMode()).isEqualTo(Trip.DateMode.UNDECIDED);
+        assertThat(trip.status()).isEqualTo(Trip.Status.DRAFT);
     }
 
     private static Trip trip(Instant now) {

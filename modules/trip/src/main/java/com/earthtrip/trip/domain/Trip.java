@@ -163,7 +163,7 @@ public final class Trip {
                 Pace.BALANCED,
                 1,
                 List.of("나"),
-                DateMode.EXACT,
+                DateMode.UNDECIDED,
                 TravelMode.ROUND_TRIP,
                 "",
                 "",
@@ -266,8 +266,13 @@ public final class Trip {
             Instant now) {
         TripTitle candidateTitle = newTitle == null ? title : new TripTitle(newTitle);
         Status candidateStatus = TripPolicy.updatedStatus(status, newStatus);
-        LocalDate candidateStart = newStartDate == null ? startDate : newStartDate;
-        LocalDate candidateEnd = newEndDate == null ? endDate : newEndDate;
+        DateMode candidateDateMode =
+                TripPolicy.updatedDateMode(dateMode, newDateMode, newStartDate, newEndDate);
+        boolean clearConfirmedDates = candidateDateMode != DateMode.EXACT;
+        LocalDate candidateStart =
+                clearConfirmedDates ? null : (newStartDate == null ? startDate : newStartDate);
+        LocalDate candidateEnd =
+                clearConfirmedDates ? null : (newEndDate == null ? endDate : newEndDate);
         TripPolicy.dates(candidateStart, candidateEnd);
         this.title = candidateTitle;
         this.status = candidateStatus;
@@ -284,9 +289,7 @@ public final class Trip {
         applyPreferences(
                 newCompanionCount == null ? companionCount : newCompanionCount,
                 newCompanionNames == null ? companionNames : newCompanionNames,
-                newDateMode == null
-                        ? dateMode
-                        : DateMode.valueOf(newDateMode.toUpperCase(Locale.ROOT)),
+                candidateDateMode,
                 newTravelMode == null
                         ? travelMode
                         : TravelMode.valueOf(newTravelMode.toUpperCase(Locale.ROOT)),

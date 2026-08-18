@@ -5,7 +5,6 @@ import com.earthtrip.trip.application.port.in.TripSegmentUseCase;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -109,8 +108,8 @@ record TripSegmentUpdateRequest(
         String placeId,
         BigDecimal latitude,
         BigDecimal longitude,
-        @NotNull LocalDate startDate,
-        @NotNull LocalDate endDate,
+        LocalDate startDate,
+        LocalDate endDate,
         String accommodationName,
         String accommodationPlaceId,
         Instant checkInAt,

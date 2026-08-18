@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.UUID;
+import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,12 @@ class TraceIdFilter extends OncePerRequestFilter {
         String traceId = normalize(request.getHeader("X-Trace-Id"));
         request.setAttribute("earthTripTraceId", traceId);
         response.setHeader("X-Trace-Id", traceId);
-        filterChain.doFilter(request, response);
+        MDC.put("traceId", traceId);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            MDC.remove("traceId");
+        }
     }
 
     private static String normalize(String candidate) {

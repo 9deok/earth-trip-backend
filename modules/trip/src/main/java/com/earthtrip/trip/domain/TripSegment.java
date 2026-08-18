@@ -256,7 +256,8 @@ public final class TripSegment {
         if (type == Type.STAY && (cityName == null || cityName.isBlank())) {
             throw new IllegalArgumentException("체류 구간에는 도시 이름이 필요합니다.");
         }
-        if (startDate == null || endDate == null || endDate.isBefore(startDate)) {
+        if ((startDate == null) != (endDate == null)
+                || (startDate != null && endDate.isBefore(startDate))) {
             throw new IllegalArgumentException("구간 시작일과 종료일을 확인해 주세요.");
         }
         if (checkInAt != null && checkOutAt != null && checkOutAt.isBefore(checkInAt)) {

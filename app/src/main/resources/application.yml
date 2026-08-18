@@ -49,7 +49,7 @@ earthtrip:
   logging:
     http:
       max-payload-bytes: ${HTTP_LOG_MAX_PAYLOAD_BYTES:8192}
-      success-details-enabled: ${HTTP_LOG_SUCCESS_DETAILS_ENABLED:false}
+      success-details-enabled: ${HTTP_LOG_SUCCESS_DETAILS_ENABLED:true}
   public-base-url: ${PUBLIC_BASE_URL:http://localhost:3000}
   backend-public-base-url: ${BACKEND_PUBLIC_BASE_URL:http://localhost:8080}
   oauth:

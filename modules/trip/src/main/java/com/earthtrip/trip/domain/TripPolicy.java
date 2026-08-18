@@ -45,6 +45,14 @@ final class TripPolicy {
         return candidate;
     }
 
+    static Trip.DateMode updatedDateMode(
+            Trip.DateMode current, String rawMode, LocalDate startDate, LocalDate endDate) {
+        if (rawMode != null) {
+            return Trip.DateMode.valueOf(rawMode.toUpperCase(Locale.ROOT));
+        }
+        return startDate != null && endDate != null ? Trip.DateMode.EXACT : current;
+    }
+
     static Preferences preferences(
             int companionCount,
             List<String> companionNames,

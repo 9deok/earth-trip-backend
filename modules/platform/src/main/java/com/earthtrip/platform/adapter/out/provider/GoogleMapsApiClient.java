@@ -55,9 +55,9 @@ class GoogleMapsApiClient {
                     ? com.fasterxml.jackson.databind.node.NullNode.instance
                     : response;
         } catch (RestClientResponseException exception) {
-            throw rejected(providerCode, exception.getStatusCode().value());
+            throw rejected(providerCode, exception.getStatusCode().value(), exception);
         } catch (RestClientException exception) {
-            throw unavailable(providerCode);
+            throw unavailable(providerCode, exception);
         }
     }
 
@@ -81,9 +81,9 @@ class GoogleMapsApiClient {
                     ? com.fasterxml.jackson.databind.node.NullNode.instance
                     : response;
         } catch (RestClientResponseException exception) {
-            throw rejected(providerCode, exception.getStatusCode().value());
+            throw rejected(providerCode, exception.getStatusCode().value(), exception);
         } catch (RestClientException exception) {
-            throw unavailable(providerCode);
+            throw unavailable(providerCode, exception);
         }
     }
 
@@ -105,9 +105,9 @@ class GoogleMapsApiClient {
                     ? com.fasterxml.jackson.databind.node.NullNode.instance
                     : response;
         } catch (RestClientResponseException exception) {
-            throw rejected(providerCode, exception.getStatusCode().value());
+            throw rejected(providerCode, exception.getStatusCode().value(), exception);
         } catch (RestClientException exception) {
-            throw unavailable(providerCode);
+            throw unavailable(providerCode, exception);
         }
     }
 
@@ -126,7 +126,7 @@ class GoogleMapsApiClient {
                             (request, response) -> {
                                 int status = response.getStatusCode().value();
                                 if (!response.getStatusCode().is2xxSuccessful()) {
-                                    throw rejected(providerCode, status);
+                                    throw rejected(providerCode, status, null);
                                 }
                                 byte[] bytes = response.getBody().readAllBytes();
                                 MediaType mediaType = response.getHeaders().getContentType();
@@ -141,9 +141,9 @@ class GoogleMapsApiClient {
                                 return new BinaryResponse(bytes, mediaType.toString());
                             });
         } catch (RestClientResponseException exception) {
-            throw rejected(providerCode, exception.getStatusCode().value());
+            throw rejected(providerCode, exception.getStatusCode().value(), exception);
         } catch (RestClientException exception) {
-            throw unavailable(providerCode);
+            throw unavailable(providerCode, exception);
         }
     }
 
@@ -172,16 +172,17 @@ class GoogleMapsApiClient {
 
     record BinaryResponse(byte[] bytes, String contentType) {}
 
-    private static EarthTripException rejected(String providerCode, int status) {
+    private static EarthTripException rejected(String providerCode, int status, Throwable cause) {
         return new EarthTripException(
                 providerCode + "_REQUEST_REJECTED",
                 status == 429 ? 503 : 502,
                 "Google Maps Platform이 요청을 처리하지 못했습니다.",
-                Map.of("providerStatus", status));
+                Map.of("providerStatus", status),
+                cause);
     }
 
-    private static EarthTripException unavailable(String providerCode) {
+    private static EarthTripException unavailable(String providerCode, Throwable cause) {
         return EarthTripException.unavailable(
-                providerCode + "_UNAVAILABLE", "Google Maps Platform에 연결할 수 없습니다.");
+                providerCode + "_UNAVAILABLE", "Google Maps Platform에 연결할 수 없습니다.", cause);
     }
 }

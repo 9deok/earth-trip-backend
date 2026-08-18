@@ -32,7 +32,7 @@ final class ApiRequestResponseLoggingFilter extends OncePerRequestFilter {
     ApiRequestResponseLoggingFilter(
             ObjectMapper objectMapper,
             @Value("${earthtrip.logging.http.max-payload-bytes:8192}") int maxPayloadBytes,
-            @Value("${earthtrip.logging.http.success-details-enabled:false}")
+            @Value("${earthtrip.logging.http.success-details-enabled:true}")
                     boolean successDetailsEnabled) {
         if (maxPayloadBytes < 1) {
             throw new IllegalArgumentException(

@@ -1,7 +1,6 @@
 package com.earthtrip.platform.adapter.in.web.api.v1.place_photos;
 
 import com.earthtrip.platform.application.port.in.ProviderProxyUseCase;
-import java.time.Duration;
 import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +27,7 @@ class PlacePhotosController {
         ProviderProxyUseCase.PlacePhoto photo = useCase.placePhoto(name, maxWidth, maxHeight);
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(photo.contentType()))
-                .cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePrivate())
+                .cacheControl(CacheControl.noStore())
                 .body(photo.bytes());
     }
 }

@@ -22,15 +22,6 @@ final class StructureDiagnosticCalculator {
             List<TripStructureView.Segment> segments,
             Map<UUID, TripStructureStorePort.ResolutionRecord> resolutions) {
         List<RawDiagnostic> raw = new ArrayList<>();
-        if (tripStart == null || tripEnd == null) {
-            raw.add(
-                    new RawDiagnostic(
-                            "INCOMPLETE_TRIP_DATES",
-                            "ERROR",
-                            "여행 시작일과 종료일을 모두 정해야 숙박 구조를 검사할 수 있습니다.",
-                            null,
-                            List.of()));
-        }
         for (TripStructureView.Segment segment : segments) {
             addSegmentDiagnostics(raw, tripStart, tripEnd, segment);
         }
@@ -45,6 +36,9 @@ final class StructureDiagnosticCalculator {
             LocalDate tripStart,
             LocalDate tripEnd,
             TripStructureView.Segment segment) {
+        if (segment.startDate() == null || segment.endDate() == null) {
+            return;
+        }
         if (tripStart != null
                 && tripEnd != null
                 && (segment.startDate().isBefore(tripStart)
@@ -99,6 +93,10 @@ final class StructureDiagnosticCalculator {
             List<TripStructureView.Segment> stays =
                     segments.stream()
                             .filter(segment -> segment.type().equals("STAY"))
+                            .filter(
+                                    segment ->
+                                            segment.startDate() != null
+                                                    && segment.endDate() != null)
                             .filter(segment -> !currentNight.isBefore(segment.startDate()))
                             .filter(segment -> currentNight.isBefore(segment.endDate()))
                             .sorted(Comparator.comparing(TripStructureView.Segment::sortOrder))
@@ -106,6 +104,10 @@ final class StructureDiagnosticCalculator {
             boolean overnightTransfer =
                     segments.stream()
                             .filter(segment -> segment.type().equals("OVERNIGHT_TRANSFER"))
+                            .filter(
+                                    segment ->
+                                            segment.startDate() != null
+                                                    && segment.endDate() != null)
                             .anyMatch(
                                     segment ->
                                             !currentNight.isBefore(segment.startDate())

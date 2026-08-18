@@ -8,7 +8,7 @@
     />
     <property
         name="LOG_PATTERN"
-        value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger{48} - %msg%n"
+        value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [traceId=%X{traceId:-}] %logger{48} - %msg%n"
     />
 
     <appender name="CONSOLE_SYNC" class="ch.qos.logback.core.ConsoleAppender">
