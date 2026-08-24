@@ -35,7 +35,7 @@ class PlaceCandidateByIdController {
                 actor.requireUserId(),
                 "PLACE_CANDIDATE",
                 candidateId,
-                PlanningResourceUseCase.WritePermission.EDITOR,
+                PlanningResourceUseCase.WritePermission.MEMBER,
                 new PlanningResourceUseCase.ResourceCommand(
                         candidateId,
                         null,
@@ -57,7 +57,7 @@ class PlaceCandidateByIdController {
                 actor.requireUserId(),
                 "PLACE_CANDIDATE",
                 candidateId,
-                PlanningResourceUseCase.WritePermission.EDITOR,
+                PlanningResourceUseCase.WritePermission.MEMBER,
                 r.baseVersion());
     }
 }

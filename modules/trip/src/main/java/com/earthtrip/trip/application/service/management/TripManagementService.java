@@ -2,14 +2,16 @@ package com.earthtrip.trip.application.service.management;
 
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.application.port.in.TripManagementUseCase;
+import com.earthtrip.trip.application.port.in.TripSegmentUseCase;
 import com.earthtrip.trip.application.port.out.LoadTripPort;
 import com.earthtrip.trip.application.port.out.SaveTripPort;
 import com.earthtrip.trip.domain.Trip;
 import com.earthtrip.trip.domain.TripId;
 import com.earthtrip.trip.domain.TripTitle;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import com.earthtrip.trip.spi.TripMembershipLookup;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
@@ -29,6 +31,7 @@ class TripManagementService implements TripManagementUseCase {
     private final TripMembershipLookup memberships;
     private final TripAccess tripAccess;
     private final TripChangePublisher changes;
+    private final TripSegmentUseCase segments;
 
     TripManagementService(
             LoadTripPort loadPort,
@@ -36,12 +39,14 @@ class TripManagementService implements TripManagementUseCase {
             TripMembershipLookup memberships,
             TripAccess tripAccess,
             TripChangePublisher changes,
+            TripSegmentUseCase segments,
             Clock clock) {
         this.loadPort = loadPort;
         this.savePort = savePort;
         this.memberships = memberships;
         this.tripAccess = tripAccess;
         this.changes = changes;
+        this.segments = segments;
         this.clock = clock;
     }
 
@@ -151,17 +156,24 @@ class TripManagementService implements TripManagementUseCase {
     @Override
     public TripResult copy(UUID tripId, UUID actorUserId, UUID requestId, String rawTitle) {
         tripAccess.requireViewer(tripId, actorUserId);
+        if (requestId == null) {
+            throw EarthTripException.badRequest("REQUEST_ID_REQUIRED", "requestId가 필요합니다.");
+        }
+        if (tripId.equals(requestId)) {
+            throw EarthTripException.badRequest(
+                    "COPY_ID_MATCHES_SOURCE", "복사본 요청 ID는 원본 여행 ID와 달라야 합니다.");
+        }
         Trip source = load(tripId);
+        String title =
+                rawTitle == null || rawTitle.isBlank() ? source.title().value() + " 복사본" : rawTitle;
         TripId copyId = new TripId(requestId);
         Trip existing = loadPort.findById(copyId).orElse(null);
         if (existing != null) {
-            if (!existing.isOwnedBy(actorUserId)) {
+            if (!matchesCopyRetry(existing, source, actorUserId, title)) {
                 throw EarthTripException.conflict("IDEMPOTENCY_KEY_REUSED", "이미 사용된 요청 ID입니다.");
             }
             return result(existing);
         }
-        String title =
-                rawTitle == null || rawTitle.isBlank() ? source.title().value() + " 복사본" : rawTitle;
         Trip copied =
                 Trip.create(
                         copyId,
@@ -194,8 +206,54 @@ class TripManagementService implements TripManagementUseCase {
                 source.dietaryNotes(),
                 clock.instant());
         Trip saved = savePort.save(copied);
+        copySegments(tripId, saved.id().value(), actorUserId);
         changes.publish(requestId, actorUserId, "CREATED", "TRIP", requestId);
         return result(saved);
+    }
+
+    private static boolean matchesCopyRetry(
+            Trip existing, Trip source, UUID actorUserId, String expectedTitle) {
+        return existing.isOwnedBy(actorUserId)
+                && existing.title().value().equals(expectedTitle)
+                && existing.timeZone().equals(source.timeZone())
+                && existing.defaultCurrency().equals(source.defaultCurrency())
+                && java.util.Objects.equals(existing.startDate(), source.startDate())
+                && java.util.Objects.equals(existing.endDate(), source.endDate())
+                && existing.dateMode() == source.dateMode()
+                && existing.travelMode() == source.travelMode();
+    }
+
+    private void copySegments(UUID sourceTripId, UUID targetTripId, UUID actorUserId) {
+        for (TripSegmentUseCase.SegmentResult source : segments.list(sourceTripId, actorUserId)) {
+            UUID segmentId =
+                    UUID.nameUUIDFromBytes(
+                            ("earthtrip:trip-copy:" + targetTripId + ":" + source.segmentId())
+                                    .getBytes(StandardCharsets.UTF_8));
+            segments.create(
+                    targetTripId,
+                    actorUserId,
+                    new TripSegmentUseCase.SegmentCommand(
+                            segmentId,
+                            source.type(),
+                            source.cityName(),
+                            source.countryCode(),
+                            source.placeId(),
+                            source.latitude(),
+                            source.longitude(),
+                            source.timeZone(),
+                            source.startDate(),
+                            source.endDate(),
+                            source.accommodationName(),
+                            source.accommodationPlaceId(),
+                            source.checkInAt(),
+                            source.checkOutAt(),
+                            source.transportMode(),
+                            source.departureAt(),
+                            source.arrivalAt(),
+                            source.anchorAt(),
+                            source.sortOrder(),
+                            0));
+        }
     }
 
     private Trip load(UUID tripId) {

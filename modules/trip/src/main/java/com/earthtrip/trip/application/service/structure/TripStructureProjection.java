@@ -98,6 +98,7 @@ final class TripStructureProjection {
                 proposal.placeId(),
                 proposal.latitude(),
                 proposal.longitude(),
+                proposal.timeZone(),
                 proposal.startDate(),
                 proposal.endDate(),
                 proposal.accommodationName(),
@@ -107,6 +108,7 @@ final class TripStructureProjection {
                 proposal.transportMode(),
                 proposal.departureAt(),
                 proposal.arrivalAt(),
+                proposal.anchorAt(),
                 proposal.sortOrder(),
                 baseVersion);
     }
@@ -120,6 +122,7 @@ final class TripStructureProjection {
                 segment.placeId(),
                 segment.latitude(),
                 segment.longitude(),
+                segment.timeZone(),
                 segment.startDate(),
                 segment.endDate(),
                 segment.accommodationName(),
@@ -129,6 +132,7 @@ final class TripStructureProjection {
                 segment.transportMode(),
                 segment.departureAt(),
                 segment.arrivalAt(),
+                segment.anchorAt(),
                 segment.sortOrder(),
                 baseVersion);
     }
@@ -140,6 +144,7 @@ final class TripStructureProjection {
                 && Objects.equals(current.placeId(), proposed.placeId())
                 && Objects.equals(current.latitude(), proposed.latitude())
                 && Objects.equals(current.longitude(), proposed.longitude())
+                && Objects.equals(current.timeZone(), proposed.timeZone())
                 && Objects.equals(current.startDate(), proposed.startDate())
                 && Objects.equals(current.endDate(), proposed.endDate())
                 && Objects.equals(current.accommodationName(), proposed.accommodationName())
@@ -149,6 +154,7 @@ final class TripStructureProjection {
                 && Objects.equals(current.transportMode(), proposed.transportMode())
                 && Objects.equals(current.departureAt(), proposed.departureAt())
                 && Objects.equals(current.arrivalAt(), proposed.arrivalAt())
+                && Objects.equals(current.anchorAt(), proposed.anchorAt())
                 && current.sortOrder() == proposed.sortOrder();
     }
 
@@ -173,6 +179,7 @@ final class TripStructureProjection {
                 proposal.placeId(),
                 proposal.latitude(),
                 proposal.longitude(),
+                proposal.timeZone(),
                 proposal.startDate(),
                 proposal.endDate(),
                 proposal.accommodationName(),
@@ -182,6 +189,7 @@ final class TripStructureProjection {
                 proposal.transportMode(),
                 proposal.departureAt(),
                 proposal.arrivalAt(),
+                proposal.anchorAt(),
                 proposal.sortOrder(),
                 proposal.baseVersion());
     }

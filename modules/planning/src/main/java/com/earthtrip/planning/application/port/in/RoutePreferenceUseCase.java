@@ -27,5 +27,6 @@ public interface RoutePreferenceUseCase {
             boolean endAtAccommodation,
             boolean avoidTolls,
             boolean accessibilityRequired,
-            long version) {}
+            long version,
+            boolean configured) {}
 }

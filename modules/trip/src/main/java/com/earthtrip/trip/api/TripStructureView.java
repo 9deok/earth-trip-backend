@@ -34,6 +34,7 @@ public interface TripStructureView {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -43,6 +44,7 @@ public interface TripStructureView {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             long version) {}
 }

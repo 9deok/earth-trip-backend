@@ -5,7 +5,7 @@ import com.earthtrip.identity.domain.UserId;
 import java.time.Instant;
 import java.util.UUID;
 
-public record AuthSessionAuthenticationRow(
+record AuthSessionAuthenticationRow(
         String id,
         String userId,
         String accessTokenHash,

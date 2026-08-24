@@ -71,6 +71,7 @@ record StructureSegmentRequest(
         String placeId,
         BigDecimal latitude,
         BigDecimal longitude,
+        String timeZone,
         @NotNull LocalDate startDate,
         @NotNull LocalDate endDate,
         String accommodationName,
@@ -80,6 +81,7 @@ record StructureSegmentRequest(
         String transportMode,
         Instant departureAt,
         Instant arrivalAt,
+        Instant anchorAt,
         @PositiveOrZero int sortOrder,
         @PositiveOrZero long baseVersion) {
     TripStructureUseCase.SegmentProposal toProposal() {
@@ -91,6 +93,7 @@ record StructureSegmentRequest(
                 placeId,
                 latitude,
                 longitude,
+                timeZone,
                 startDate,
                 endDate,
                 accommodationName,
@@ -100,6 +103,7 @@ record StructureSegmentRequest(
                 transportMode,
                 departureAt,
                 arrivalAt,
+                anchorAt,
                 sortOrder,
                 baseVersion);
     }

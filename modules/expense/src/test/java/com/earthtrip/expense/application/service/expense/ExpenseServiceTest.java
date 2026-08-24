@@ -13,7 +13,7 @@ import com.earthtrip.expense.application.port.out.ExpenseStorePort;
 import com.earthtrip.expense.domain.Expense;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

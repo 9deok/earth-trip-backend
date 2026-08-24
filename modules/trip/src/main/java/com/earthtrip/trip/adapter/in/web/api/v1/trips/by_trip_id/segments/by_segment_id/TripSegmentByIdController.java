@@ -53,6 +53,7 @@ class TripSegmentByIdController {
                                 r.placeId(),
                                 r.latitude(),
                                 r.longitude(),
+                                r.timeZone(),
                                 r.startDate(),
                                 r.endDate(),
                                 r.accommodationName(),
@@ -62,6 +63,7 @@ class TripSegmentByIdController {
                                 r.transportMode(),
                                 r.departureAt(),
                                 r.arrivalAt(),
+                                r.anchorAt(),
                                 r.sortOrder(),
                                 r.baseVersion())));
     }
@@ -85,6 +87,7 @@ class TripSegmentByIdController {
                 s.placeId(),
                 s.latitude(),
                 s.longitude(),
+                s.timeZone(),
                 s.startDate(),
                 s.endDate(),
                 s.accommodationName(),
@@ -94,6 +97,7 @@ class TripSegmentByIdController {
                 s.transportMode(),
                 s.departureAt(),
                 s.arrivalAt(),
+                s.anchorAt(),
                 s.sortOrder(),
                 s.version(),
                 s.updatedBy(),
@@ -108,6 +112,7 @@ record TripSegmentUpdateRequest(
         String placeId,
         BigDecimal latitude,
         BigDecimal longitude,
+        String timeZone,
         LocalDate startDate,
         LocalDate endDate,
         String accommodationName,
@@ -117,6 +122,7 @@ record TripSegmentUpdateRequest(
         String transportMode,
         Instant departureAt,
         Instant arrivalAt,
+        Instant anchorAt,
         @Min(0) Integer sortOrder,
         @Min(0) long baseVersion) {}
 
@@ -131,6 +137,7 @@ record TripSegmentResponse(
         String placeId,
         BigDecimal latitude,
         BigDecimal longitude,
+        String timeZone,
         LocalDate startDate,
         LocalDate endDate,
         String accommodationName,
@@ -140,6 +147,7 @@ record TripSegmentResponse(
         String transportMode,
         Instant departureAt,
         Instant arrivalAt,
+        Instant anchorAt,
         int sortOrder,
         long version,
         UUID updatedBy,

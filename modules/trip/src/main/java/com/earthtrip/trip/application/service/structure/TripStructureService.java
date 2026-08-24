@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -78,32 +77,34 @@ class TripStructureService implements TripStructureUseCase {
             UUID actorUserId,
             StructureProposal proposal,
             String expectedProposalHash) {
-        PreviewResult preview = preview(tripId, actorUserId, proposal);
-        if (!preview.proposalHash()
-                .equals(TripStructureProposalPolicy.normalizeHash(expectedProposalHash))) {
+        access.requireEditor(tripId, actorUserId);
+        StructureProposal safe = TripStructureProposalPolicy.validate(proposal);
+        String proposalHash = serialization.proposalHash(safe);
+        if (!proposalHash.equals(TripStructureProposalPolicy.normalizeHash(expectedProposalHash))) {
             throw EarthTripException.conflict(
                     "STRUCTURE_PREVIEW_STALE", "검토한 구조 변경안과 적용 요청이 다릅니다. 다시 미리보기를 확인해 주세요.");
         }
         TripStructureStorePort.ChangeSetRecord existing =
-                store.changeSet(proposal.requestId()).orElse(null);
+                store.changeSet(safe.requestId()).orElse(null);
         if (existing != null) {
             if (!existing.tripId().equals(tripId)
-                    || !existing.proposalHash().equals(preview.proposalHash())) {
+                    || !existing.proposalHash().equals(proposalHash)) {
                 throw EarthTripException.conflict(
                         "IDEMPOTENCY_KEY_REUSED", "이미 다른 구조 변경에 사용된 요청 ID입니다.");
             }
             return result(existing);
         }
 
+        PreviewResult preview = preview(tripId, actorUserId, safe);
         TripStructureView.StructureSnapshot before = structure.snapshot(tripId, actorUserId);
-        applyTripDateChange(tripId, actorUserId, proposal, before.trip());
-        applySegmentChanges(tripId, actorUserId, proposal, before.segments());
+        applyTripDateChange(tripId, actorUserId, safe, before.trip());
+        applySegmentChanges(tripId, actorUserId, safe, before.segments());
         TripStructureView.StructureSnapshot after = structure.snapshot(tripId, actorUserId);
         Instant now = clock.instant();
         return result(
                 store.saveChangeSet(
                         new TripStructureStorePort.ChangeSetRecord(
-                                proposal.requestId(),
+                                safe.requestId(),
                                 tripId,
                                 actorUserId,
                                 preview.proposalHash(),
@@ -117,8 +118,8 @@ class TripStructureService implements TripStructureUseCase {
 
     @Override
     public ChangeSetResult synchronize(UUID tripId, UUID actorUserId, StructureProposal proposal) {
-        PreviewResult preview = preview(tripId, actorUserId, proposal);
-        return apply(tripId, actorUserId, proposal, preview.proposalHash());
+        StructureProposal safe = TripStructureProposalPolicy.validate(proposal);
+        return apply(tripId, actorUserId, safe, serialization.proposalHash(safe));
     }
 
     @Override
@@ -345,124 +346,6 @@ class TripStructureService implements TripStructureUseCase {
                                         Function.identity()));
         return StructureDiagnosticCalculator.calculate(
                 tripId, startDate, endDate, segments, resolutions);
-    }
-
-    private static Set<UUID> uniqueSegmentIds(List<UUID> ids) {
-        if (ids.stream().anyMatch(Objects::isNull)
-                || ids.stream().distinct().count() != ids.size()) {
-            throw EarthTripException.badRequest(
-                    "DUPLICATE_SEGMENT_CHANGE", "구조 변경 목록에 구간 ID가 중복되거나 비어 있습니다.");
-        }
-        return Set.copyOf(ids);
-    }
-
-    private static TripStructureView.Segment requireCurrent(
-            Map<UUID, TripStructureView.Segment> current, UUID segmentId) {
-        TripStructureView.Segment segment = current.get(segmentId);
-        if (segment == null) {
-            throw EarthTripException.notFound("SEGMENT_NOT_FOUND", "구조 변경 대상 구간을 찾을 수 없습니다.");
-        }
-        return segment;
-    }
-
-    private static String normalizeType(String type) {
-        if (type == null) {
-            throw EarthTripException.badRequest("SEGMENT_TYPE_REQUIRED", "구간 유형이 필요합니다.");
-        }
-        String normalized = type.strip().toUpperCase(java.util.Locale.ROOT);
-        if (!Set.of("STAY", "TRANSFER", "OVERNIGHT_TRANSFER").contains(normalized)) {
-            throw EarthTripException.badRequest("INVALID_SEGMENT_TYPE", "지원하지 않는 구간 유형입니다.");
-        }
-        return normalized;
-    }
-
-    private static void validateSegmentProposal(SegmentProposal proposal) {
-        normalizeType(proposal.type());
-        if (proposal.startDate() == null
-                || proposal.endDate() == null
-                || proposal.endDate().isBefore(proposal.startDate())) {
-            throw EarthTripException.badRequest("INVALID_SEGMENT_DATES", "구간 시작일과 종료일을 확인해 주세요.");
-        }
-        if (normalizeType(proposal.type()).equals("STAY")
-                && (proposal.cityName() == null || proposal.cityName().isBlank())) {
-            throw EarthTripException.badRequest("SEGMENT_CITY_REQUIRED", "체류 구간에는 도시 이름이 필요합니다.");
-        }
-        if (proposal.checkInAt() != null
-                && proposal.checkOutAt() != null
-                && proposal.checkOutAt().isBefore(proposal.checkInAt())) {
-            throw EarthTripException.badRequest(
-                    "INVALID_CHECK_IN_RANGE", "체크아웃 시각은 체크인보다 빠를 수 없습니다.");
-        }
-        if (proposal.departureAt() != null
-                && proposal.arrivalAt() != null
-                && proposal.arrivalAt().isBefore(proposal.departureAt())) {
-            throw EarthTripException.badRequest(
-                    "INVALID_TRANSFER_RANGE", "도착 시각은 출발 시각보다 빠를 수 없습니다.");
-        }
-        if (proposal.latitude() != null
-                && (proposal.latitude().doubleValue() < -90
-                        || proposal.latitude().doubleValue() > 90)) {
-            throw EarthTripException.badRequest("INVALID_LATITUDE", "위도는 -90에서 90 사이여야 합니다.");
-        }
-        if (proposal.longitude() != null
-                && (proposal.longitude().doubleValue() < -180
-                        || proposal.longitude().doubleValue() > 180)) {
-            throw EarthTripException.badRequest("INVALID_LONGITUDE", "경도는 -180에서 180 사이여야 합니다.");
-        }
-    }
-
-    private static void validateDateRange(LocalDate startDate, LocalDate endDate) {
-        if (startDate != null && endDate != null && endDate.isBefore(startDate)) {
-            throw EarthTripException.badRequest("INVALID_TRIP_DATES", "여행 종료일은 시작일보다 빠를 수 없습니다.");
-        }
-    }
-
-    private static void requireTripVersion(TripStructureView.Trip trip, long baseVersion) {
-        if (trip.version() != baseVersion) {
-            throw versionConflict("trip", trip.version());
-        }
-    }
-
-    private static void requireSegmentVersion(TripStructureView.Segment segment, long baseVersion) {
-        if (segment.version() != baseVersion) {
-            throw versionConflict(segment.segmentId().toString(), segment.version());
-        }
-    }
-
-    private static void requireChangeSetVersion(
-            TripStructureStorePort.ChangeSetRecord record, long baseVersion) {
-        if (record.version() != baseVersion) {
-            throw versionConflict(record.id().toString(), record.version());
-        }
-    }
-
-    private static EarthTripException versionConflict(String resourceId, long serverVersion) {
-        return new EarthTripException(
-                "VERSION_CONFLICT",
-                409,
-                "다른 구조 변경이 먼저 저장되었습니다.",
-                Map.of("resourceId", resourceId, "serverVersion", serverVersion));
-    }
-
-    private static String normalizeHash(String value) {
-        String normalized = value == null ? "" : value.strip().toLowerCase(java.util.Locale.ROOT);
-        if (!normalized.matches("[0-9a-f]{64}")) {
-            throw EarthTripException.badRequest(
-                    "INVALID_PROPOSAL_HASH", "미리보기에서 받은 SHA-256 변경안 해시가 필요합니다.");
-        }
-        return normalized;
-    }
-
-    private static String normalizeNote(String note) {
-        if (note == null || note.isBlank()) {
-            return null;
-        }
-        String normalized = note.strip();
-        if (normalized.length() > 1_000) {
-            throw EarthTripException.badRequest(
-                    "RESOLUTION_NOTE_TOO_LONG", "확인 메모는 1000자 이하여야 합니다.");
-        }
-        return normalized;
     }
 
     private static ChangeSetResult result(TripStructureStorePort.ChangeSetRecord record) {

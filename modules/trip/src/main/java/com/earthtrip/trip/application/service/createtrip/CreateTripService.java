@@ -1,6 +1,5 @@
 package com.earthtrip.trip.application.service.createtrip;
 
-import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.application.port.in.CreateTripCommand;
 import com.earthtrip.trip.application.port.in.CreateTripResult;
 import com.earthtrip.trip.application.port.in.CreateTripUseCase;
@@ -9,6 +8,7 @@ import com.earthtrip.trip.application.port.out.SaveTripPort;
 import com.earthtrip.trip.domain.Trip;
 import com.earthtrip.trip.domain.TripId;
 import com.earthtrip.trip.domain.TripTitle;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import java.time.Clock;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

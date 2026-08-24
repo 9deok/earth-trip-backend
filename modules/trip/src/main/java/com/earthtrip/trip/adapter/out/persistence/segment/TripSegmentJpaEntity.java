@@ -40,6 +40,9 @@ class TripSegmentJpaEntity {
     @Column(name = "longitude", precision = 10, scale = 7)
     private BigDecimal longitude;
 
+    @Column(name = "time_zone", length = 80)
+    private String timeZone;
+
     @Column(name = "start_date")
     private LocalDate startDate;
 
@@ -66,6 +69,9 @@ class TripSegmentJpaEntity {
 
     @Column(name = "arrival_at")
     private Instant arrivalAt;
+
+    @Column(name = "anchor_at")
+    private Instant anchorAt;
 
     @Column(name = "sort_order", nullable = false)
     private int sortOrder;
@@ -105,6 +111,7 @@ class TripSegmentJpaEntity {
         placeId = segment.placeId();
         latitude = segment.latitude();
         longitude = segment.longitude();
+        timeZone = segment.timeZone();
         startDate = segment.startDate();
         endDate = segment.endDate();
         accommodationName = segment.accommodationName();
@@ -114,6 +121,7 @@ class TripSegmentJpaEntity {
         transportMode = segment.transportMode();
         departureAt = segment.departureAt();
         arrivalAt = segment.arrivalAt();
+        anchorAt = segment.anchorAt();
         sortOrder = segment.sortOrder();
         createdBy = segment.createdBy().toString();
         updatedBy = segment.updatedBy().toString();
@@ -131,6 +139,7 @@ class TripSegmentJpaEntity {
                 placeId,
                 latitude,
                 longitude,
+                timeZone,
                 startDate,
                 endDate,
                 accommodationName,
@@ -140,6 +149,7 @@ class TripSegmentJpaEntity {
                 transportMode,
                 departureAt,
                 arrivalAt,
+                anchorAt,
                 sortOrder,
                 UUID.fromString(createdBy),
                 UUID.fromString(updatedBy),

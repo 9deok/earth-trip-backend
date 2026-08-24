@@ -9,7 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import com.earthtrip.wallet.application.port.out.WalletRecordStorePort;
 import com.earthtrip.wallet.domain.WalletRecord;
 import java.time.Clock;

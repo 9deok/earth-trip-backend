@@ -245,6 +245,7 @@ class TripTemplateService implements TripTemplateUseCase {
                             nullableText(segment, "placeId"),
                             decimal(segment.get("latitude")),
                             decimal(segment.get("longitude")),
+                            nullableText(segment, "timeZone"),
                             shift(date(segment.get("startDate")), shiftDays),
                             shift(date(segment.get("endDate")), shiftDays),
                             nullableText(segment, "accommodationName"),
@@ -254,6 +255,7 @@ class TripTemplateService implements TripTemplateUseCase {
                             nullableText(segment, "transportMode"),
                             shift(instant(segment.get("departureAt")), shiftDays),
                             shift(instant(segment.get("arrivalAt")), shiftDays),
+                            shift(instant(segment.get("anchorAt")), shiftDays),
                             number(segment, "sortOrder").intValue(),
                             0));
         }
@@ -289,6 +291,7 @@ class TripTemplateService implements TripTemplateUseCase {
         put(result, "placeId", segment.placeId());
         put(result, "latitude", segment.latitude());
         put(result, "longitude", segment.longitude());
+        put(result, "timeZone", segment.timeZone());
         put(result, "startDate", segment.startDate());
         put(result, "endDate", segment.endDate());
         put(result, "accommodationName", segment.accommodationName());
@@ -298,6 +301,7 @@ class TripTemplateService implements TripTemplateUseCase {
         put(result, "transportMode", segment.transportMode());
         put(result, "departureAt", segment.departureAt());
         put(result, "arrivalAt", segment.arrivalAt());
+        put(result, "anchorAt", segment.anchorAt());
         put(result, "sortOrder", segment.sortOrder());
         return result;
     }

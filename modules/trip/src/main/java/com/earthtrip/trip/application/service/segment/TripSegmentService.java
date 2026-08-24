@@ -2,11 +2,11 @@ package com.earthtrip.trip.application.service.segment;
 
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.application.port.in.TripSegmentUseCase;
 import com.earthtrip.trip.application.port.out.TripSegmentStorePort;
 import com.earthtrip.trip.domain.TripId;
 import com.earthtrip.trip.domain.TripSegment;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.Comparator;
@@ -78,6 +78,7 @@ class TripSegmentService implements TripSegmentUseCase {
                         command.placeId(),
                         command.latitude(),
                         command.longitude(),
+                        command.timeZone(),
                         command.startDate(),
                         command.endDate(),
                         command.accommodationName(),
@@ -87,6 +88,7 @@ class TripSegmentService implements TripSegmentUseCase {
                         command.transportMode(),
                         command.departureAt(),
                         command.arrivalAt(),
+                        command.anchorAt(),
                         sortOrder,
                         actorUserId,
                         now);
@@ -108,6 +110,7 @@ class TripSegmentService implements TripSegmentUseCase {
                 command.placeId(),
                 command.latitude(),
                 command.longitude(),
+                command.timeZone(),
                 command.startDate(),
                 command.endDate(),
                 command.accommodationName(),
@@ -117,6 +120,7 @@ class TripSegmentService implements TripSegmentUseCase {
                 command.transportMode(),
                 command.departureAt(),
                 command.arrivalAt(),
+                command.anchorAt(),
                 command.sortOrder() == null ? segment.sortOrder() : command.sortOrder(),
                 actorUserId,
                 clock.instant());
@@ -139,7 +143,9 @@ class TripSegmentService implements TripSegmentUseCase {
         tripAccess.requireEditor(tripId, actorUserId);
         List<TripSegment> current = segmentStore.findAll(new TripId(tripId));
         if (order.size() != current.size()
-                || order.stream().map(OrderItem::segmentId).distinct().count() != current.size()) {
+                || order.stream().map(OrderItem::segmentId).distinct().count() != current.size()
+                || order.stream().map(OrderItem::sortOrder).distinct().count() != current.size()
+                || order.stream().anyMatch(item -> item.sortOrder() < 0)) {
             throw EarthTripException.badRequest("INVALID_SEGMENT_ORDER", "모든 구간을 중복 없이 포함해야 합니다.");
         }
         Instant now = clock.instant();
@@ -206,6 +212,7 @@ class TripSegmentService implements TripSegmentUseCase {
                 s.placeId(),
                 s.latitude(),
                 s.longitude(),
+                s.timeZone(),
                 s.startDate(),
                 s.endDate(),
                 s.accommodationName(),
@@ -215,6 +222,7 @@ class TripSegmentService implements TripSegmentUseCase {
                 s.transportMode(),
                 s.departureAt(),
                 s.arrivalAt(),
+                s.anchorAt(),
                 s.sortOrder(),
                 s.version(),
                 s.updatedBy(),

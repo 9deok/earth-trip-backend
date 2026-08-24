@@ -1,6 +1,6 @@
 package com.earthtrip.notification.adapter.in.web.internal.admin.push_notifications;
 
-import com.earthtrip.notification.api.NotificationPublisher;
+import com.earthtrip.notification.application.port.in.NotificationPublishUseCase;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,25 +17,31 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/internal/admin/push-notifications")
 class AdminPushNotificationsController {
 
-    private final NotificationPublisher publisher;
+    private final NotificationPublishUseCase notifications;
 
-    AdminPushNotificationsController(NotificationPublisher publisher) {
-        this.publisher = publisher;
+    AdminPushNotificationsController(NotificationPublishUseCase notifications) {
+        this.notifications = notifications;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.ACCEPTED)
-    NotificationPublisher.PublishResult post(@Valid @RequestBody PushNotificationRequest request) {
-        return publisher.publish(
-                new NotificationPublisher.PublishCommand(
-                        request.notificationId(),
-                        request.userId(),
-                        request.tripId(),
-                        request.type(),
-                        request.title(),
-                        request.body(),
-                        request.deepLink(),
-                        request.metadata() == null ? Map.of() : request.metadata()));
+    PushNotificationResponse post(@Valid @RequestBody PushNotificationRequest request) {
+        NotificationPublishUseCase.PublishNotificationResult result =
+                notifications.publish(
+                        new NotificationPublishUseCase.PublishNotificationCommand(
+                                request.notificationId(),
+                                request.userId(),
+                                request.tripId(),
+                                request.type(),
+                                request.title(),
+                                request.body(),
+                                request.deepLink(),
+                                request.metadata() == null ? Map.of() : request.metadata()));
+        return new PushNotificationResponse(
+                result.notificationId(),
+                result.deliveredDevices(),
+                result.failedDevices(),
+                result.skippedDevices());
     }
 }
 
@@ -48,3 +54,6 @@ record PushNotificationRequest(
         @NotBlank String body,
         String deepLink,
         Map<String, Object> metadata) {}
+
+record PushNotificationResponse(
+        UUID notificationId, int deliveredDevices, int failedDevices, int skippedDevices) {}

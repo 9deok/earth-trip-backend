@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class AuthSessionAuthenticationRowTest {
 
     @Test
-    void 공개_스칼라_조회_결과에서_인증_세션을_복원한다() {
+    void 패키지_내부_조회_결과에서_인증_세션을_복원한다() {
         UUID sessionId = UUID.randomUUID();
         UUID userId = UUID.randomUUID();
         Instant now = Instant.parse("2026-08-06T06:56:30Z");
@@ -31,7 +31,7 @@ class AuthSessionAuthenticationRowTest {
 
         var session = row.toDomain();
 
-        assertThat(Modifier.isPublic(AuthSessionAuthenticationRow.class.getModifiers())).isTrue();
+        assertThat(Modifier.isPublic(AuthSessionAuthenticationRow.class.getModifiers())).isFalse();
         assertThat(session.id()).isEqualTo(sessionId);
         assertThat(session.userId().value()).isEqualTo(userId);
         assertThat(session.acceptsAccessAt(now)).isTrue();

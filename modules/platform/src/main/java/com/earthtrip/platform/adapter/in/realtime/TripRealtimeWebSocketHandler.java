@@ -1,8 +1,8 @@
 package com.earthtrip.platform.adapter.in.realtime;
 
+import com.earthtrip.platform.application.port.in.TripRealtimeSessionUseCase;
 import com.earthtrip.sharedkernel.error.EarthTripException;
-import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripRealtimeNotifier;
+import com.earthtrip.trip.spi.TripRealtimeNotifier;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,13 +30,14 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler implements TripR
     private static final Set<String> CLIENT_MESSAGE_TYPES = Set.of("PING", "PRESENCE", "EDITING");
     private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
 
-    private final TripAccess tripAccess;
+    private final TripRealtimeSessionUseCase realtimeSessions;
     private final ObjectMapper json;
     private final Clock clock;
     private final Map<UUID, Map<String, SessionMember>> rooms = new ConcurrentHashMap<>();
 
-    TripRealtimeWebSocketHandler(TripAccess tripAccess, ObjectMapper json, Clock clock) {
-        this.tripAccess = tripAccess;
+    TripRealtimeWebSocketHandler(
+            TripRealtimeSessionUseCase realtimeSessions, ObjectMapper json, Clock clock) {
+        this.realtimeSessions = realtimeSessions;
         this.json = json;
         this.clock = clock;
     }
@@ -65,7 +66,7 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler implements TripR
     public void afterConnectionEstablished(WebSocketSession rawSession) throws Exception {
         UUID tripId = tripId(rawSession);
         UUID userId = userId(rawSession);
-        tripAccess.requireViewer(tripId, userId);
+        realtimeSessions.authorize(tripId, userId);
         WebSocketSession session =
                 new ConcurrentWebSocketSessionDecorator(
                         rawSession, SEND_TIME_LIMIT_MILLIS, SEND_BUFFER_BYTES);
@@ -99,7 +100,7 @@ class TripRealtimeWebSocketHandler extends TextWebSocketHandler implements TripR
         }
         UUID tripId = tripId(session);
         UUID userId = userId(session);
-        tripAccess.requireViewer(tripId, userId);
+        realtimeSessions.authorize(tripId, userId);
         Map<String, Object> payload = read(message.getPayload());
         String type = text(payload, "type").toUpperCase(java.util.Locale.ROOT);
         if (!CLIENT_MESSAGE_TYPES.contains(type)) {

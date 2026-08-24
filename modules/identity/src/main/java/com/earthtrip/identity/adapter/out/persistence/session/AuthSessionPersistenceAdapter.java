@@ -12,9 +12,12 @@ import org.springframework.stereotype.Component;
 class AuthSessionPersistenceAdapter implements AuthSessionStorePort {
 
     private final AuthSessionJpaRepository repository;
+    private final AuthSessionQuerydslSupport querydsl;
 
-    AuthSessionPersistenceAdapter(AuthSessionJpaRepository repository) {
+    AuthSessionPersistenceAdapter(
+            AuthSessionJpaRepository repository, AuthSessionQuerydslSupport querydsl) {
         this.repository = repository;
+        this.querydsl = querydsl;
     }
 
     @Override
@@ -44,8 +47,7 @@ class AuthSessionPersistenceAdapter implements AuthSessionStorePort {
     @Override
     public Optional<AuthenticatedSessionRecord> findAuthenticationByAccessTokenHash(
             String tokenHash) {
-        return repository
-                .findAuthenticationByAccessTokenHash(tokenHash)
+        return querydsl.findAuthenticationByAccessTokenHash(tokenHash)
                 .map(
                         row ->
                                 new AuthenticatedSessionRecord(

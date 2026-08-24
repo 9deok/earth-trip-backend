@@ -8,7 +8,7 @@ import com.earthtrip.identity.domain.UserAccount;
 import com.earthtrip.identity.domain.UserId;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Instant;

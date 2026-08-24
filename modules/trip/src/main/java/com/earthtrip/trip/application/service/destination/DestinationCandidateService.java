@@ -2,11 +2,11 @@ package com.earthtrip.trip.application.service.destination;
 
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.application.port.in.DestinationCandidateUseCase;
 import com.earthtrip.trip.application.port.out.DestinationCandidateStorePort;
 import com.earthtrip.trip.domain.DestinationCandidate;
 import com.earthtrip.trip.domain.TripId;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import java.time.Clock;
 import java.util.List;
 import java.util.Locale;

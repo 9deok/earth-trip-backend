@@ -5,7 +5,7 @@ import com.earthtrip.planning.application.port.out.PlanningResourceStorePort;
 import com.earthtrip.planning.domain.PlanningResource;
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import java.time.*;
 import java.util.*;
 import org.springframework.stereotype.Service;

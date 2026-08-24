@@ -28,6 +28,7 @@ public interface TripSegmentUseCase {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -37,6 +38,7 @@ public interface TripSegmentUseCase {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             Integer sortOrder,
             long baseVersion) {}
 
@@ -51,6 +53,7 @@ public interface TripSegmentUseCase {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -60,6 +63,7 @@ public interface TripSegmentUseCase {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             long version,
             UUID updatedBy,

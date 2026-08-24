@@ -1,8 +1,10 @@
 package com.earthtrip.trip.domain;
 
 import java.math.BigDecimal;
+import java.time.DateTimeException;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
@@ -23,6 +25,7 @@ public final class TripSegment {
     private String placeId;
     private BigDecimal latitude;
     private BigDecimal longitude;
+    private String timeZone;
     private LocalDate startDate;
     private LocalDate endDate;
     private String accommodationName;
@@ -32,6 +35,7 @@ public final class TripSegment {
     private String transportMode;
     private Instant departureAt;
     private Instant arrivalAt;
+    private Instant anchorAt;
     private int sortOrder;
     private final UUID createdBy;
     private UUID updatedBy;
@@ -48,6 +52,7 @@ public final class TripSegment {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -57,6 +62,7 @@ public final class TripSegment {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             UUID createdBy,
             UUID updatedBy,
@@ -72,6 +78,7 @@ public final class TripSegment {
                 placeId,
                 latitude,
                 longitude,
+                timeZone,
                 startDate,
                 endDate,
                 accommodationName,
@@ -81,6 +88,7 @@ public final class TripSegment {
                 transportMode,
                 departureAt,
                 arrivalAt,
+                anchorAt,
                 sortOrder,
                 updatedBy,
                 updatedAt);
@@ -98,6 +106,7 @@ public final class TripSegment {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -107,6 +116,7 @@ public final class TripSegment {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             UUID actorUserId,
             Instant now) {
@@ -119,6 +129,7 @@ public final class TripSegment {
                 placeId,
                 latitude,
                 longitude,
+                timeZone,
                 startDate,
                 endDate,
                 accommodationName,
@@ -128,6 +139,7 @@ public final class TripSegment {
                 transportMode,
                 departureAt,
                 arrivalAt,
+                anchorAt,
                 sortOrder,
                 actorUserId,
                 actorUserId,
@@ -145,6 +157,7 @@ public final class TripSegment {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -154,6 +167,7 @@ public final class TripSegment {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             UUID createdBy,
             UUID updatedBy,
@@ -169,6 +183,7 @@ public final class TripSegment {
                 placeId,
                 latitude,
                 longitude,
+                timeZone,
                 startDate,
                 endDate,
                 accommodationName,
@@ -178,6 +193,7 @@ public final class TripSegment {
                 transportMode,
                 departureAt,
                 arrivalAt,
+                anchorAt,
                 sortOrder,
                 createdBy,
                 updatedBy,
@@ -193,6 +209,7 @@ public final class TripSegment {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -202,6 +219,7 @@ public final class TripSegment {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             UUID actorUserId,
             Instant now) {
@@ -212,6 +230,7 @@ public final class TripSegment {
                 placeId,
                 latitude,
                 longitude,
+                timeZone,
                 startDate,
                 endDate,
                 accommodationName,
@@ -221,6 +240,7 @@ public final class TripSegment {
                 transportMode,
                 departureAt,
                 arrivalAt,
+                anchorAt,
                 sortOrder,
                 actorUserId,
                 now);
@@ -240,6 +260,7 @@ public final class TripSegment {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -249,6 +270,7 @@ public final class TripSegment {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             UUID actorUserId,
             Instant now) {
@@ -268,11 +290,12 @@ public final class TripSegment {
         }
         if (sortOrder < 0) throw new IllegalArgumentException("정렬 순서는 0 이상이어야 합니다.");
         this.cityName = normalize(cityName, 160);
-        this.countryCode =
-                countryCode == null ? null : countryCode.strip().toUpperCase(Locale.ROOT);
+        this.countryCode = normalizeCountryCode(countryCode);
         this.placeId = normalize(placeId, 255);
+        validateCoordinates(latitude, longitude);
         this.latitude = latitude;
         this.longitude = longitude;
+        this.timeZone = normalizeTimeZone(timeZone);
         this.startDate = startDate;
         this.endDate = endDate;
         this.accommodationName = normalize(accommodationName, 200);
@@ -282,6 +305,7 @@ public final class TripSegment {
         this.transportMode = normalize(transportMode, 40);
         this.departureAt = departureAt;
         this.arrivalAt = arrivalAt;
+        this.anchorAt = anchorAt;
         this.sortOrder = sortOrder;
         this.updatedBy = Objects.requireNonNull(actorUserId);
         this.updatedAt = Objects.requireNonNull(now);
@@ -293,6 +317,40 @@ public final class TripSegment {
         if (normalized.isEmpty()) return null;
         if (normalized.length() > max) throw new IllegalArgumentException("입력 값이 너무 깁니다.");
         return normalized;
+    }
+
+    private static String normalizeCountryCode(String value) {
+        String normalized = normalize(value, 2);
+        if (normalized == null) return null;
+        normalized = normalized.toUpperCase(Locale.ROOT);
+        if (!normalized.matches("[A-Z]{2}")) {
+            throw new IllegalArgumentException("국가 코드는 영문 두 글자여야 합니다.");
+        }
+        return normalized;
+    }
+
+    private static String normalizeTimeZone(String value) {
+        String normalized = normalize(value, 80);
+        if (normalized == null) return null;
+        try {
+            ZoneId.of(normalized);
+            return normalized;
+        } catch (DateTimeException exception) {
+            throw new IllegalArgumentException("올바른 시간대를 입력해 주세요.");
+        }
+    }
+
+    private static void validateCoordinates(BigDecimal latitude, BigDecimal longitude) {
+        if (latitude != null
+                && (latitude.compareTo(BigDecimal.valueOf(-90)) < 0
+                        || latitude.compareTo(BigDecimal.valueOf(90)) > 0)) {
+            throw new IllegalArgumentException("위도는 -90에서 90 사이여야 합니다.");
+        }
+        if (longitude != null
+                && (longitude.compareTo(BigDecimal.valueOf(-180)) < 0
+                        || longitude.compareTo(BigDecimal.valueOf(180)) > 0)) {
+            throw new IllegalArgumentException("경도는 -180에서 180 사이여야 합니다.");
+        }
     }
 
     public UUID id() {
@@ -325,6 +383,10 @@ public final class TripSegment {
 
     public BigDecimal longitude() {
         return longitude;
+    }
+
+    public String timeZone() {
+        return timeZone;
     }
 
     public LocalDate startDate() {
@@ -361,6 +423,10 @@ public final class TripSegment {
 
     public Instant arrivalAt() {
         return arrivalAt;
+    }
+
+    public Instant anchorAt() {
+        return anchorAt;
     }
 
     public int sortOrder() {

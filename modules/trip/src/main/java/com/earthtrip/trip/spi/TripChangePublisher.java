@@ -1,9 +1,9 @@
-package com.earthtrip.trip.api;
+package com.earthtrip.trip.spi;
 
 import java.util.Map;
 import java.util.UUID;
 
-/** 다른 도메인이 여행 작업공간 변경을 동기화 피드에 기록하는 공개 계약입니다. */
+/** 다른 모듈이 여행 작업공간 변경을 동기화 피드에 기록하도록 제공하는 SPI입니다. */
 public interface TripChangePublisher {
 
     void publish(

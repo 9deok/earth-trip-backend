@@ -1,21 +1,22 @@
 package com.earthtrip.notification.application.service.notification;
 
 import com.earthtrip.notification.api.NotificationPublisher;
+import com.earthtrip.notification.application.port.in.NotificationPublishUseCase;
 import com.earthtrip.notification.application.port.out.NotificationPreferenceStorePort;
 import com.earthtrip.notification.application.port.out.NotificationRecordStorePort;
 import com.earthtrip.notification.application.port.out.NotificationStoreRecords;
 import com.earthtrip.notification.application.port.out.PushDeviceStorePort;
+import com.earthtrip.notification.domain.NotificationDeliveryPolicy;
 import java.time.Clock;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
-class NotificationPublisherService implements NotificationPublisher {
+@Transactional
+class NotificationPublisherService implements NotificationPublisher, NotificationPublishUseCase {
 
     private final NotificationRecordStorePort notifications;
     private final NotificationPreferenceStorePort preferences;
@@ -37,13 +38,34 @@ class NotificationPublisherService implements NotificationPublisher {
     }
 
     @Override
-    public PublishResult publish(PublishCommand command) {
+    public PublishNotificationResult publish(PublishNotificationCommand command) {
+        NotificationPublisher.PublishResult result =
+                publish(
+                        new NotificationPublisher.PublishCommand(
+                                command.notificationId(),
+                                command.userId(),
+                                command.tripId(),
+                                command.type(),
+                                command.title(),
+                                command.body(),
+                                command.deepLink(),
+                                command.metadata()));
+        return new PublishNotificationResult(
+                result.notificationId(),
+                result.deliveredDevices(),
+                result.failedDevices(),
+                result.skippedDevices());
+    }
+
+    @Override
+    public NotificationPublisher.PublishResult publish(
+            NotificationPublisher.PublishCommand command) {
         UUID notificationId =
                 command.notificationId() == null ? UUID.randomUUID() : command.notificationId();
         NotificationStoreRecords.NotificationRecord existing =
                 notifications.find(notificationId).orElse(null);
         if (existing != null) {
-            return new PublishResult(
+            return new NotificationPublisher.PublishResult(
                     notificationId, 0, 0, devices.activeDevices(command.userId()).size());
         }
 
@@ -68,55 +90,32 @@ class NotificationPublisherService implements NotificationPublisher {
         NotificationStoreRecords.PreferenceRecord preference =
                 preferences.preference(command.userId()).orElse(null);
         var activeDevices = devices.activeDevices(command.userId());
-        if (!pushAllowed(preference, command.type()) || inQuietHours(preference)) {
-            return new PublishResult(notificationId, 0, 0, activeDevices.size());
+        if (!NotificationDeliveryPolicy.allowsPush(
+                notification.type(), deliveryPreference(preference), clock.instant())) {
+            return new NotificationPublisher.PublishResult(
+                    notificationId, 0, 0, activeDevices.size());
         }
 
         PushDeliveryCoordinator.DeliverySummary summary =
                 deliveries.deliver(notification, activeDevices);
-        return new PublishResult(notificationId, summary.delivered(), summary.failed(), 0);
+        return new NotificationPublisher.PublishResult(
+                notificationId, summary.delivered(), summary.failed(), 0);
     }
 
-    private static boolean pushAllowed(
-            NotificationStoreRecords.PreferenceRecord preference, String type) {
+    private static NotificationDeliveryPolicy.Preference deliveryPreference(
+            NotificationStoreRecords.PreferenceRecord preference) {
         if (preference == null) {
-            return true;
+            return null;
         }
-        if (!preference.push()) {
-            return false;
-        }
-        String normalized = normalizedType(type);
-        if (normalized.contains("MENTION")) {
-            return preference.mentions();
-        }
-        if (normalized.contains("SCHEDULE") || normalized.contains("CALENDAR")) {
-            return preference.schedule();
-        }
-        if (normalized.contains("EXPENSE") || normalized.contains("WALLET")) {
-            return preference.expense();
-        }
-        if (normalized.contains("INVITATION") || normalized.contains("INVITE")) {
-            return preference.invitation();
-        }
-        return true;
-    }
-
-    private boolean inQuietHours(NotificationStoreRecords.PreferenceRecord preference) {
-        if (preference == null
-                || preference.quietStart() == null
-                || preference.quietEnd() == null) {
-            return false;
-        }
-        ZoneId zone = ZoneId.of(preference.quietTimeZone());
-        LocalTime now = ZonedDateTime.ofInstant(clock.instant(), zone).toLocalTime();
-        LocalTime start = preference.quietStart();
-        LocalTime end = preference.quietEnd();
-        if (start.equals(end)) {
-            return true;
-        }
-        return start.isBefore(end)
-                ? !now.isBefore(start) && now.isBefore(end)
-                : !now.isBefore(start) || now.isBefore(end);
+        return new NotificationDeliveryPolicy.Preference(
+                preference.mentions(),
+                preference.schedule(),
+                preference.expense(),
+                preference.invitation(),
+                preference.push(),
+                preference.quietStart(),
+                preference.quietEnd(),
+                preference.quietTimeZone());
     }
 
     private static String normalizedType(String type) {

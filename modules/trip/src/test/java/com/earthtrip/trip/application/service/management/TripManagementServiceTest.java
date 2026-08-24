@@ -3,12 +3,13 @@ package com.earthtrip.trip.application.service.management;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
+import com.earthtrip.trip.application.port.in.TripSegmentUseCase;
 import com.earthtrip.trip.application.port.out.LoadTripPort;
 import com.earthtrip.trip.application.port.out.SaveTripPort;
 import com.earthtrip.trip.domain.Trip;
 import com.earthtrip.trip.domain.TripId;
 import com.earthtrip.trip.domain.TripTitle;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import com.earthtrip.trip.spi.TripMembershipLookup;
 import java.time.Clock;
 import java.time.Instant;
@@ -84,6 +85,7 @@ class TripManagementServiceTest {
                 memberships,
                 new UnusedTripAccess(),
                 new NoOpTripChanges(),
+                new EmptyTripSegments(),
                 Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
@@ -156,5 +158,38 @@ class TripManagementServiceTest {
                 String resourceType,
                 UUID resourceId,
                 Map<String, Object> details) {}
+    }
+
+    private static final class EmptyTripSegments implements TripSegmentUseCase {
+        @Override
+        public List<SegmentResult> list(UUID tripId, UUID actorUserId) {
+            return List.of();
+        }
+
+        @Override
+        public SegmentResult get(UUID tripId, UUID segmentId, UUID actorUserId) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public SegmentResult create(UUID tripId, UUID actorUserId, SegmentCommand command) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public SegmentResult update(
+                UUID tripId, UUID segmentId, UUID actorUserId, SegmentCommand command) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void delete(UUID tripId, UUID segmentId, UUID actorUserId, long baseVersion) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public List<SegmentResult> reorder(UUID tripId, UUID actorUserId, List<OrderItem> order) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

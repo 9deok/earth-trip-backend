@@ -2,11 +2,11 @@ package com.earthtrip.trip.application.service.datecandidate;
 
 import com.earthtrip.sharedkernel.error.EarthTripException;
 import com.earthtrip.trip.api.TripAccess;
-import com.earthtrip.trip.api.TripChangePublisher;
 import com.earthtrip.trip.application.port.in.DateCandidateUseCase;
 import com.earthtrip.trip.application.port.out.DateCandidateStorePort;
 import com.earthtrip.trip.domain.DateCandidate;
 import com.earthtrip.trip.domain.TripId;
+import com.earthtrip.trip.spi.TripChangePublisher;
 import java.time.Clock;
 import java.util.*;
 import org.springframework.stereotype.Service;

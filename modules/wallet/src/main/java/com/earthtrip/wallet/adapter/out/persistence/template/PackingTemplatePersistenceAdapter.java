@@ -18,16 +18,19 @@ class PackingTemplatePersistenceAdapter implements PackingTemplateStorePort {
     private static final TypeReference<List<UUID>> IDS = new TypeReference<>() {};
 
     private final PackingTemplateJpaRepository templates;
+    private final PackingTemplateQuerydslSupport querydsl;
     private final PackingTemplateApplicationJpaRepository applications;
     private final PreparationSuggestionDismissalJpaRepository dismissals;
     private final ObjectMapper json;
 
     PackingTemplatePersistenceAdapter(
             PackingTemplateJpaRepository templates,
+            PackingTemplateQuerydslSupport querydsl,
             PackingTemplateApplicationJpaRepository applications,
             PreparationSuggestionDismissalJpaRepository dismissals,
             ObjectMapper json) {
         this.templates = templates;
+        this.querydsl = querydsl;
         this.applications = applications;
         this.dismissals = dismissals;
         this.json = json;
@@ -35,7 +38,7 @@ class PackingTemplatePersistenceAdapter implements PackingTemplateStorePort {
 
     @Override
     public List<TemplateRecord> findVisible(UUID userId) {
-        return templates.findVisible(userId.toString()).stream().map(this::template).toList();
+        return querydsl.findVisible(userId.toString()).stream().map(this::template).toList();
     }
 
     @Override

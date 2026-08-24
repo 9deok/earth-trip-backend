@@ -41,6 +41,7 @@ public interface TripStructureUseCase {
             String placeId,
             BigDecimal latitude,
             BigDecimal longitude,
+            String timeZone,
             LocalDate startDate,
             LocalDate endDate,
             String accommodationName,
@@ -50,6 +51,7 @@ public interface TripStructureUseCase {
             String transportMode,
             Instant departureAt,
             Instant arrivalAt,
+            Instant anchorAt,
             int sortOrder,
             long baseVersion) {}
 

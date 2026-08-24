@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,6 +18,7 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
     private final WebhookReceiptJpaRepository receipts;
     private final DeadLetterJpaRepository deadLetters;
     private final AdminAuditJpaRepository audits;
+    private final OperationalQuerydslSupport querydsl;
     private final ObjectMapper json;
 
     OperationalPersistenceAdapter(
@@ -26,11 +26,13 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
             WebhookReceiptJpaRepository receipts,
             DeadLetterJpaRepository deadLetters,
             AdminAuditJpaRepository audits,
+            OperationalQuerydslSupport querydsl,
             ObjectMapper json) {
         this.jobs = jobs;
         this.receipts = receipts;
         this.deadLetters = deadLetters;
         this.audits = audits;
+        this.querydsl = querydsl;
         this.json = json;
     }
 
@@ -52,9 +54,7 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
 
     @Override
     public List<JobRecord> jobs(String status, String jobType, int limit) {
-        return jobs.search(status, jobType, PageRequest.of(0, limit)).stream()
-                .map(this::job)
-                .toList();
+        return querydsl.searchJobs(status, jobType, limit).stream().map(this::job).toList();
     }
 
     @Override
@@ -85,9 +85,7 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
 
     @Override
     public List<DeadLetterRecord> deadLetters(String status, int limit) {
-        return deadLetters.search(status, PageRequest.of(0, limit)).stream()
-                .map(this::deadLetter)
-                .toList();
+        return querydsl.searchDeadLetters(status, limit).stream().map(this::deadLetter).toList();
     }
 
     @Override
@@ -114,7 +112,7 @@ class OperationalPersistenceAdapter implements OperationalStorePort {
     @Override
     public List<AuditRecord> auditEvents(
             String action, String targetType, String targetId, int limit) {
-        return audits.search(action, targetType, targetId, PageRequest.of(0, limit)).stream()
+        return querydsl.searchAudits(action, targetType, targetId, limit).stream()
                 .map(this::audit)
                 .toList();
     }

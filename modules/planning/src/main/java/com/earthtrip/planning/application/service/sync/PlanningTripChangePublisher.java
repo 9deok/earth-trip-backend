@@ -1,8 +1,8 @@
 package com.earthtrip.planning.application.service.sync;
 
 import com.earthtrip.planning.application.port.out.ActivityOperationStorePort;
-import com.earthtrip.trip.api.TripChangePublisher;
-import com.earthtrip.trip.api.TripRealtimeNotifier;
+import com.earthtrip.trip.spi.TripChangePublisher;
+import com.earthtrip.trip.spi.TripRealtimeNotifier;
 import java.time.Clock;
 import java.util.Collections;
 import java.util.LinkedHashMap;

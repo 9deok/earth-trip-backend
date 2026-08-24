@@ -125,12 +125,13 @@ class RoutePreferenceService implements RoutePreferenceUseCase {
                 bool(payload.get("endAtAccommodation"), true),
                 bool(payload.get("avoidTolls"), false),
                 bool(payload.get("accessibilityRequired"), false),
-                resource.version());
+                resource.version(),
+                true);
     }
 
     private static PreferenceResult defaults() {
         return new PreferenceResult(
-                List.of("WALKING", "TRANSIT"), 30, 10, true, true, false, false, 0);
+                List.of("WALKING", "TRANSIT"), 30, 10, true, true, false, false, 0, false);
     }
 
     private static List<String> modes(Object value) {

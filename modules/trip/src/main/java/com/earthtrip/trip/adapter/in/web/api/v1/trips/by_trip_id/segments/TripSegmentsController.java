@@ -55,6 +55,7 @@ class TripSegmentsController {
                 r.placeId(),
                 r.latitude(),
                 r.longitude(),
+                r.timeZone(),
                 r.startDate(),
                 r.endDate(),
                 r.accommodationName(),
@@ -64,6 +65,7 @@ class TripSegmentsController {
                 r.transportMode(),
                 r.departureAt(),
                 r.arrivalAt(),
+                r.anchorAt(),
                 r.sortOrder(),
                 baseVersion);
     }
@@ -78,6 +80,7 @@ class TripSegmentsController {
                 s.placeId(),
                 s.latitude(),
                 s.longitude(),
+                s.timeZone(),
                 s.startDate(),
                 s.endDate(),
                 s.accommodationName(),
@@ -87,6 +90,7 @@ class TripSegmentsController {
                 s.transportMode(),
                 s.departureAt(),
                 s.arrivalAt(),
+                s.anchorAt(),
                 s.sortOrder(),
                 s.version(),
                 s.updatedBy(),
@@ -102,6 +106,7 @@ record TripSegmentRequest(
         String placeId,
         BigDecimal latitude,
         BigDecimal longitude,
+        String timeZone,
         LocalDate startDate,
         LocalDate endDate,
         String accommodationName,
@@ -111,6 +116,7 @@ record TripSegmentRequest(
         String transportMode,
         Instant departureAt,
         Instant arrivalAt,
+        Instant anchorAt,
         @Min(0) Integer sortOrder) {}
 
 record TripSegmentResponse(
@@ -122,6 +128,7 @@ record TripSegmentResponse(
         String placeId,
         BigDecimal latitude,
         BigDecimal longitude,
+        String timeZone,
         LocalDate startDate,
         LocalDate endDate,
         String accommodationName,
@@ -131,6 +138,7 @@ record TripSegmentResponse(
         String transportMode,
         Instant departureAt,
         Instant arrivalAt,
+        Instant anchorAt,
         int sortOrder,
         long version,
         UUID updatedBy,

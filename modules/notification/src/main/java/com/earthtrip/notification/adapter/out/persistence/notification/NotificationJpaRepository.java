@@ -27,33 +27,4 @@ interface NotificationJpaRepository extends JpaRepository<NotificationJpaEntity,
             @Param("userId") String userId,
             @Param("notificationIds") Collection<String> notificationIds,
             @Param("readAt") Instant readAt);
-
-    @Query(
-            """
-        select notification.tripId as key, count(notification) as total
-          from NotificationJpaEntity notification
-         where notification.userId = :userId
-           and notification.hiddenAt is null
-           and notification.readAt is null
-           and notification.tripId is not null
-         group by notification.tripId
-        """)
-    List<GroupCount> unreadByTrip(@Param("userId") String userId);
-
-    @Query(
-            """
-        select notification.type as key, count(notification) as total
-          from NotificationJpaEntity notification
-         where notification.userId = :userId
-           and notification.hiddenAt is null
-           and notification.readAt is null
-         group by notification.type
-        """)
-    List<GroupCount> unreadByType(@Param("userId") String userId);
-
-    interface GroupCount {
-        String getKey();
-
-        long getTotal();
-    }
 }

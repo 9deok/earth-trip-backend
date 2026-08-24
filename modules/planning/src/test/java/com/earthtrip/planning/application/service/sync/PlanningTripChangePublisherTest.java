@@ -4,7 +4,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 import com.earthtrip.planning.application.port.out.ActivityOperationStorePort;
-import com.earthtrip.trip.api.TripRealtimeNotifier;
+import com.earthtrip.trip.spi.TripRealtimeNotifier;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;

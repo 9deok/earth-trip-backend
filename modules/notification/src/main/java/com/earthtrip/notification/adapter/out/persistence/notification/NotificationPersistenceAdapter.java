@@ -30,6 +30,7 @@ class NotificationPersistenceAdapter
     private static final TypeReference<Map<String, Object>> MAP = new TypeReference<>() {};
 
     private final NotificationJpaRepository notifications;
+    private final NotificationQuerydslSupport querydsl;
     private final NotificationPreferenceJpaRepository preferences;
     private final PushDeviceJpaRepository devices;
     private final PushDeliveryAttemptJpaRepository deliveryAttempts;
@@ -37,11 +38,13 @@ class NotificationPersistenceAdapter
 
     NotificationPersistenceAdapter(
             NotificationJpaRepository notifications,
+            NotificationQuerydslSupport querydsl,
             NotificationPreferenceJpaRepository preferences,
             PushDeviceJpaRepository devices,
             PushDeliveryAttemptJpaRepository deliveryAttempts,
             ObjectMapper json) {
         this.notifications = notifications;
+        this.querydsl = querydsl;
         this.preferences = preferences;
         this.devices = devices;
         this.deliveryAttempts = deliveryAttempts;
@@ -84,11 +87,10 @@ class NotificationPersistenceAdapter
     public NotificationSummaryRecord summary(UUID userId) {
         String id = userId.toString();
         Map<UUID, Long> byTrip = new LinkedHashMap<>();
-        notifications
-                .unreadByTrip(id)
-                .forEach(row -> byTrip.put(UUID.fromString(row.getKey()), row.getTotal()));
+        querydsl.unreadByTrip(id)
+                .forEach(row -> byTrip.put(UUID.fromString(row.key()), row.total()));
         Map<String, Long> byType = new LinkedHashMap<>();
-        notifications.unreadByType(id).forEach(row -> byType.put(row.getKey(), row.getTotal()));
+        querydsl.unreadByType(id).forEach(row -> byType.put(row.key(), row.total()));
         return new NotificationSummaryRecord(
                 notifications.countByUserIdAndHiddenAtIsNullAndReadAtIsNull(id),
                 Map.copyOf(byTrip),

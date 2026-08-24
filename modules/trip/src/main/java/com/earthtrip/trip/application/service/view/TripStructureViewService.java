@@ -47,6 +47,7 @@ class TripStructureViewService implements TripStructureView {
                                                 segment.placeId(),
                                                 segment.latitude(),
                                                 segment.longitude(),
+                                                segment.timeZone(),
                                                 segment.startDate(),
                                                 segment.endDate(),
                                                 segment.accommodationName(),
@@ -56,6 +57,7 @@ class TripStructureViewService implements TripStructureView {
                                                 segment.transportMode(),
                                                 segment.departureAt(),
                                                 segment.arrivalAt(),
+                                                segment.anchorAt(),
                                                 segment.sortOrder(),
                                                 segment.version()))
                         .toList());
