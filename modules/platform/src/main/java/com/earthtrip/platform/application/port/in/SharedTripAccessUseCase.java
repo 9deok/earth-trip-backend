@@ -4,14 +4,22 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public interface SharedTripAccessUseCase {
 
     SharedTripResult sharedTrip(String token, String passwordSessionToken);
 
+    SharedTripResult publicTrip(UUID publicationId);
+
     PasswordSessionResult verifyPassword(String token, String password);
 
     record SharedTripResult(
+            UUID publicationId,
+            String authorName,
+            String publicNote,
+            Map<String, String> publicContent,
+            Instant publishedAt,
             String title,
             LocalDate startDate,
             LocalDate endDate,

@@ -4,9 +4,11 @@ import com.earthtrip.platform.application.port.in.TripShareManagementUseCase;
 import com.earthtrip.sharedkernel.security.CurrentActor;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,9 +49,22 @@ record ShareLinkRequest(
         @Size(min = 1, max = 120) String name,
         @NotNull @Size(min = 1, max = 4) List<String> scopes,
         @Size(min = 4, max = 128) String password,
+        @Pattern(regexp = "LINK_ONLY|PUBLIC") String visibility,
+        @Size(max = 500) String publicNote,
+        @Size(max = 9) Map<String, String> publicContent,
         Instant expiresAt) {
     TripShareManagementUseCase.ShareLinkCommand toCommand() {
         return new TripShareManagementUseCase.ShareLinkCommand(
-                requestId, name, scopes, password, false, expiresAt, false, 0);
+                requestId,
+                name,
+                scopes,
+                password,
+                false,
+                visibility,
+                publicNote,
+                publicContent,
+                expiresAt,
+                false,
+                0);
     }
 }

@@ -48,6 +48,8 @@ class IdentitySecurityConfiguration {
                                         .requestMatchers(
                                                 HttpMethod.GET, "/api/v1/reference-data/**")
                                         .permitAll()
+                                        .requestMatchers(HttpMethod.GET, "/api/v1/public-trips/**")
+                                        .permitAll()
                                         .requestMatchers(HttpMethod.GET, "/api/v1/policies/current")
                                         .permitAll()
                                         .requestMatchers(

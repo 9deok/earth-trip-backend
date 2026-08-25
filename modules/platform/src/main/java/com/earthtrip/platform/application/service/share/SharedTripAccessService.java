@@ -17,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ class SharedTripAccessService implements SharedTripAccessUseCase {
     private final ShareAccessRecorder accessRecorder;
     private final ShareCredentialPort credentials;
     private final Clock clock;
+    private final TripShareAuthorResolver authors;
 
     SharedTripAccessService(
             TripStructureView structure,
@@ -43,7 +45,8 @@ class SharedTripAccessService implements SharedTripAccessUseCase {
             TripShareStorePort store,
             ShareAccessRecorder accessRecorder,
             ShareCredentialPort credentials,
-            Clock clock) {
+            Clock clock,
+            TripShareAuthorResolver authors) {
         this.structure = structure;
         this.planning = planning;
         this.wallet = wallet;
@@ -53,6 +56,7 @@ class SharedTripAccessService implements SharedTripAccessUseCase {
         this.accessRecorder = accessRecorder;
         this.credentials = credentials;
         this.clock = clock;
+        this.authors = authors;
     }
 
     @Override
@@ -72,6 +76,20 @@ class SharedTripAccessService implements SharedTripAccessUseCase {
             event(share.id(), false, "PROJECTION_DENIED");
             throw exception;
         }
+    }
+
+    @Override
+    public SharedTripResult publicTrip(UUID publicationId) {
+        TripShareStorePort.ShareRecord share =
+                store.findById(publicationId).orElseThrow(SharedTripAccessService::notFound);
+        requireActive(share);
+        requireTripAvailable(share);
+        if (!share.visibility().equals("PUBLIC") || share.passwordHash() != null) {
+            throw notFound();
+        }
+        SharedTripResult result = shared(share);
+        event(share.id(), true, "OPENED_PUBLIC");
+        return result;
     }
 
     @Override
@@ -152,6 +170,11 @@ class SharedTripAccessService implements SharedTripAccessUseCase {
                                 .toList()
                         : List.of();
         return new SharedTripResult(
+                share.id(),
+                authors.displayName(share),
+                share.publicNote(),
+                share.publicContent(),
+                share.updatedAt(),
                 trip.trip().title(),
                 trip.trip().startDate(),
                 trip.trip().endDate(),

@@ -2,12 +2,15 @@ package com.earthtrip.platform.application.port.out;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface TripShareStorePort {
 
     List<ShareRecord> findAll(UUID tripId);
+
+    List<ShareRecord> findPublic(int limit);
 
     Optional<ShareRecord> findById(UUID shareId);
 
@@ -31,6 +34,9 @@ public interface TripShareStorePort {
             List<String> scopes,
             String passwordHash,
             UUID projectionUserId,
+            String visibility,
+            String publicNote,
+            Map<String, String> publicContent,
             Instant expiresAt,
             String status,
             UUID createdBy,

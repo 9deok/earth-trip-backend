@@ -2,6 +2,7 @@ package com.earthtrip.platform.application.port.in;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public interface TripShareManagementUseCase {
@@ -22,6 +23,9 @@ public interface TripShareManagementUseCase {
             List<String> scopes,
             String password,
             Boolean removePassword,
+            String visibility,
+            String publicNote,
+            Map<String, String> publicContent,
             Instant expiresAt,
             Boolean removeExpiry,
             long baseVersion) {}
@@ -31,12 +35,20 @@ public interface TripShareManagementUseCase {
             String name,
             List<String> scopes,
             boolean passwordProtected,
+            String visibility,
+            String publicNote,
+            Map<String, String> publicContent,
             Instant expiresAt,
             String status,
             String shareToken,
             UUID createdBy,
             Instant createdAt,
             Instant updatedAt,
+            long viewCount,
+            long likeCount,
+            long helpfulCount,
+            long commentCount,
+            long copyCount,
             long version) {}
 
     record AccessEventResult(UUID eventId, boolean success, String reason, Instant occurredAt) {}

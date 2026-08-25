@@ -35,6 +35,15 @@ class TripShareLinkJpaEntity {
     @Column(name = "projection_user_id", nullable = false, length = 36)
     private String projectionUserId;
 
+    @Column(name = "visibility", nullable = false, length = 20)
+    private String visibility;
+
+    @Column(name = "public_note", length = 500)
+    private String publicNote;
+
+    @Column(name = "public_content_json", columnDefinition = "JSON")
+    private String publicContent;
+
     @Column(name = "expires_at")
     private Instant expiresAt;
 
@@ -59,20 +68,24 @@ class TripShareLinkJpaEntity {
 
     protected TripShareLinkJpaEntity() {}
 
-    TripShareLinkJpaEntity(TripShareStorePort.ShareRecord record, String scopes) {
+    TripShareLinkJpaEntity(
+            TripShareStorePort.ShareRecord record, String scopes, String publicContent) {
         id = record.id().toString();
         tripId = record.tripId().toString();
         tokenHash = record.tokenHash();
         projectionUserId = record.projectionUserId().toString();
         createdBy = record.createdBy().toString();
         createdAt = record.createdAt();
-        apply(record, scopes);
+        apply(record, scopes, publicContent);
     }
 
-    void apply(TripShareStorePort.ShareRecord record, String scopes) {
+    void apply(TripShareStorePort.ShareRecord record, String scopes, String publicContent) {
         name = record.name();
         this.scopes = scopes;
         passwordHash = record.passwordHash();
+        visibility = record.visibility();
+        publicNote = record.publicNote();
+        this.publicContent = publicContent;
         expiresAt = record.expiresAt();
         status = record.status();
         updatedAt = record.updatedAt();
@@ -83,7 +96,12 @@ class TripShareLinkJpaEntity {
         return scopes;
     }
 
-    TripShareStorePort.ShareRecord toRecord(java.util.List<String> scopeList) {
+    String publicContent() {
+        return publicContent;
+    }
+
+    TripShareStorePort.ShareRecord toRecord(
+            java.util.List<String> scopeList, java.util.Map<String, String> publicContentValues) {
         return new TripShareStorePort.ShareRecord(
                 UUID.fromString(id),
                 UUID.fromString(tripId),
@@ -92,6 +110,9 @@ class TripShareLinkJpaEntity {
                 scopeList,
                 passwordHash,
                 UUID.fromString(projectionUserId),
+                visibility,
+                publicNote,
+                publicContentValues,
                 expiresAt,
                 status,
                 UUID.fromString(createdBy),

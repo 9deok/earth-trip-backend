@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Component;
 @Component
 class TripSharePersistenceAdapter implements TripShareStorePort {
     private static final TypeReference<List<String>> SCOPES = new TypeReference<>() {};
+    private static final TypeReference<Map<String, String>> PUBLIC_CONTENT =
+            new TypeReference<>() {};
     private final TripShareLinkJpaRepository links;
     private final TripSharePasswordSessionJpaRepository sessions;
     private final TripShareAccessEventJpaRepository events;
@@ -36,6 +39,14 @@ class TripSharePersistenceAdapter implements TripShareStorePort {
     }
 
     @Override
+    public List<ShareRecord> findPublic(int limit) {
+        return links.findTop50ByStatusAndVisibilityOrderByUpdatedAtDesc("ACTIVE", "PUBLIC").stream()
+                .limit(Math.max(1, Math.min(limit, 50)))
+                .map(this::share)
+                .toList();
+    }
+
+    @Override
     public Optional<ShareRecord> findById(UUID shareId) {
         return links.findById(shareId.toString()).map(this::share);
     }
@@ -48,14 +59,16 @@ class TripSharePersistenceAdapter implements TripShareStorePort {
     @Override
     public ShareRecord save(ShareRecord record) {
         String scopes = write(record.scopes());
+        String publicContent =
+                record.publicContent().isEmpty() ? null : write(record.publicContent());
         TripShareLinkJpaEntity entity =
                 links.findById(record.id().toString())
                         .map(
                                 existing -> {
-                                    existing.apply(record, scopes);
+                                    existing.apply(record, scopes, publicContent);
                                     return existing;
                                 })
-                        .orElseGet(() -> new TripShareLinkJpaEntity(record, scopes));
+                        .orElseGet(() -> new TripShareLinkJpaEntity(record, scopes, publicContent));
         return share(links.saveAndFlush(entity));
     }
 
@@ -83,7 +96,11 @@ class TripSharePersistenceAdapter implements TripShareStorePort {
 
     private ShareRecord share(TripShareLinkJpaEntity entity) {
         try {
-            return entity.toRecord(json.readValue(entity.scopes(), SCOPES));
+            Map<String, String> publicContent =
+                    entity.publicContent() == null
+                            ? Map.of()
+                            : json.readValue(entity.publicContent(), PUBLIC_CONTENT);
+            return entity.toRecord(json.readValue(entity.scopes(), SCOPES), publicContent);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("저장된 공유 범위를 읽을 수 없습니다.", exception);
         }

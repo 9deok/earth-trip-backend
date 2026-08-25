@@ -19,6 +19,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -48,6 +49,9 @@ class SharedTripAccessServiceTest {
                                         List.of("STRUCTURE"),
                                         "password-hash",
                                         UUID.randomUUID(),
+                                        "LINK_ONLY",
+                                        null,
+                                        Map.of(),
                                         null,
                                         "ACTIVE",
                                         UUID.randomUUID(),
@@ -67,7 +71,8 @@ class SharedTripAccessServiceTest {
                         store,
                         mock(ShareAccessRecorder.class),
                         credentials,
-                        Clock.fixed(NOW, ZoneOffset.UTC));
+                        Clock.fixed(NOW, ZoneOffset.UTC),
+                        mock(TripShareAuthorResolver.class));
 
         assertThatThrownBy(() -> service.verifyPassword("share-token", "1234"))
                 .isInstanceOfSatisfying(

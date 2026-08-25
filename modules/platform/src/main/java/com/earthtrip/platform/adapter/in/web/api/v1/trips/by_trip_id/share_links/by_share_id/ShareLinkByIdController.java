@@ -3,10 +3,12 @@ package com.earthtrip.platform.adapter.in.web.api.v1.trips.by_trip_id.share_link
 import com.earthtrip.platform.application.port.in.TripShareManagementUseCase;
 import com.earthtrip.sharedkernel.security.CurrentActor;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -53,11 +55,24 @@ record ShareLinkPatchRequest(
         @Size(min = 1, max = 4) List<String> scopes,
         @Size(min = 4, max = 128) String password,
         Boolean removePassword,
+        @Pattern(regexp = "LINK_ONLY|PUBLIC") String visibility,
+        @Size(max = 500) String publicNote,
+        @Size(max = 9) Map<String, String> publicContent,
         Instant expiresAt,
         Boolean removeExpiry,
         @PositiveOrZero long baseVersion) {
     TripShareManagementUseCase.ShareLinkCommand toCommand() {
         return new TripShareManagementUseCase.ShareLinkCommand(
-                null, name, scopes, password, removePassword, expiresAt, removeExpiry, baseVersion);
+                null,
+                name,
+                scopes,
+                password,
+                removePassword,
+                visibility,
+                publicNote,
+                publicContent,
+                expiresAt,
+                removeExpiry,
+                baseVersion);
     }
 }
