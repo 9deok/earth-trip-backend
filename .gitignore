@@ -1,9 +1,20 @@
 HELP.md
 .gradle
+.gradle-local/
 build/
+logs/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
+.env
+.env.*
+!.env.example
+application-local.yml
+application-local.yaml
+*.pem
+*.key
+*.p12
+*.jks
 
 ### STS ###
 .apt_generated
@@ -35,3 +46,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### macOS ###
+.DS_Store
